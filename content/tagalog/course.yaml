@@ -85,7 +85,7 @@ units:
           - { tl: isda, en: fish, pos: noun, ex: ["Sariwa ang isda.", "The fish is fresh."] }
           - { tl: manok, en: chicken, pos: noun, ex: ["Kumakain siya ng manok.", "She is eating chicken."], exAccept: ["He is eating chicken.", "She's eating chicken.", "He's eating chicken."] }
           - { tl: kape, en: coffee, pos: noun, ex: ["Umiinom ako ng kape.", "I am drinking coffee."], exAccept: ["I'm drinking coffee."] }
-          - { tl: tinapay, en: bread, pos: noun, ex: ["May tinapay ba?", "Is there bread?"], exAccept: ["Is there any bread?"] }
+          - { tl: tinapay, en: bread, pos: noun, ex: ["May tinapay ba?", "Is there bread?"], exAccept: ["Is there any bread?", "Do you have bread?", "Do you have any bread?"] }
           - { tl: gatas, en: milk, pos: noun, ex: ["Malamig ang gatas.", "The milk is cold."] }
           - { tl: masarap, en: delicious, accept: [tasty, yummy], pos: adjective, ex: ["Masarap ang adobo.", "The adobo is delicious."], exAccept: ["The adobo is tasty."] }
           - { tl: gutom, en: hungry, pos: adjective, ex: ["Gutom na ako.", "I'm hungry now."], exAccept: ["I am hungry now.", "I'm hungry.", "I am hungry."] }
@@ -102,16 +102,16 @@ units:
           - title: Ate, Kuya, Lola
             words: [ate, kuya, lola, lolo, anak]
         words:
-          - { tl: nanay, en: mom, accept: [mother, mum], pos: noun, ex: ["Nasa bahay si Nanay.", "Mom is at home."], exAccept: ["Mother is at home.", "Mom is home."] }
+          - { tl: nanay, en: mom, accept: [mother, mum], pos: noun, ex: ["Nasa bahay si Nanay.", "Mom is at home."], exAccept: ["Mother is at home.", "Mom is home.", "Mum is at home."] }
           - { tl: tatay, en: dad, accept: [father], pos: noun, ex: ["Nagluluto si Tatay.", "Dad is cooking."], exAccept: ["Father is cooking."] }
           - { tl: kapatid, en: sibling, accept: [brother, sister], pos: noun, ex: ["May kapatid ka ba?", "Do you have a sibling?"], exAccept: ["Do you have siblings?", "Do you have a brother or sister?"] }
           - { tl: bahay, en: house, accept: [home], pos: noun, ex: ["Malaki ang bahay.", "The house is big."] }
-          - { tl: pamilya, en: family, pos: noun, ex: ["Malaki ang pamilya ko.", "My family is big."] }
-          - { tl: ate, en: older sister, accept: [big sister], pos: noun, note: "Also used respectfully for any slightly older woman.", ex: ["Nag-aaral si Ate.", "My older sister is studying."], exAccept: ["Big sister is studying.", "My big sister is studying."] }
-          - { tl: kuya, en: older brother, accept: [big brother], pos: noun, note: "Also used respectfully for any slightly older man.", ex: ["Mabait si Kuya.", "My older brother is kind."], exAccept: ["Big brother is kind.", "My big brother is kind."] }
+          - { tl: pamilya, en: family, pos: noun, ex: ["Malaki ang pamilya ko.", "My family is big."], exAccept: ["I have a big family."] }
+          - { tl: ate, en: older sister, accept: [big sister], pos: noun, note: "Also used respectfully for any slightly older woman.", ex: ["Nag-aaral si Ate.", "My older sister is studying."], exAccept: ["Big sister is studying.", "My big sister is studying.", "Older sister is studying."] }
+          - { tl: kuya, en: older brother, accept: [big brother], pos: noun, note: "Also used respectfully for any slightly older man.", ex: ["Mabait si Kuya.", "My older brother is kind."], exAccept: ["Big brother is kind.", "My big brother is kind.", "Older brother is kind."] }
           - { tl: lola, en: grandma, accept: [grandmother], pos: noun, ex: ["Mahal ko si Lola.", "I love Grandma."], exAccept: ["I love grandmother.", "I love my grandma."] }
           - { tl: lolo, en: grandpa, accept: [grandfather], pos: noun, ex: ["Natutulog si Lolo.", "Grandpa is sleeping."], exAccept: ["Grandfather is sleeping."] }
-          - { tl: anak, en: child, accept: [son, daughter, offspring], pos: noun, note: "Your own child (son or daughter), not a child in general (bata).", ex: ["Dalawa ang anak nila.", "They have two children."] }
+          - { tl: anak, en: child, accept: [son, daughter, offspring], pos: noun, note: "Your own child (son or daughter), not a child in general (bata).", ex: ["Dalawa ang anak nila.", "They have two children."], exAccept: ["They have two kids."] }
 
   - slug: sa-bayan
     title: Sa Bayan
@@ -136,7 +136,7 @@ units:
           - { tl: anim, en: six, pos: number, ex: ["Anim ang itlog.", "There are six eggs."] }
           - { tl: pito, en: seven, pos: number, ex: ["Pito ang araw sa isang linggo.", "There are seven days in a week."] }
           - { tl: walo, en: eight, pos: number, ex: ["Walo ang pusa ni Lola.", "Grandma has eight cats."] }
-          - { tl: siyam, en: nine, pos: number, ex: ["Siyam na taon na siya.", "She is nine years old."], exAccept: ["He is nine years old."] }
+          - { tl: siyam, en: nine, pos: number, ex: ["Siyam na taon na siya.", "She is nine years old."], exAccept: ["He is nine years old.", "She's nine years old.", "He's nine years old.", "She is nine.", "He is nine."] }
           - { tl: sampu, en: ten, pos: number, ex: ["Sampu ang estudyante.", "There are ten students."] }
 
       - slug: mga-lugar
@@ -173,13 +173,13 @@ units:
         words:
           - { tl: ngayon, en: now, accept: [today], pos: adverb, ex: ["Pagod ako ngayon.", "I'm tired today."], exAccept: ["I am tired today.", "I'm tired now.", "I am tired now."] }
           - { tl: bukas, en: tomorrow, pos: adverb, note: "Also means open (Bukas ang tindahan = The store is open). Context decides.", ex: ["Kita tayo bukas.", "See you tomorrow."] }
-          - { tl: kahapon, en: yesterday, pos: adverb, ex: ["Umulan kahapon.", "It rained yesterday."] }
+          - { tl: kahapon, en: yesterday, pos: adverb, ex: ["Umulan kahapon.", "It rained yesterday."], exAccept: ["It was raining yesterday."] }
           - { tl: umaga, en: morning, pos: noun, ex: ["Maganda ang umaga.", "The morning is beautiful."], exAccept: ["It's a beautiful morning."] }
           - { tl: gabi, en: night, accept: [evening], pos: noun, ex: ["Tahimik ang gabi.", "The night is quiet."], exAccept: ["The evening is quiet."] }
           - { tl: hapon, en: afternoon, pos: noun, ex: ["Mainit sa hapon.", "It's hot in the afternoon."], exAccept: ["It is hot in the afternoon."] }
           - { tl: araw, en: day, accept: [sun], pos: noun, note: "Means both day and sun.", ex: ["Mainit ang araw.", "The sun is hot."], exAccept: ["The day is hot.", "It is a hot day."] }
           - { tl: oras, en: time, accept: [hour], pos: noun, ex: ["Anong oras na?", "What time is it?"] }
-          - { tl: Lunes, en: Monday, pos: noun, ex: ["May klase ako sa Lunes.", "I have class on Monday."] }
+          - { tl: Lunes, en: Monday, pos: noun, ex: ["May klase ako sa Lunes.", "I have class on Monday."], exAccept: ["I have a class on Monday.", "I have classes on Monday."] }
           - { tl: Biyernes, en: Friday, pos: noun, ex: ["Biyernes na bukas.", "Tomorrow is Friday."], exAccept: ["It's Friday tomorrow."] }
           - { tl: Linggo, en: Sunday, accept: [week], pos: noun, note: "Linggo is Sunday; lowercase linggo also means week.", ex: ["Nagsisimba kami tuwing Linggo.", "We go to church every Sunday."] }
 

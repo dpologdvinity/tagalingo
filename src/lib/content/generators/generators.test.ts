@@ -51,8 +51,8 @@ describe("StubGenerator", () => {
     }
   });
 
-  it("only uses fill-in-the-blank distractors with a different part of speech", async () => {
-    const req = allRequests[0];
+  it("prefers fill-in-the-blank distractors with a different part of speech", async () => {
+    const req = allRequests[0]; // pagbati mixes phrases, particles and adjectives
     const { exercises } = await stub.generate(req);
     const posOf = new Map(req.allWords.map((w) => [w.tl.toLowerCase(), w.pos]));
     for (const ex of exercises) {
@@ -61,6 +61,69 @@ describe("StubGenerator", () => {
       ex.payload.options.forEach((o, i) => {
         if (i !== ex.payload.answerIndex) expect(posOf.get(o.toLowerCase())).not.toBe(answerPos);
       });
+    }
+  });
+
+  it("includes at least one fill-in-the-blank in every lesson, even single-POS skills", async () => {
+    for (const req of allRequests) {
+      const { exercises } = await stub.generate(req);
+      expect(exercises.some((e) => e.type === "fill_blank"), `${req.skill.slug} ${req.lesson.title}`).toBe(true);
+    }
+  });
+
+  it("never repeats an exercise or reuses an example sentence within a lesson", async () => {
+    for (const req of allRequests) {
+      const { exercises } = await stub.generate(req);
+      const keys = exercises.map((e) => JSON.stringify(e));
+      expect(new Set(keys).size, req.lesson.title).toBe(keys.length);
+      const sentences = req.allWords.map((w) => w.ex);
+      const used = new Map<number, number>();
+      for (const e of exercises) {
+        const text = JSON.stringify(e.payload).toLowerCase();
+        sentences.forEach(([tl, en], i) => {
+          const tiles = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}' ]/gu, "");
+          if (e.type === "match_pairs") return;
+          const hits =
+            text.includes(JSON.stringify(tl.toLowerCase())) ||
+            text.includes(JSON.stringify(en.toLowerCase())) ||
+            (e.type === "word_bank" && (tiles(e.payload.answer.join(" ")) === tiles(tl) || tiles(e.payload.answer.join(" ")) === tiles(en)));
+          if (hits) used.set(i, (used.get(i) ?? 0) + 1);
+        });
+      }
+      for (const [i, n] of used) expect(n, `${req.lesson.title}: "${sentences[i][0]}" used ${n}×`).toBe(1);
+    }
+  });
+
+  it("only capitalises fill-in-the-blank options when the blank starts the sentence", async () => {
+    for (const req of allRequests) {
+      const { exercises } = await stub.generate(req);
+      for (const ex of exercises) {
+        if (ex.type !== "fill_blank" || ex.payload.sentence.startsWith("___")) continue;
+        const answer = ex.payload.options[ex.payload.answerIndex];
+        ex.payload.options.forEach((o, i) => {
+          if (i === ex.payload.answerIndex) return;
+          // Allowed: capitalised headwords (Lunes) and words used as names elsewhere ("si Kuya").
+          const usedAsName = req.allWords.some(
+            (w) => w.tl === o || w.ex.some((sentence) => new RegExp(`\\s${o}\\b`, "u").test(sentence)),
+          );
+          if (!usedAsName) expect(o[0], `${ex.payload.sentence} (${answer})`).toBe(o[0].toLowerCase());
+          expect(o).not.toBe("kuya"); // regression: should read "Kuya" after "si"
+        });
+      }
+    }
+  });
+
+  it("does not reuse the same distractor tile across word banks in a lesson", async () => {
+    for (const req of allRequests) {
+      const { exercises } = await stub.generate(req);
+      const seen = new Set<string>();
+      for (const ex of exercises) {
+        if (ex.type !== "word_bank") continue;
+        for (const t of ex.payload.distractors) {
+          expect(seen.has(t.toLowerCase()), `${req.lesson.title}: tile "${t}" reused`).toBe(false);
+          seen.add(t.toLowerCase());
+        }
+      }
     }
   });
 });

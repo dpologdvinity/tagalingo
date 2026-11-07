@@ -69,6 +69,10 @@ function properNouns(words: CourseWord[]): Set<string> {
 class LessonBuilder {
   private readonly rand: () => number;
   private readonly proper: Set<string>;
+  /** Headwords whose example sentence already appears somewhere in this lesson. */
+  private readonly usedSentences = new Set<string>();
+  /** Distractor tiles already shown in this lesson (lower-cased). */
+  private readonly usedTiles = new Set<string>();
 
   constructor(private readonly req: GenerationRequest) {
     this.rand = rng(hash(`${req.skill.slug}#${req.lesson.index}`));
@@ -106,12 +110,28 @@ class LessonBuilder {
     return this.choice(w.en, "en", w.tl, wrong);
   }
 
+  /** Reserve `w`'s example sentence for one exercise; false if the lesson already used it. */
+  private claimSentence(w: CourseWord): boolean {
+    if (this.usedSentences.has(w.tl)) return false;
+    this.usedSentences.add(w.tl);
+    return true;
+  }
+
   mcSentence(w: CourseWord): Draft | null {
-    const others = this.req.allWords.filter((o) => o.tl !== w.tl && lower(o.ex[1]) !== lower(w.ex[1]));
-    const wrong = shuffle(others, this.rand)
-      .slice(0, 2)
-      .map((o) => o.ex[1]);
-    return this.choice(w.ex[0], "tl", w.ex[1], wrong);
+    if (this.usedSentences.has(w.tl)) return null;
+    const inLesson = new Set([...this.req.words, ...this.req.reviewWords].map((x) => x.tl));
+    const others = shuffle(
+      this.req.allWords.filter(
+        (o) => o.tl !== w.tl && !this.usedSentences.has(o.tl) && lower(o.ex[1]) !== lower(w.ex[1]),
+      ),
+      this.rand,
+    )
+      // Prefer sentences this lesson won't otherwise show, so wrong options don't spoil later exercises.
+      .sort((a, b) => Number(inLesson.has(a.tl)) - Number(inLesson.has(b.tl)))
+      .slice(0, 2);
+    const draft = this.choice(w.ex[0], "tl", w.ex[1], others.map((o) => o.ex[1]));
+    if (draft) [w, ...others].forEach((o) => this.usedSentences.add(o.tl));
+    return draft;
   }
 
   matchPairs(focus: CourseWord[]): Draft | null {
@@ -126,6 +146,7 @@ class LessonBuilder {
   }
 
   fillBlank(w: CourseWord): Draft | null {
+    if (this.usedSentences.has(w.tl)) return null;
     const [sentence, translation] = w.ex;
     // Whole-word, case-insensitive match of the headword inside its example sentence.
     const escaped = w.tl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -134,10 +155,19 @@ class LessonBuilder {
     const surface = match[2];
     const start = match.index + match[1].length;
     const blanked = sentence.slice(0, start) + "___" + sentence.slice(start + surface.length);
-    const wrong = this.distractors(w, 2, (d) => d.pos !== w.pos && !d.tl.includes(" ")).map((d) =>
-      capitalizeLike(d.tl, surface),
-    );
-    if (wrong.length < 2) return null;
+    // Prefer a different part of speech so only one option is grammatical. Skills where every
+    // word shares a POS (numbers, family) fall back to same-POS words: the English translation
+    // shown next to the sentence still makes exactly one option correct.
+    const singleWord = (d: CourseWord) => !d.tl.includes(" ");
+    let picks = this.distractors(w, 2, (d) => d.pos !== w.pos && singleWord(d));
+    if (picks.length < 2) picks = this.distractors(w, 2, singleWord);
+    // Match the answer's capital only when the blank opens the sentence.
+    const wrong = picks.map((d) => {
+      if (start === 0) return capitalizeLike(d.tl, surface);
+      const asName = d.tl[0].toLocaleUpperCase() + d.tl.slice(1);
+      return this.proper.has(asName) ? asName : d.tl; // "si Kuya", not "si kuya"
+    });
+    if (wrong.length < 2 || !this.claimSentence(w)) return null;
     const options = shuffle([surface, ...wrong], this.rand);
     return {
       type: "fill_blank",
@@ -147,7 +177,7 @@ class LessonBuilder {
 
   /** Extra tiles drawn from other example sentences that don't collide with any accepted answer. */
   private extraTiles(side: 0 | 1, exclude: string[][], count: number): string[] {
-    const banned = new Set(exclude.flat().map(lower));
+    const banned = new Set([...exclude.flat().map(lower), ...this.usedTiles]);
     const seen = new Set<string>();
     const pool: string[] = [];
     for (const o of shuffle(this.req.allWords, this.rand)) {
@@ -158,12 +188,14 @@ class LessonBuilder {
         }
       }
     }
-    return pool.slice(0, count);
+    const picked = pool.slice(0, count);
+    picked.forEach((t) => this.usedTiles.add(lower(t)));
+    return picked;
   }
 
   wordBankToTl(w: CourseWord): Draft | null {
     const answer = this.tilesOf(w.ex[0]);
-    if (answer.length < 2) return null;
+    if (answer.length < 2 || !this.claimSentence(w)) return null;
     return {
       type: "word_bank",
       payload: { prompt: w.ex[1], promptLang: "en", answer, distractors: this.extraTiles(0, [answer], 3) },
@@ -172,7 +204,7 @@ class LessonBuilder {
 
   wordBankToEn(w: CourseWord): Draft | null {
     const answer = this.tilesOf(w.ex[1]);
-    if (answer.length < 2) return null;
+    if (answer.length < 2 || !this.claimSentence(w)) return null;
     const alternates = w.exAccept.map((e) => this.tilesOf(e)).filter((t) => t.length > 0);
     return {
       type: "word_bank",
@@ -241,7 +273,11 @@ export class StubGenerator implements ExerciseGenerator {
 
     const exercises: ParsedExercise[] = [];
     const rejected: GenerationResult["rejected"] = [];
+    const seen = new Set<string>();
     for (const d of drafts) {
+      const key = JSON.stringify(d);
+      if (seen.has(key)) continue; // a slot fell through to an exercise we already have
+      seen.add(key);
       try {
         exercises.push(parseExercise(d.type, d.payload));
       } catch (e) {
