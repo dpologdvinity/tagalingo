@@ -1,0 +1,229 @@
+# Tagalingo course definition: Tagalog for English speakers.
+#
+# This file is hand-written and is the single source of truth for course structure and
+# vocabulary. Exercises are NOT written here: they are generated from these word lists
+# (by Claude or the offline stub), reviewed in /studio, and exported to ./exercises/*.json.
+#
+# Word fields:
+#   tl       Tagalog headword or short phrase (what learners produce)
+#   en       primary English meaning (shown in feedback)
+#   accept   other English translations that should be graded correct
+#   pos      part of speech: noun | verb | adjective | pronoun | phrase | particle | number | adverb
+#   note     optional usage tip shown to reviewers and in Claude's prompt
+#   ex       [Tagalog example sentence, English translation] — must actually contain `tl`
+#   exAccept other acceptable English translations of the example
+#
+# Lessons list which words they introduce; later lessons may reuse earlier words for review.
+
+course:
+  slug: tl-en
+  title: Tagalog for English speakers
+  fromLang: en
+  toLang: tl
+
+units:
+  - slug: unang-hakbang
+    title: Unang Hakbang
+    subtitle: First steps — say hello, introduce people, order food
+    color: "#13A3A9"
+    skills:
+      - slug: pagbati
+        title: Pagbati
+        emoji: "👋"
+        description: Greetings and polite basics
+        lessons:
+          - title: Hello and thanks
+            words: [kumusta, mabuti, salamat, oo, hindi]
+          - title: Morning to night
+            words: [magandang umaga, magandang gabi, paalam, po, ingat]
+        words:
+          - { tl: kumusta, en: how are you, accept: [hello, how are you?], pos: phrase, note: "From Spanish ¿cómo está? — used as both hello and how are you.", ex: ["Kumusta ka?", "How are you?"] }
+          - { tl: mabuti, en: good, accept: [well, fine], pos: adjective, ex: ["Mabuti naman ako.", "I'm fine."], exAccept: ["I am fine.", "I'm doing well.", "I am good."] }
+          - { tl: salamat, en: thank you, accept: [thanks], pos: phrase, ex: ["Salamat, Ana.", "Thank you, Ana."], exAccept: ["Thanks, Ana."] }
+          - { tl: oo, en: "yes", pos: particle, note: "Casual yes. Use opo with elders.", ex: ["Oo, gutom ako.", "Yes, I'm hungry."], exAccept: ["Yes, I am hungry."] }
+          - { tl: hindi, en: "no", accept: [not], pos: particle, ex: ["Hindi ako gutom.", "I'm not hungry."], exAccept: ["I am not hungry."] }
+          - { tl: magandang umaga, en: good morning, pos: phrase, ex: ["Magandang umaga po.", "Good morning, sir."], exAccept: ["Good morning, ma'am.", "Good morning."] }
+          - { tl: magandang gabi, en: good evening, accept: [good night], pos: phrase, ex: ["Magandang gabi, Lola.", "Good evening, Grandma."] }
+          - { tl: paalam, en: goodbye, accept: [bye, farewell], pos: phrase, ex: ["Paalam, kaibigan.", "Goodbye, friend."], exAccept: ["Bye, friend."] }
+          - { tl: po, en: (polite particle), accept: [sir, ma'am], pos: particle, note: "Added to sentences to show respect to elders and strangers. It has no direct English equivalent.", ex: ["Salamat po.", "Thank you, sir."], exAccept: ["Thank you, ma'am.", "Thank you."] }
+          - { tl: ingat, en: take care, pos: phrase, ex: ["Ingat ka!", "Take care!"] }
+
+      - slug: mga-tao
+        title: Mga Tao
+        emoji: "🧑🏽"
+        description: People and pronouns
+        lessons:
+          - title: Me, you, them
+            words: [ako, ikaw, siya, sila, kaibigan]
+          - title: Who's who
+            words: [kami, tayo, guro, estudyante, lalaki, babae]
+        words:
+          - { tl: ako, en: I, accept: [me], pos: pronoun, ex: ["Ako si Maria.", "I am Maria."], exAccept: ["I'm Maria."] }
+          - { tl: ikaw, en: you, pos: pronoun, note: "Ikaw starts a sentence; ka follows a word (Kumusta ka?).", ex: ["Ikaw ba si Juan?", "Are you Juan?"] }
+          - { tl: siya, en: he, accept: [she, him, her], pos: pronoun, note: "Gender-neutral: siya means he or she.", ex: ["Siya ay guro.", "She is a teacher."], exAccept: ["He is a teacher."] }
+          - { tl: sila, en: they, accept: [them], pos: pronoun, ex: ["Masaya sila.", "They are happy."], exAccept: ["They're happy."] }
+          - { tl: kaibigan, en: friend, pos: noun, ex: ["Kaibigan ko siya.", "He is my friend."], exAccept: ["She is my friend.", "He's my friend.", "She's my friend."] }
+          - { tl: kami, en: we, accept: [us], pos: pronoun, note: "Exclusive we: the listener is NOT included.", ex: ["Estudyante kami.", "We are students."], exAccept: ["We're students."] }
+          - { tl: tayo, en: we, accept: [us, let's], pos: pronoun, note: "Inclusive we: the listener IS included. Kain tayo! = Let's eat!", ex: ["Magkaibigan tayo.", "We are friends."], exAccept: ["We're friends."] }
+          - { tl: guro, en: teacher, pos: noun, ex: ["Mabait ang guro.", "The teacher is kind."] }
+          - { tl: estudyante, en: student, pos: noun, ex: ["Estudyante ako.", "I am a student."], exAccept: ["I'm a student."] }
+          - { tl: lalaki, en: man, accept: [boy, male], pos: noun, ex: ["Matangkad ang lalaki.", "The man is tall."], exAccept: ["The boy is tall."] }
+          - { tl: babae, en: woman, accept: [girl, female], pos: noun, ex: ["Guro ang babae.", "The woman is a teacher."] }
+
+      - slug: pagkain
+        title: Pagkain
+        emoji: "🍚"
+        description: Food and drink
+        lessons:
+          - title: Rice and water
+            words: [kanin, tubig, isda, manok, kape]
+          - title: Let's eat!
+            words: [tinapay, gatas, masarap, gutom, kain, prutas]
+        words:
+          - { tl: kanin, en: rice, accept: [cooked rice], pos: noun, note: "Cooked rice. Uncooked rice is bigas.", ex: ["Kumain ako ng kanin.", "I ate rice."] }
+          - { tl: tubig, en: water, pos: noun, ex: ["Gusto ko ng tubig.", "I want water."], exAccept: ["I want some water.", "I would like water."] }
+          - { tl: isda, en: fish, pos: noun, ex: ["Sariwa ang isda.", "The fish is fresh."] }
+          - { tl: manok, en: chicken, pos: noun, ex: ["Kumakain siya ng manok.", "She is eating chicken."], exAccept: ["He is eating chicken.", "She's eating chicken.", "He's eating chicken."] }
+          - { tl: kape, en: coffee, pos: noun, ex: ["Umiinom ako ng kape.", "I am drinking coffee."], exAccept: ["I'm drinking coffee."] }
+          - { tl: tinapay, en: bread, pos: noun, ex: ["May tinapay ba?", "Is there bread?"], exAccept: ["Is there any bread?"] }
+          - { tl: gatas, en: milk, pos: noun, ex: ["Malamig ang gatas.", "The milk is cold."] }
+          - { tl: masarap, en: delicious, accept: [tasty, yummy], pos: adjective, ex: ["Masarap ang adobo.", "The adobo is delicious."], exAccept: ["The adobo is tasty."] }
+          - { tl: gutom, en: hungry, pos: adjective, ex: ["Gutom na ako.", "I'm hungry now."], exAccept: ["I am hungry now.", "I'm hungry.", "I am hungry."] }
+          - { tl: kain, en: eat, pos: verb, note: "Root word. Kain tayo! is the classic invitation to share a meal.", ex: ["Kain tayo!", "Let's eat!"] }
+          - { tl: prutas, en: fruit, pos: noun, ex: ["Mahilig ako sa prutas.", "I love fruit."], exAccept: ["I like fruit.", "I'm fond of fruit."] }
+
+      - slug: pamilya
+        title: Pamilya
+        emoji: "🏠"
+        description: Family and home
+        lessons:
+          - title: Mom and Dad
+            words: [nanay, tatay, kapatid, bahay, pamilya]
+          - title: Ate, Kuya, Lola
+            words: [ate, kuya, lola, lolo, anak]
+        words:
+          - { tl: nanay, en: mom, accept: [mother, mum], pos: noun, ex: ["Nasa bahay si Nanay.", "Mom is at home."], exAccept: ["Mother is at home.", "Mom is home."] }
+          - { tl: tatay, en: dad, accept: [father], pos: noun, ex: ["Nagluluto si Tatay.", "Dad is cooking."], exAccept: ["Father is cooking."] }
+          - { tl: kapatid, en: sibling, accept: [brother, sister], pos: noun, ex: ["May kapatid ka ba?", "Do you have a sibling?"], exAccept: ["Do you have siblings?", "Do you have a brother or sister?"] }
+          - { tl: bahay, en: house, accept: [home], pos: noun, ex: ["Malaki ang bahay.", "The house is big."] }
+          - { tl: pamilya, en: family, pos: noun, ex: ["Malaki ang pamilya ko.", "My family is big."] }
+          - { tl: ate, en: older sister, accept: [big sister], pos: noun, note: "Also used respectfully for any slightly older woman.", ex: ["Nag-aaral si Ate.", "My older sister is studying."], exAccept: ["Big sister is studying.", "My big sister is studying."] }
+          - { tl: kuya, en: older brother, accept: [big brother], pos: noun, note: "Also used respectfully for any slightly older man.", ex: ["Mabait si Kuya.", "My older brother is kind."], exAccept: ["Big brother is kind.", "My big brother is kind."] }
+          - { tl: lola, en: grandma, accept: [grandmother], pos: noun, ex: ["Mahal ko si Lola.", "I love Grandma."], exAccept: ["I love grandmother.", "I love my grandma."] }
+          - { tl: lolo, en: grandpa, accept: [grandfather], pos: noun, ex: ["Natutulog si Lolo.", "Grandpa is sleeping."], exAccept: ["Grandfather is sleeping."] }
+          - { tl: anak, en: child, accept: [son, daughter, offspring], pos: noun, note: "Your own child (son or daughter), not a child in general (bata).", ex: ["Dalawa ang anak nila.", "They have two children."] }
+
+  - slug: sa-bayan
+    title: Sa Bayan
+    subtitle: Around town — count, find places, talk about time
+    color: "#E07A1F"
+    skills:
+      - slug: mga-numero
+        title: Mga Numero
+        emoji: "🔢"
+        description: Counting from one to ten
+        lessons:
+          - title: One to five
+            words: [isa, dalawa, tatlo, apat, lima]
+          - title: Six to ten
+            words: [anim, pito, walo, siyam, sampu]
+        words:
+          - { tl: isa, en: one, pos: number, note: "Before a noun it takes the linker -ng: isang kape.", ex: ["Isa lang po.", "Just one, please."], exAccept: ["Only one, please.", "Just one."] }
+          - { tl: dalawa, en: two, pos: number, ex: ["Dalawa ang kapatid ko.", "I have two siblings."] }
+          - { tl: tatlo, en: three, pos: number, ex: ["Tatlo ang aso ko.", "I have three dogs."] }
+          - { tl: apat, en: four, pos: number, ex: ["Apat kami sa pamilya.", "There are four of us in the family."], exAccept: ["We are four in the family."] }
+          - { tl: lima, en: five, pos: number, ex: ["Lima ang daliri ko.", "I have five fingers."] }
+          - { tl: anim, en: six, pos: number, ex: ["Anim ang itlog.", "There are six eggs."] }
+          - { tl: pito, en: seven, pos: number, ex: ["Pito ang araw sa isang linggo.", "There are seven days in a week."] }
+          - { tl: walo, en: eight, pos: number, ex: ["Walo ang pusa ni Lola.", "Grandma has eight cats."] }
+          - { tl: siyam, en: nine, pos: number, ex: ["Siyam na taon na siya.", "She is nine years old."], exAccept: ["He is nine years old."] }
+          - { tl: sampu, en: ten, pos: number, ex: ["Sampu ang estudyante.", "There are ten students."] }
+
+      - slug: mga-lugar
+        title: Mga Lugar
+        emoji: "🗺️"
+        description: Places around town
+        lessons:
+          - title: Where is it?
+            words: [nasaan, paaralan, palengke, tindahan, simbahan]
+          - title: Near and far
+            words: [ospital, opisina, dagat, bundok, malapit, malayo]
+        words:
+          - { tl: nasaan, en: where, pos: adverb, note: "Asks where something or someone is.", ex: ["Nasaan ka?", "Where are you?"] }
+          - { tl: paaralan, en: school, pos: noun, ex: ["Pupunta ako sa paaralan.", "I will go to school."], exAccept: ["I'm going to school.", "I am going to school."] }
+          - { tl: palengke, en: market, accept: [wet market], pos: noun, ex: ["Nasa palengke si Nanay.", "Mom is at the market."], exAccept: ["Mother is at the market."] }
+          - { tl: tindahan, en: store, accept: [shop], pos: noun, ex: ["Sarado ang tindahan.", "The store is closed."], exAccept: ["The shop is closed."] }
+          - { tl: simbahan, en: church, pos: noun, ex: ["Luma ang simbahan.", "The church is old."] }
+          - { tl: ospital, en: hospital, pos: noun, ex: ["Nasaan ang ospital?", "Where is the hospital?"] }
+          - { tl: opisina, en: office, pos: noun, ex: ["Nasa opisina si Tatay.", "Dad is at the office."], exAccept: ["Father is at the office."] }
+          - { tl: dagat, en: sea, accept: [ocean], pos: noun, ex: ["Maganda ang dagat.", "The sea is beautiful."], exAccept: ["The ocean is beautiful."] }
+          - { tl: bundok, en: mountain, pos: noun, ex: ["Mataas ang bundok.", "The mountain is high."], exAccept: ["The mountain is tall."] }
+          - { tl: malapit, en: near, accept: [close, nearby], pos: adjective, ex: ["Malapit ang palengke.", "The market is near."], exAccept: ["The market is close.", "The market is nearby."] }
+          - { tl: malayo, en: far, pos: adjective, ex: ["Malayo ang bundok.", "The mountain is far."], exAccept: ["The mountain is far away."] }
+
+      - slug: oras-at-araw
+        title: Oras at Araw
+        emoji: "⏰"
+        description: Time and days of the week
+        lessons:
+          - title: Today and tomorrow
+            words: [ngayon, bukas, kahapon, umaga, gabi]
+          - title: Days of the week
+            words: [hapon, araw, oras, Lunes, Biyernes, Linggo]
+        words:
+          - { tl: ngayon, en: now, accept: [today], pos: adverb, ex: ["Pagod ako ngayon.", "I'm tired today."], exAccept: ["I am tired today.", "I'm tired now.", "I am tired now."] }
+          - { tl: bukas, en: tomorrow, pos: adverb, note: "Also means open (Bukas ang tindahan = The store is open). Context decides.", ex: ["Kita tayo bukas.", "See you tomorrow."] }
+          - { tl: kahapon, en: yesterday, pos: adverb, ex: ["Umulan kahapon.", "It rained yesterday."] }
+          - { tl: umaga, en: morning, pos: noun, ex: ["Maganda ang umaga.", "The morning is beautiful."], exAccept: ["It's a beautiful morning."] }
+          - { tl: gabi, en: night, accept: [evening], pos: noun, ex: ["Tahimik ang gabi.", "The night is quiet."], exAccept: ["The evening is quiet."] }
+          - { tl: hapon, en: afternoon, pos: noun, ex: ["Mainit sa hapon.", "It's hot in the afternoon."], exAccept: ["It is hot in the afternoon."] }
+          - { tl: araw, en: day, accept: [sun], pos: noun, note: "Means both day and sun.", ex: ["Mainit ang araw.", "The sun is hot."], exAccept: ["The day is hot.", "It is a hot day."] }
+          - { tl: oras, en: time, accept: [hour], pos: noun, ex: ["Anong oras na?", "What time is it?"] }
+          - { tl: Lunes, en: Monday, pos: noun, ex: ["May klase ako sa Lunes.", "I have class on Monday."] }
+          - { tl: Biyernes, en: Friday, pos: noun, ex: ["Biyernes na bukas.", "Tomorrow is Friday."], exAccept: ["It's Friday tomorrow."] }
+          - { tl: Linggo, en: Sunday, accept: [week], pos: noun, note: "Linggo is Sunday; lowercase linggo also means week.", ex: ["Nagsisimba kami tuwing Linggo.", "We go to church every Sunday."] }
+
+  - slug: sa-palengke
+    title: Sa Palengke
+    subtitle: At the market — prices, colours and haggling
+    color: "#C2417A"
+    skills:
+      - slug: pamimili
+        title: Pamimili
+        emoji: "🛒"
+        description: Shopping and prices
+        lessons:
+          - title: How much?
+            words: [magkano, piso, mahal, mura, mangga]
+          - title: Paying up
+            words: [bili, pera, sukli, bayad, ito]
+        words:
+          - { tl: magkano, en: how much, pos: adverb, ex: ["Magkano ito?", "How much is this?"] }
+          - { tl: piso, en: peso, pos: noun, ex: ["Sampung piso lang.", "Only ten pesos."], exAccept: ["Just ten pesos."] }
+          - { tl: mahal, en: expensive, accept: [dear, love], pos: adjective, note: "Also means love/dear (Mahal kita = I love you).", ex: ["Mahal ang karne.", "The meat is expensive."] }
+          - { tl: mura, en: cheap, accept: [inexpensive], pos: adjective, ex: ["Mura ang gulay dito.", "The vegetables are cheap here."], exAccept: ["Vegetables are cheap here."] }
+          - { tl: mangga, en: mango, pos: noun, ex: ["Matamis ang mangga.", "The mango is sweet."] }
+          - { tl: bili, en: buy, pos: verb, note: "Root word. Bibili = will buy, bumili = bought.", ex: ["Bibili ako ng isda.", "I will buy fish."], exAccept: ["I'm going to buy fish.", "I am going to buy fish."] }
+          - { tl: pera, en: money, pos: noun, ex: ["Wala akong pera.", "I have no money."], exAccept: ["I don't have money.", "I don't have any money."] }
+          - { tl: sukli, en: change, pos: noun, note: "Change given back after paying.", ex: ["Ito po ang sukli ninyo.", "Here is your change."] }
+          - { tl: bayad, en: payment, accept: [fare], pos: noun, note: "Bayad po! is what you say when passing your fare on a jeepney.", ex: ["Bayad po.", "Here's my fare."], exAccept: ["Here is my payment.", "Here's my payment.", "Here is my fare."] }
+          - { tl: ito, en: this, pos: pronoun, ex: ["Gusto ko ito.", "I like this."], exAccept: ["I want this."] }
+
+      - slug: mga-kulay
+        title: Mga Kulay
+        emoji: "🎨"
+        description: Colours
+        lessons:
+          - title: Red, blue, yellow
+            words: [pula, asul, dilaw, berde]
+          - title: Black and white
+            words: [puti, itim, kulay, kahel]
+        words:
+          - { tl: pula, en: red, pos: adjective, ex: ["Pula ang bulaklak.", "The flower is red."] }
+          - { tl: asul, en: blue, pos: adjective, ex: ["Asul ang langit.", "The sky is blue."] }
+          - { tl: dilaw, en: yellow, pos: adjective, ex: ["Dilaw ang mangga.", "The mango is yellow."] }
+          - { tl: berde, en: green, pos: adjective, ex: ["Berde ang dahon.", "The leaf is green."] }
+          - { tl: puti, en: white, pos: adjective, ex: ["Puti ang ulap.", "The cloud is white."] }
+          - { tl: itim, en: black, pos: adjective, ex: ["Itim ang pusa.", "The cat is black."] }
+          - { tl: kulay, en: colour, accept: [color], pos: noun, ex: ["Anong kulay ito?", "What colour is this?"], exAccept: ["What color is this?"] }
+          - { tl: kahel, en: orange, pos: adjective, note: "The colour. The fruit is dalandan.", ex: ["Kahel ang langit sa hapon.", "The sky is orange in the afternoon."] }
