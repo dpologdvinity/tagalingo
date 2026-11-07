@@ -5,6 +5,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ClientExercise } from "@/lib/content/client-view";
 import { hash, rng, shuffle } from "@/lib/random";
+import { useRecognitionSupported, useSpeechRecognition } from "@/lib/speech/client";
+import { SpeakButton } from "@/components/speak-button";
 
 type Of<T extends ClientExercise["type"]> = Extract<ClientExercise, { type: T }>;
 type Props<T extends ClientExercise["type"]> = {
@@ -21,12 +23,15 @@ function Instruction({ children }: { children: React.ReactNode }) {
 
 function PromptBubble({ text, lang }: { text: string; lang: "tl" | "en" }) {
   return (
-    <p
-      lang={lang === "tl" ? "tl" : "en"}
-      className="inline-block rounded-3xl border-2 border-line bg-surface px-5 py-4 text-xl font-bold sm:text-2xl"
-    >
-      {text}
-    </p>
+    <div className="flex flex-wrap items-center gap-3">
+      {lang === "tl" && <SpeakButton text={text} />}
+      <p
+        lang={lang === "tl" ? "tl" : "en"}
+        className="inline-block rounded-3xl border-2 border-line bg-surface px-5 py-4 text-xl font-bold sm:text-2xl"
+      >
+        {text}
+      </p>
+    </div>
   );
 }
 
@@ -320,6 +325,208 @@ export function MatchPairs({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Hear a Tagalog phrase and pick its meaning. The text can be revealed if audio isn't available. */
+export function ListenSelect({ exercise, disabled, onChange }: Props<"listen_select">) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const select = (i: number) => {
+    setSelected(i);
+    onChange({ choice: i });
+  };
+  return (
+    <div className="space-y-6">
+      <Instruction>What do you hear?</Instruction>
+      <div className="flex flex-wrap items-center gap-4">
+        <SpeakButton text={exercise.audio} size="lg" label="Play the phrase" />
+        <SpeakButton text={exercise.audio} slow label="Play the phrase slowly" />
+        {revealed || disabled ? (
+          <p lang="tl" className="text-xl font-bold">
+            {exercise.audio}
+          </p>
+        ) : (
+          <button type="button" onClick={() => setRevealed(true)} className="text-sm font-bold text-lagoon underline">
+            Can’t listen now? Show the text
+          </button>
+        )}
+      </div>
+      <Options options={exercise.options} selected={selected} onSelect={select} disabled={disabled} lang="en" />
+    </div>
+  );
+}
+
+/** See a Tagalog word and pick its picture. */
+export function SelectPicture({ exercise, disabled, onChange }: Props<"select_picture">) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const select = (i: number) => {
+    setSelected(i);
+    onChange({ choice: i });
+  };
+  useEffect(() => {
+    if (disabled) return;
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (n >= 1 && n <= exercise.pictures.length) select(n - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+  return (
+    <div className="space-y-6">
+      <Instruction>Which picture shows this?</Instruction>
+      <PromptBubble text={exercise.prompt} lang="tl" />
+      <div role="radiogroup" aria-label="Pictures" className="grid grid-cols-2 gap-3">
+        {exercise.pictures.map((pic, i) => (
+          <button
+            key={`${pic}-${i}`}
+            type="button"
+            role="radio"
+            aria-checked={selected === i}
+            aria-label={`Picture ${i + 1}`}
+            disabled={disabled}
+            onClick={() => select(i)}
+            className={`flex aspect-[4/3] items-center justify-center rounded-3xl border-2 text-6xl transition-[transform,box-shadow] active:translate-y-[2px] sm:text-7xl ${
+              selected === i
+                ? "border-lagoon-bright bg-lagoon-soft shadow-press-lagoon"
+                : "border-line bg-surface shadow-press"
+            }`}
+          >
+            <span aria-hidden>{pic}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Say a sentence aloud; graded on the transcript. "Can't speak now" skips without penalty. */
+export function Speak({
+  exercise,
+  disabled,
+  onChange,
+  onSubmit,
+}: Props<"speak"> & { onSubmit: (answer: unknown) => void }) {
+  const supported = useRecognitionSupported();
+  const { listen } = useSpeechRecognition();
+  const [state, setState] = useState<"idle" | "listening" | "heard" | "error">("idle");
+  const [transcript, setTranscript] = useState("");
+
+  const record = async () => {
+    setState("listening");
+    try {
+      const heard = await listen();
+      setTranscript(heard);
+      setState(heard ? "heard" : "error");
+      onChange(heard ? { transcript: heard } : null);
+    } catch {
+      setState("error");
+      onChange(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Instruction>Say this sentence</Instruction>
+      <PromptBubble text={exercise.text} lang="tl" />
+      <p className="text-lg text-ink-soft">“{exercise.translation}”</p>
+      {supported ? (
+        <div className="flex flex-col items-center gap-3">
+          <button
+            type="button"
+            onClick={record}
+            disabled={disabled || state === "listening"}
+            className={`flex h-24 w-24 items-center justify-center rounded-full text-white shadow-press-lagoon active:translate-y-[2px] ${
+              state === "listening" ? "animate-pulse bg-gumamela" : "bg-lagoon-bright"
+            }`}
+            aria-label={state === "listening" ? "Listening" : "Tap and speak"}
+          >
+            <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden>
+              <path
+                fill="currentColor"
+                d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"
+              />
+            </svg>
+          </button>
+          <p role="status" className="min-h-6 text-center font-bold text-ink-soft">
+            {state === "listening"
+              ? "Listening… speak now"
+              : state === "heard"
+                ? `We heard: “${transcript}”`
+                : state === "error"
+                  ? "We didn’t catch that. Tap to try again."
+                  : "Tap the microphone and speak"}
+          </p>
+        </div>
+      ) : (
+        <p className="rounded-2xl bg-seaglass px-4 py-3 text-ink-soft">
+          Speech recognition isn’t available in this browser. Say it out loud anyway, then continue.
+        </p>
+      )}
+      <div className="text-center">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onSubmit({ skipped: true })}
+          className="font-bold text-lagoon underline-offset-4 hover:underline"
+        >
+          {supported ? "Can’t speak now" : "Continue"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Read a short conversation and choose the next line. */
+export function Dialogue({ exercise, disabled, onChange }: Props<"dialogue">) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const select = (i: number) => {
+    setSelected(i);
+    onChange({ choice: i });
+  };
+  return (
+    <div className="space-y-6">
+      <Instruction>Choose the best reply</Instruction>
+      <ol className="space-y-3">
+        {exercise.lines.map((line, i) => (
+          <li key={i} className={`flex items-end gap-2 ${line.speaker === "B" ? "flex-row-reverse" : ""}`}>
+            <span
+              aria-hidden
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-white ${
+                line.speaker === "A" ? "bg-mango-deep" : "bg-lagoon"
+              }`}
+            >
+              {line.speaker}
+            </span>
+            <div
+              className={`max-w-[80%] rounded-3xl border-2 px-4 py-2.5 ${
+                line.speaker === "A"
+                  ? "rounded-bl-md border-mango/50 bg-mango-soft"
+                  : "rounded-br-md border-line bg-surface"
+              }`}
+            >
+              <p lang="tl" className="flex items-center gap-2 text-lg font-bold">
+                {line.tl} <SpeakButton text={line.tl} size="sm" />
+              </p>
+              <p className="text-sm text-ink-soft">{line.en}</p>
+            </div>
+          </li>
+        ))}
+        <li className="flex flex-row-reverse items-end gap-2">
+          <span
+            aria-hidden
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lagoon font-bold text-white"
+          >
+            B
+          </span>
+          <div className="rounded-3xl rounded-br-md border-2 border-dashed border-line px-4 py-2.5 text-lg font-bold text-ink-soft">
+            {selected !== null ? <span lang="tl">{exercise.options[selected]}</span> : "…"}
+          </div>
+        </li>
+      </ol>
+      <Options options={exercise.options} selected={selected} onSelect={select} disabled={disabled} lang="tl" />
     </div>
   );
 }

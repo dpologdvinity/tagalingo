@@ -21,6 +21,9 @@ describe("xpForLesson", () => {
 describe("xpForPractice", () => {
   it("awards 5 XP, plus 5 for a perfect run", () => {
     expect(xpForPractice({ mistakes: 0 }).total).toBe(10);
-    expect(xpForPractice({ mistakes: 2 })).toEqual({ total: 5, breakdown: [{ label: "Practice complete", amount: 5 }] });
+    expect(xpForPractice({ mistakes: 2 })).toEqual({
+      total: 5,
+      breakdown: [{ label: "Practice complete", amount: 5 }],
+    });
   });
 });

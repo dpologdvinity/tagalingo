@@ -78,6 +78,10 @@ model Skill {
   emoji          String
   description    String
   lessons        Lesson[]
+  /// Grammar/culture notes from course.yaml, shown on the skill page.
+  tips           String[]        @default([])
+  /// Hand-written dialogues from course.yaml: [{ lesson, lines: [[speaker, tl, en]], wrong }].
+  dialogues      Json            @default("[]")
   words          Word[]
   generationRuns GenerationRun[]
   attempts       LessonAttempt[]
@@ -108,6 +112,8 @@ model Word {
   notes        String?
   exampleTl    String?
   exampleEn    String?
+  /// Optional emoji picture (picture exercises, flashcards).
+  pic          String?
 
   @@unique([skillId, tagalog])
 }

@@ -1,6 +1,7 @@
 /**
  * End-of-lesson screens (rendered inside the client LessonPlayer): results and out-of-hearts.
  */
+import type { Route } from "next";
 import { useEffect, useState } from "react";
 import type { LessonResult } from "@/server/lessons";
 import { BoltIcon, HeartIcon, SunIcon } from "@/components/icons";
@@ -37,7 +38,9 @@ export function LessonResults({ result, total }: { result: LessonResult; total: 
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-8 px-5 py-10 text-center">
       <Tala size={132} mood="cheer" className="animate-hop" />
       <div>
-        <h1 className="font-display text-4xl text-lagoon">Lesson complete!</h1>
+        <h1 className="font-display text-4xl text-lagoon">
+          {result.kind === "PRACTICE" ? "Practice complete!" : "Lesson complete!"}
+        </h1>
         <p className="mt-1 text-lg text-ink-soft">
           {result.mistakes === 0 ? "Not a single mistake. Ang galing mo!" : "Every answer right in the end. Good work."}
         </p>
@@ -71,6 +74,14 @@ export function LessonResults({ result, total }: { result: LessonResult; total: 
             <span className="font-bold">+{b.amount} XP</span>
           </li>
         ))}
+        {result.heartsRestored > 0 && (
+          <li className="flex justify-between rounded-xl px-3 py-1.5 odd:bg-seaglass">
+            <span>Heart won back</span>
+            <span className="inline-flex items-center gap-1 font-bold text-gumamela">
+              +{result.heartsRestored} <HeartIcon size={16} />
+            </span>
+          </li>
+        )}
       </ul>
 
       <div className="flex items-center gap-4 rounded-3xl border-2 border-line bg-surface p-4 text-left">
@@ -96,7 +107,7 @@ export function LessonResults({ result, total }: { result: LessonResult; total: 
   );
 }
 
-export function OutOfHearts({ nextHeartAt }: { nextHeartAt: string | null }) {
+export function OutOfHearts({ nextHeartAt, practiceHref }: { nextHeartAt: string | null; practiceHref: Route | null }) {
   const countdown = useHeartCountdown(nextHeartAt);
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-6 px-5 text-center">
@@ -104,7 +115,7 @@ export function OutOfHearts({ nextHeartAt }: { nextHeartAt: string | null }) {
       <div>
         <h1 className="font-display text-4xl">You’re out of hearts</h1>
         <p className="mt-2 text-lg text-ink-soft">
-          Hearts come back on their own, one every half hour.
+          Hearts come back on their own, one every half hour. Finishing a practice session wins one back straight away.
           {countdown && (
             <>
               {" "}
@@ -118,7 +129,12 @@ export function OutOfHearts({ nextHeartAt }: { nextHeartAt: string | null }) {
           <HeartIcon key={i} size={28} className={i === 0 && countdown === null ? "" : "opacity-25"} />
         ))}
       </p>
-      <ButtonLink href="/learn" className="w-full">
+      {practiceHref && (
+        <ButtonLink href={practiceHref} className="w-full">
+          Practise to win back a heart
+        </ButtonLink>
+      )}
+      <ButtonLink href="/learn" variant={practiceHref ? "secondary" : "primary"} className="w-full">
         Back to the path
       </ButtonLink>
     </main>

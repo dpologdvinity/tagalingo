@@ -1,28 +1,45 @@
 "use client";
 /**
- * The lesson player: one exercise at a time, Check → feedback sheet → Continue.
- * Wrong answers go to the back of the queue, so a lesson ends once every exercise has been
- * answered correctly. The server grades every answer and owns hearts and XP.
+ * The player for lessons and practice sessions: one exercise at a time, Check → feedback
+ * sheet → Continue. Wrong answers go to the back of the queue, so a session ends once every
+ * exercise has been answered correctly. The server picks the exercises, grades every answer
+ * and owns hearts and XP.
  */
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { answerAction, completeLessonAction, startLessonAction } from "@/app/actions/lesson";
+import { answerAction, completeLessonAction, startLessonAction, startPracticeAction } from "@/app/actions/lesson";
 import type { ClientExercise } from "@/lib/content/client-view";
-import type { AnswerFeedback, LessonForPlay, LessonResult } from "@/server/lessons";
+import type { AnswerFeedback, LessonResult, PracticeScope } from "@/server/lessons";
 import { CheckIcon, CloseIcon, HeartIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
-import { FillBlank, MatchPairs, SelectTranslation, TypeTranslation, WordBank } from "./exercises";
+import {
+  Dialogue,
+  FillBlank,
+  ListenSelect,
+  MatchPairs,
+  SelectPicture,
+  SelectTranslation,
+  Speak,
+  TypeTranslation,
+  WordBank,
+} from "./exercises";
 import { LessonResults, OutOfHearts } from "./lesson-screens";
 
 type Phase = "starting" | "answering" | "checking" | "feedback" | "finishing" | "done" | "out_of_hearts" | "error";
 
+export type PlaySession = { kind: "lesson"; lessonId: string } | { kind: "practice"; scope: PracticeScope };
+
 export function LessonPlayer({
-  lesson,
+  session,
   hearts: initialHearts,
   nextHeartAt: initialNext,
+  practiceHref = null,
 }: {
-  lesson: LessonForPlay;
+  session: PlaySession;
+  /** Where to practise for a heart when out of hearts (lessons only). */
+  practiceHref?: Route | null;
   hearts: number;
   nextHeartAt: string | null;
 }) {
@@ -30,7 +47,8 @@ export function LessonPlayer({
   const [phase, setPhase] = useState<Phase>("starting");
   const [error, setError] = useState<string | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
-  const [queue, setQueue] = useState<number[]>(() => lesson.exercises.map((_, i) => i));
+  const [exercises, setExercises] = useState<ClientExercise[]>([]);
+  const [queue, setQueue] = useState<number[]>([]);
   const [solved, setSolved] = useState(0);
   const [answer, setAnswer] = useState<unknown | null>(null);
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
@@ -40,16 +58,20 @@ export function LessonPlayer({
   const [round, setRound] = useState(0); // remounts the exercise when it comes back around
   const quitRef = useRef<HTMLDialogElement>(null);
 
-  const current: ClientExercise | undefined = lesson.exercises[queue[0]];
+  const current: ClientExercise | undefined = exercises[queue[0]];
+  const practice = session.kind === "practice";
 
   // Start exactly one attempt per mount (StrictMode runs effects twice in development).
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    startLessonAction(lesson.id).then((r) => {
+    const start = session.kind === "lesson" ? startLessonAction(session.lessonId) : startPracticeAction(session.scope);
+    start.then((r) => {
       if (r.ok) {
         setAttemptId(r.data.attemptId);
+        setExercises(r.data.exercises);
+        setQueue(r.data.exercises.map((_, i) => i));
         setPhase("answering");
       } else if (r.code === "no_hearts") setPhase("out_of_hearts");
       else {
@@ -57,7 +79,7 @@ export function LessonPlayer({
         setPhase("error");
       }
     });
-  }, [lesson.id]);
+  }, [session]);
 
   const submit = useCallback(
     async (value: unknown) => {
@@ -125,10 +147,10 @@ export function LessonPlayer({
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, answer, current, submit, advance]);
 
-  if (phase === "out_of_hearts") return <OutOfHearts nextHeartAt={nextHeartAt} />;
-  if (phase === "done" && result) return <LessonResults result={result} total={lesson.exercises.length} />;
+  if (phase === "out_of_hearts") return <OutOfHearts nextHeartAt={nextHeartAt} practiceHref={practiceHref} />;
+  if (phase === "done" && result) return <LessonResults result={result} total={exercises.length} />;
 
-  const progress = Math.round((solved / lesson.exercises.length) * 100);
+  const progress = exercises.length ? Math.round((solved / exercises.length) * 100) : 0;
   const locked = phase !== "answering";
 
   return (
@@ -138,7 +160,7 @@ export function LessonPlayer({
           type="button"
           onClick={() => quitRef.current?.showModal()}
           className="rounded-xl p-1.5 text-ink-soft hover:bg-seaglass"
-          aria-label="Quit lesson"
+          aria-label={practice ? "Quit practice" : "Quit lesson"}
         >
           <CloseIcon />
         </button>
@@ -165,7 +187,9 @@ export function LessonPlayer({
       </header>
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-48 pt-8 sm:pt-12">
-        {phase === "starting" && <p className="text-ink-soft">Getting your lesson ready…</p>}
+        {phase === "starting" && (
+          <p className="text-ink-soft">{practice ? "Picking exercises to practise…" : "Getting your lesson ready…"}</p>
+        )}
         {phase === "error" && (
           <div role="alert" className="space-y-4 rounded-3xl bg-gumamela-soft p-6">
             <p className="font-bold text-gumamela">{error}</p>
@@ -187,6 +211,16 @@ export function LessonPlayer({
             {current.type === "match_pairs" && (
               <MatchPairs exercise={current} disabled={locked} onSolved={onMatchSolved} />
             )}
+            {current.type === "listen_select" && (
+              <ListenSelect exercise={current} disabled={locked} onChange={setAnswer} />
+            )}
+            {current.type === "select_picture" && (
+              <SelectPicture exercise={current} disabled={locked} onChange={setAnswer} />
+            )}
+            {current.type === "speak" && (
+              <Speak exercise={current} disabled={locked} onChange={setAnswer} onSubmit={(a) => void submit(a)} />
+            )}
+            {current.type === "dialogue" && <Dialogue exercise={current} disabled={locked} onChange={setAnswer} />}
           </div>
         )}
       </main>
@@ -201,12 +235,16 @@ export function LessonPlayer({
       />
 
       <dialog ref={quitRef} className="m-auto max-w-sm rounded-3xl border-2 border-line p-6 backdrop:bg-ink/40">
-        <h2 className="font-display text-2xl">Quit this lesson?</h2>
-        <p className="mt-2 text-ink-soft">You’ll lose your progress in this lesson. Hearts you’ve lost stay lost.</p>
+        <h2 className="font-display text-2xl">{practice ? "Stop practising?" : "Quit this lesson?"}</h2>
+        <p className="mt-2 text-ink-soft">
+          {practice
+            ? "You won’t get the XP or the heart for this session."
+            : "You’ll lose your progress in this lesson. Hearts you’ve lost stay lost."}
+        </p>
         <div className="mt-6 grid gap-3">
           <Button onClick={() => quitRef.current?.close()}>Keep learning</Button>
           <Button variant="secondary" onClick={() => router.push("/learn")}>
-            Quit lesson
+            {practice ? "Stop practising" : "Quit lesson"}
           </Button>
         </div>
       </dialog>
@@ -244,7 +282,15 @@ function Footer({
             </span>
             <div>
               <p className={`font-display text-2xl ${good ? "text-lagoon" : "text-gumamela"}`}>
-                {good ? (feedback.typo ? "Almost perfect!" : "Magaling!") : isMatch ? "Not quite" : "Correct answer:"}
+                {feedback.skipped
+                  ? "No problem, we’ll practise speaking later."
+                  : good
+                    ? feedback.typo
+                      ? "Almost perfect!"
+                      : "Magaling!"
+                    : isMatch
+                      ? "Not quite"
+                      : "Correct answer:"}
               </p>
               {good && feedback.typo && <p className="text-lagoon">Watch the spelling: {feedback.correctAnswer}</p>}
               {!good && !isMatch && (

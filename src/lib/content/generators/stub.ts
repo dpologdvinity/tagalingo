@@ -73,6 +73,15 @@ class LessonBuilder {
   private readonly usedSentences = new Set<string>();
   /** Distractor tiles already shown in this lesson (lower-cased). */
   private readonly usedTiles = new Set<string>();
+  /** Words already used as the target of a recognition exercise (pick / picture / listen). */
+  private readonly targets = new Set<string>();
+
+  /** Reserve `w` as a recognition target; false if this lesson already quizzed it that way. */
+  private claimTarget(w: CourseWord): boolean {
+    if (this.targets.has(w.tl)) return false;
+    this.targets.add(w.tl);
+    return true;
+  }
 
   constructor(private readonly req: GenerationRequest) {
     this.rand = rng(hash(`${req.skill.slug}#${req.lesson.index}`));
@@ -109,15 +118,19 @@ class LessonBuilder {
   }
 
   mcTlToEn(w: CourseWord): Draft | null {
-    if (!glossable(w)) return null;
+    if (!glossable(w) || this.targets.has(w.tl)) return null;
     const wrong = this.distractors(w, 3, glossable).map((d) => d.en);
-    return this.choice(w.tl, "tl", w.en, wrong);
+    const draft = this.choice(w.tl, "tl", w.en, wrong);
+    if (draft) this.claimTarget(w);
+    return draft;
   }
 
   mcEnToTl(w: CourseWord): Draft | null {
-    if (!glossable(w)) return null;
+    if (!glossable(w) || this.targets.has(w.tl)) return null;
     const wrong = this.distractors(w, 3).map((d) => d.tl);
-    return this.choice(w.en, "en", w.tl, wrong);
+    const draft = this.choice(w.en, "en", w.tl, wrong);
+    if (draft) this.claimTarget(w);
+    return draft;
   }
 
   /** Reserve `w`'s example sentence for one exercise; false if the lesson already used it. */
@@ -244,18 +257,18 @@ class LessonBuilder {
 
   /** Hear the word (text-to-speech), pick its meaning. */
   listenWord(w: CourseWord): Draft | null {
-    if (!glossable(w)) return null;
+    if (!glossable(w) || this.targets.has(w.tl)) return null;
     const wrong = this.distractors(w, 3, glossable).map((d) => d.en);
-    if (wrong.length < 2) return null;
+    if (wrong.length < 2 || !this.claimTarget(w)) return null;
     const options = shuffle([w.en, ...wrong], this.rand);
     return { type: "listen_select", payload: { audio: w.tl, options, answerIndex: options.indexOf(w.en) } };
   }
 
   /** See the Tagalog word, pick its picture. */
   picture(w: CourseWord): Draft | null {
-    if (!w.pic) return null;
+    if (!w.pic || this.targets.has(w.tl)) return null;
     const others = this.distractors(w, 3, (d) => !!d.pic && d.pic !== w.pic);
-    if (others.length < 2) return null;
+    if (others.length < 2 || !this.claimTarget(w)) return null;
     const cards = shuffle([w, ...others], this.rand);
     return {
       type: "select_picture",
@@ -312,12 +325,13 @@ type Make = (b: LessonBuilder, w: CourseWord) => Draft | null;
 type Slot = { make: Make; word: number; fallback?: Make };
 
 /**
- * The lesson recipe. Recognition first (pick, picture, listen), then building and producing
+ * The lesson recipe. Recognition first (picture, pick, listen), then building and producing
  * (tiles, dialogue, typing, speaking). A match-pairs round is dropped in after step three.
  */
 const RECIPE: Slot[] = [
+  // Pictures first: the gentlest way into a new word.
+  { make: (b, w) => b.picture(w), word: 0, fallback: (b, w) => b.mcEnToTl(w) },
   { make: (b, w) => b.mcTlToEn(w), word: 0 },
-  { make: (b, w) => b.picture(w), word: 1, fallback: (b, w) => b.mcEnToTl(w) },
   { make: (b, w) => b.listenWord(w), word: 2 },
   { make: (b, w) => b.fillBlank(w), word: 2 },
   { make: (b, w) => b.wordBankToTl(w), word: 3 },

@@ -10,9 +10,11 @@ import {
   completeAttempt,
   LessonError,
   startAttempt,
+  startPractice,
   submitAnswer,
   type AnswerFeedback,
   type LessonResult,
+  type StartedAttempt,
 } from "@/server/lessons";
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string; message: string };
@@ -35,8 +37,14 @@ async function userOrError() {
   return user;
 }
 
-export async function startLessonAction(lessonId: string): Promise<ActionResult<{ attemptId: string }>> {
+export async function startLessonAction(lessonId: string): Promise<ActionResult<StartedAttempt>> {
   return run(async () => startAttempt(await userOrError(), id.parse(lessonId)));
+}
+
+const practiceScope = z.union([z.object({ skillId: id }), z.object({ unitId: id })]);
+
+export async function startPracticeAction(scope: unknown): Promise<ActionResult<StartedAttempt>> {
+  return run(async () => startPractice(await userOrError(), practiceScope.parse(scope)));
 }
 
 export async function answerAction(
@@ -47,7 +55,7 @@ export async function answerAction(
   return run(async () => {
     const user = await userOrError();
     // Answers are tiny; refuse anything suspiciously large before touching the database.
-    if (JSON.stringify(answer ?? null).length > 4000) throw new LessonError("not_found", "Answer is too long");
+    if (JSON.stringify(answer ?? null).length > 4000) throw new LessonError("invalid", "That answer is too long.");
     return submitAnswer(user.id, id.parse(attemptId), id.parse(exerciseId), answer);
   });
 }

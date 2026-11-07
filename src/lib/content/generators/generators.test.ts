@@ -57,6 +57,18 @@ describe("StubGenerator", () => {
     }
   });
 
+  it("never uses the same word as the target of two recognition exercises in a lesson", async () => {
+    for (const req of allRequests) {
+      const targets: string[] = [];
+      for (const ex of (await stub.generate(req)).exercises) {
+        if (ex.type === "select_picture") targets.push(ex.payload.prompt);
+        if (ex.type === "listen_select") targets.push(ex.payload.audio);
+        if (ex.type === "select_translation" && !ex.payload.prompt.includes(" ")) targets.push(ex.payload.prompt);
+      }
+      expect(new Set(targets).size, `${req.lesson.title}: ${targets.join(", ")}`).toBe(targets.length);
+    }
+  });
+
   it("is deterministic for the same lesson", async () => {
     const a = await stub.generate(allRequests[0]);
     const b = await stub.generate(allRequests[0]);

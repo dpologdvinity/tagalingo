@@ -10,6 +10,10 @@ const TYPE_LABEL: Record<ParsedExercise["type"], string> = {
   word_bank: "Build with tiles",
   match_pairs: "Match pairs",
   type_translation: "Type the translation",
+  listen_select: "Listen and pick",
+  select_picture: "Pick the picture",
+  speak: "Say it aloud",
+  dialogue: "Dialogue reply",
 };
 
 export function typeLabel(t: ParsedExercise["type"]) {
@@ -98,6 +102,60 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
             <span className="text-ink-soft">Accepted answers: </span>
             <strong className="text-lagoon">{ex.payload.answers.join(" / ")}</strong>
           </p>
+        </div>
+      );
+    case "listen_select":
+      return (
+        <div className="space-y-2">
+          <p className="text-lg font-bold" lang="tl">
+            🔊 {ex.payload.audio}
+          </p>
+          <ul className="grid gap-1.5 sm:grid-cols-2">
+            {ex.payload.options.map((o, i) => (
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+            ))}
+          </ul>
+        </div>
+      );
+    case "select_picture":
+      return (
+        <div className="space-y-2">
+          <p className="text-lg font-bold" lang="tl">
+            {ex.payload.prompt}
+          </p>
+          <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+            {ex.payload.pictures.map((p, i) => (
+              <Choice key={i} text={`${p} ${ex.payload.labels[i]}`} correct={i === ex.payload.answerIndex} />
+            ))}
+          </ul>
+        </div>
+      );
+    case "speak":
+      return (
+        <div className="space-y-1">
+          <p className="text-lg font-bold" lang="tl">
+            🎤 {ex.payload.text}
+          </p>
+          <p className="text-ink-soft">“{ex.payload.translation}”</p>
+        </div>
+      );
+    case "dialogue":
+      return (
+        <div className="space-y-2">
+          <ul className="space-y-1">
+            {ex.payload.lines.map((l, i) => (
+              <li key={i}>
+                <strong>{l.speaker}:</strong> <span lang="tl">{l.tl}</span>{" "}
+                <span className="text-ink-soft">({l.en})</span>
+              </li>
+            ))}
+          </ul>
+          <ul className="grid gap-1.5">
+            {ex.payload.options.map((o, i) => (
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+            ))}
+          </ul>
+          <p className="text-sm text-ink-soft">Reply means: {ex.payload.replyEn}</p>
         </div>
       );
   }

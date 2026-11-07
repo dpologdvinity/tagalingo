@@ -36,7 +36,15 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
       update: unitData,
     });
     for (const [si, s] of u.skills.entries()) {
-      const skillData = { unitId: unit.id, order: si + 1, title: s.title, emoji: s.emoji, description: s.description };
+      const skillData = {
+        unitId: unit.id,
+        order: si + 1,
+        title: s.title,
+        emoji: s.emoji,
+        description: s.description,
+        tips: s.tips,
+        dialogues: s.dialogues,
+      };
       const skill = await prisma.skill.upsert({
         where: { slug: s.slug },
         create: { slug: s.slug, ...skillData },
@@ -56,6 +64,7 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
           notes: w.note ?? null,
           exampleTl: w.ex[0],
           exampleEn: w.ex[1],
+          pic: w.pic ?? null,
         };
         await prisma.word.upsert({
           where: { skillId_tagalog: { skillId: skill.id, tagalog: w.tl } },

@@ -3,6 +3,7 @@
  * The skill path, drawn as a jeepney route: each unit opens with a painted route placard and its
  * skills are stops along a winding road. Tapping an open stop shows its lessons and a start button.
  */
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import type { PathView } from "@/server/course";
@@ -18,12 +19,28 @@ const ROW = 120;
 const NODE = 76;
 
 function RoutePlacard({ unit }: { unit: Unit }) {
+  const started = unit.skills.some((s) => s.completedLessons > 0);
+  const link = "rounded-xl bg-white/20 px-3 py-1.5 text-sm font-bold hover:bg-white/30";
   return (
     <header className="overflow-hidden rounded-3xl text-white shadow-press" style={{ background: unit.color }}>
       <div className="px-5 pb-4 pt-4">
         <p className="font-bold opacity-85">Unit {unit.order}</p>
         <h2 className="font-display text-3xl leading-tight">{unit.title}</h2>
         <p className="mt-1 max-w-sm opacity-90">{unit.subtitle}</p>
+        {(unit.order === 1 || started) && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {unit.order === 1 && (
+              <Link href="/guide" className={link}>
+                Hear the sounds of Tagalog
+              </Link>
+            )}
+            {started && (
+              <Link href={`/practice?unit=${unit.id}` as Route} className={link}>
+                Review this unit
+              </Link>
+            )}
+          </div>
+        )}
       </div>
       {/* Two-tone "chrome" stripe, a nod to hand-painted jeepney trim. */}
       <div aria-hidden className="flex h-3">
@@ -152,11 +169,29 @@ function Stop({ skill, index, open, onToggle }: { skill: Skill; index: number; o
           </ol>
           {playable && skill.nextLessonId ? (
             <Link href={`/lesson/${skill.nextLessonId}`} className={buttonClass("primary", "w-full")}>
-              {skill.state === "complete" ? "Practise again" : skill.completedLessons > 0 ? "Continue" : "Start lesson"}
+              {skill.state === "complete"
+                ? "Replay a lesson"
+                : skill.completedLessons > 0
+                  ? "Continue"
+                  : "Start lesson"}
             </Link>
           ) : (
             <p className="rounded-2xl bg-seaglass px-4 py-3 text-ink-soft">{stateLabel(skill)}</p>
           )}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Link href={`/skills/${skill.slug}`} className={buttonClass("secondary", "px-3 text-sm")}>
+              Tips &amp; words
+            </Link>
+            {skill.completedLessons > 0 ? (
+              <Link href={`/practice?skill=${skill.id}` as Route} className={buttonClass("secondary", "px-3 text-sm")}>
+                Practise
+              </Link>
+            ) : (
+              <span className={buttonClass("secondary", "px-3 text-sm opacity-50")} aria-disabled>
+                Practise
+              </span>
+            )}
+          </div>
         </div>
       )}
     </li>

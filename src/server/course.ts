@@ -2,6 +2,7 @@
  * Reads the course tree and decorates it with a learner's unlock state.
  */
 import "server-only";
+import type { Route } from "next";
 import { db } from "@/lib/db";
 import { buildPath, type LessonState, type SkillState } from "@/lib/game/path";
 
@@ -96,4 +97,86 @@ export async function canPlayLesson(userId: string, lessonId: string): Promise<b
     for (const skill of unit.skills)
       for (const lesson of skill.lessons) if (lesson.id === lessonId) return lesson.state !== "locked";
   return false;
+}
+
+/**
+ * Where to send a learner to practise around `lessonId`: its skill if they've finished a lesson
+ * there, else its unit, else the unit of their most recent progress. Null if they've finished
+ * nothing yet (practice needs finished lessons).
+ */
+export async function practiceHrefFor(userId: string, lessonId: string): Promise<Route | null> {
+  const lesson = await db.lesson.findUnique({ where: { id: lessonId }, include: { skill: true } });
+  if (!lesson) return null;
+  const done = (where: object) => db.lessonProgress.count({ where: { userId, lesson: where } });
+  if (await done({ skillId: lesson.skillId })) return `/practice?skill=${lesson.skillId}` as Route;
+  if (await done({ skill: { unitId: lesson.skill.unitId } })) return `/practice?unit=${lesson.skill.unitId}` as Route;
+  const latest = await db.lessonProgress.findFirst({
+    where: { userId },
+    orderBy: { firstCompletedAt: "desc" },
+    include: { lesson: { include: { skill: true } } },
+  });
+  return latest ? (`/practice?unit=${latest.lesson.skill.unitId}` as Route) : null;
+}
+
+export type SkillPageData = {
+  id: string;
+  slug: string;
+  title: string;
+  emoji: string;
+  description: string;
+  unitId: string;
+  unitTitle: string;
+  tips: string[];
+  dialogues: { lesson: number; lines: [string, string, string][] }[];
+  words: {
+    tl: string;
+    en: string;
+    pos: string;
+    notes: string | null;
+    exampleTl: string | null;
+    exampleEn: string | null;
+    pic: string | null;
+  }[];
+  state: PathView["units"][number]["skills"][number]["state"];
+  nextLessonId: string | null;
+  completedLessons: number;
+  totalLessons: number;
+};
+
+/** Everything the skill page shows: tips, word list (flashcards), dialogues and progress. */
+export async function getSkillPage(userId: string, slug: string): Promise<SkillPageData | null> {
+  const [skill, path] = await Promise.all([
+    db.skill.findUnique({
+      where: { slug },
+      include: { unit: { select: { id: true, title: true } }, words: { orderBy: { id: "asc" } } },
+    }),
+    getPathForUser(userId),
+  ]);
+  if (!skill || !path) return null;
+  const view = path.units.flatMap((u) => u.skills).find((s) => s.id === skill.id);
+  if (!view) return null;
+  return {
+    id: skill.id,
+    slug: skill.slug,
+    title: skill.title,
+    emoji: skill.emoji,
+    description: skill.description,
+    unitId: skill.unit.id,
+    unitTitle: skill.unit.title,
+    tips: skill.tips,
+    dialogues: Array.isArray(skill.dialogues) ? (skill.dialogues as SkillPageData["dialogues"]) : [],
+    words: skill.words.map((w) => ({
+      tl: w.tagalog,
+      en: w.english,
+      pos: w.partOfSpeech,
+      notes: w.notes,
+      exampleTl: w.exampleTl,
+      exampleEn: w.exampleEn,
+      pic: w.pic,
+    })),
+    state: view.state,
+    nextLessonId: view.nextLessonId,
+    completedLessons: view.completedLessons,
+    totalLessons: view.totalLessons,
+  };
 }
