@@ -19,7 +19,26 @@ const wordSchema = z.object({
   note: text.optional(),
   ex: z.tuple([text, text]),
   exAccept: z.array(text).default([]),
+  /** Optional emoji picture for picture-matching exercises (concrete words only). */
+  pic: text.optional(),
 });
+
+/** A short conversation; the last line is B's reply, which learners have to pick. */
+const dialogueSchema = z
+  .object({
+    /** 1-based lesson this dialogue belongs to. */
+    lesson: z.number().int().positive(),
+    lines: z
+      .array(z.tuple([z.enum(["A", "B"]), text, text]))
+      .min(2)
+      .max(6),
+    /** Two or three clearly wrong replies to offer alongside the right one. */
+    wrong: z.array(text).min(2).max(3),
+  })
+  .refine((d) => d.lines[d.lines.length - 1][0] === "B", {
+    message: "a dialogue must end with B's reply (the line learners choose)",
+    path: ["lines"],
+  });
 
 const skillSchema = z
   .object({
@@ -29,6 +48,9 @@ const skillSchema = z
     description: text,
     lessons: z.array(z.object({ title: text, words: z.array(text).min(1) })).min(1),
     words: z.array(wordSchema).min(4),
+    /** Short grammar and culture notes shown on the skill's tips page. */
+    tips: z.array(text).default([]),
+    dialogues: z.array(dialogueSchema).default([]),
   })
   .superRefine((skill, ctx) => {
     const known = new Set(skill.words.map((w) => w.tl));
@@ -42,6 +64,24 @@ const skillSchema = z
           });
       }),
     );
+    skill.dialogues.forEach((d, di) => {
+      if (d.lesson > skill.lessons.length)
+        ctx.addIssue({
+          code: "custom",
+          path: ["dialogues", di, "lesson"],
+          message: `Dialogue ${di + 1} points at lesson ${d.lesson}, but ${skill.slug} has ${skill.lessons.length} lessons`,
+        });
+    });
+    const pics = new Map<string, string>();
+    skill.words.forEach((w, wi) => {
+      if (w.pic && pics.has(w.pic))
+        ctx.addIssue({
+          code: "custom",
+          path: ["words", wi, "pic"],
+          message: `"${w.tl}" and "${pics.get(w.pic)}" use the same picture ${w.pic}`,
+        });
+      if (w.pic) pics.set(w.pic, w.tl);
+    });
     skill.words.forEach((w, wi) => {
       if (!w.ex[0].toLocaleLowerCase().includes(w.tl.toLocaleLowerCase()))
         ctx.addIssue({
@@ -69,6 +109,7 @@ const courseSchema = z.object({
 
 export type CourseWord = z.infer<typeof wordSchema>;
 export type CourseSkill = z.infer<typeof skillSchema>;
+export type CourseDialogue = z.infer<typeof dialogueSchema>;
 export type CourseDefinition = z.infer<typeof courseSchema>;
 
 export function parseCourse(raw: unknown): CourseDefinition {
@@ -94,6 +135,8 @@ export type GenerationRequest = {
   reviewWords: CourseWord[];
   /** The whole skill vocabulary, used as a distractor pool. */
   allWords: CourseWord[];
+  /** Hand-written dialogues for this lesson. */
+  dialogues: CourseDialogue[];
 };
 
 export function lessonRequest(skill: CourseSkill, lessonIndex: number): GenerationRequest {
@@ -108,5 +151,6 @@ export function lessonRequest(skill: CourseSkill, lessonIndex: number): Generati
     words: pick(lesson.words),
     reviewWords: pick(earlier.filter((w) => !lesson.words.includes(w))),
     allWords: skill.words,
+    dialogues: skill.dialogues.filter((d) => d.lesson === lessonIndex + 1),
   };
 }

@@ -13,7 +13,15 @@
 #   ex       [Tagalog example sentence, English translation] — must actually contain `tl`
 #   exAccept other acceptable English translations of the example
 #
+#   pic      optional emoji for picture-matching exercises (concrete words only, unique per skill)
+#
+# Skill fields beyond words:
+#   tips       short grammar/culture notes shown on the skill's tips page
+#   dialogues  short conversations; the last line (speaker B) is the reply learners pick,
+#              `wrong` lists clearly wrong replies to offer alongside it
+#
 # Lessons list which words they introduce; later lessons may reuse earlier words for review.
+# All content here is original to Tagalingo.
 
 course:
   slug: tl-en
@@ -60,6 +68,7 @@ units:
               pos: phrase,
               ex: ["Salamat, Ana.", "Thank you, Ana."],
               exAccept: ["Thanks, Ana."],
+              pic: 🙏,
             }
           - {
               tl: oo,
@@ -83,6 +92,7 @@ units:
               pos: phrase,
               ex: ["Magandang umaga po.", "Good morning."],
               exAccept: ["Good morning, sir.", "Good morning, ma'am."],
+              pic: 🌅,
             }
           - {
               tl: magandang gabi,
@@ -90,6 +100,7 @@ units:
               accept: [good night],
               pos: phrase,
               ex: ["Magandang gabi, Lola.", "Good evening, Grandma."],
+              pic: 🌙,
             }
           - {
               tl: paalam,
@@ -98,6 +109,7 @@ units:
               pos: phrase,
               ex: ["Paalam, kaibigan.", "Goodbye, friend."],
               exAccept: ["Bye, friend."],
+              pic: 👋,
             }
           - {
               tl: po,
@@ -109,6 +121,33 @@ units:
               exAccept: ["Thank you, sir.", "Thank you, ma'am."],
             }
           - { tl: ingat, en: take care, pos: phrase, ex: ["Ingat ka!", "Take care!"] }
+        tips:
+          - Kumusta comes from the Spanish ¿cómo está? and works as both “hello” and “how are you?”. The usual answer is Mabuti naman (I'm fine).
+          - "Add po to a sentence to be polite to someone older or to a stranger: Salamat po. Its partner opo is a respectful “yes”."
+          - "Magandang means “beautiful” and is the start of every time-of-day greeting: magandang umaga (morning), magandang hapon (afternoon), magandang gabi (evening)."
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Kumusta ka?
+                - How are you?
+              - - B
+                - Mabuti naman, salamat.
+                - I'm fine, thanks.
+            wrong:
+              - Paalam, kaibigan.
+              - Hindi, salamat.
+          - lesson: 2
+            lines:
+              - - A
+                - Magandang gabi po, Lola.
+                - Good evening, Grandma.
+              - - B
+                - Magandang gabi rin. Ingat ka!
+                - Good evening to you too. Take care!
+            wrong:
+              - Oo, gutom ako.
+              - Magandang umaga po.
 
       - slug: mga-tao
         title: Mga Tao
@@ -158,6 +197,7 @@ units:
               pos: noun,
               ex: ["Kaibigan ko siya.", "He is my friend."],
               exAccept: ["She is my friend.", "He's my friend.", "She's my friend."],
+              pic: 🤝,
             }
           - {
               tl: kami,
@@ -177,13 +217,14 @@ units:
               ex: ["Magkaibigan tayo.", "We are friends."],
               exAccept: ["We're friends."],
             }
-          - { tl: guro, en: teacher, pos: noun, ex: ["Mabait ang guro.", "The teacher is kind."] }
+          - { tl: guro, en: teacher, pos: noun, ex: ["Mabait ang guro.", "The teacher is kind."], pic: 🧑‍🏫 }
           - {
               tl: estudyante,
               en: student,
               pos: noun,
               ex: ["Estudyante ako.", "I am a student."],
               exAccept: ["I'm a student."],
+              pic: 🧑‍🎓,
             }
           - {
               tl: lalaki,
@@ -192,6 +233,7 @@ units:
               pos: noun,
               ex: ["Matangkad ang lalaki.", "The man is tall."],
               exAccept: ["The boy is tall."],
+              pic: 👨,
             }
           - {
               tl: babae,
@@ -199,7 +241,35 @@ units:
               accept: [girl, female],
               pos: noun,
               ex: ["Guro ang babae.", "The woman is a teacher."],
+              pic: 👩,
             }
+        tips:
+          - Siya means both “he” and “she”. Tagalog pronouns don't mark gender, so context tells you who's meant.
+          - There are two words for “we”. Kami leaves out the person you're talking to; tayo includes them. Kain tayo! (Let's eat!) invites the listener.
+          - "Tagalog often puts the description first: Guro ako literally reads “teacher I”, meaning “I'm a teacher”. You'll also see the longer Ako ay guro."
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Kaibigan mo ba siya?
+                - Is she your friend?
+              - - B
+                - Oo, kaibigan ko siya.
+                - Yes, she's my friend.
+            wrong:
+              - Ako si Maria.
+              - Masaya sila.
+          - lesson: 2
+            lines:
+              - - A
+                - Guro ka ba?
+                - Are you a teacher?
+              - - B
+                - Hindi, estudyante ako.
+                - No, I'm a student.
+            wrong:
+              - Oo, matangkad siya.
+              - Magkaibigan sila.
 
       - slug: pagkain
         title: Pagkain
@@ -218,6 +288,7 @@ units:
               pos: noun,
               note: "Cooked rice. Uncooked rice is bigas.",
               ex: ["Kumain ako ng kanin.", "I ate rice."],
+              pic: 🍚,
             }
           - {
               tl: tubig,
@@ -225,14 +296,16 @@ units:
               pos: noun,
               ex: ["Gusto ko ng tubig.", "I want water."],
               exAccept: ["I want some water.", "I would like water."],
+              pic: 💧,
             }
-          - { tl: isda, en: fish, pos: noun, ex: ["Sariwa ang isda.", "The fish is fresh."] }
+          - { tl: isda, en: fish, pos: noun, ex: ["Sariwa ang isda.", "The fish is fresh."], pic: 🐟 }
           - {
               tl: manok,
               en: chicken,
               pos: noun,
               ex: ["Kumakain siya ng manok.", "She is eating chicken."],
               exAccept: ["He is eating chicken.", "She's eating chicken.", "He's eating chicken."],
+              pic: 🍗,
             }
           - {
               tl: kape,
@@ -240,6 +313,7 @@ units:
               pos: noun,
               ex: ["Umiinom ako ng kape.", "I am drinking coffee."],
               exAccept: ["I'm drinking coffee."],
+              pic: ☕,
             }
           - {
               tl: tinapay,
@@ -247,8 +321,9 @@ units:
               pos: noun,
               ex: ["May tinapay ba?", "Is there bread?"],
               exAccept: ["Is there any bread?", "Do you have bread?", "Do you have any bread?"],
+              pic: 🍞,
             }
-          - { tl: gatas, en: milk, pos: noun, ex: ["Malamig ang gatas.", "The milk is cold."] }
+          - { tl: gatas, en: milk, pos: noun, ex: ["Malamig ang gatas.", "The milk is cold."], pic: 🥛 }
           - {
               tl: masarap,
               en: delicious,
@@ -277,7 +352,35 @@ units:
               pos: noun,
               ex: ["Mahilig ako sa prutas.", "I love fruit."],
               exAccept: ["I like fruit.", "I'm fond of fruit."],
+              pic: 🍎,
             }
+        tips:
+          - Kanin is cooked rice. Uncooked rice is bigas, and the rice plant in the field is palay.
+          - "Ng (pronounced “nang”) marks the thing being eaten or wanted: Gusto ko ng tubig (I want water)."
+          - Kain tayo! is the classic invitation to share a meal. It's polite to offer it even if there isn't enough to go round.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Gusto mo ba ng kape?
+                - Would you like some coffee?
+              - - B
+                - Hindi, salamat. Tubig na lang.
+                - No, thanks. Just water.
+            wrong:
+              - Sariwa ang isda.
+              - Kumain ako ng manok kahapon.
+          - lesson: 2
+            lines:
+              - - A
+                - Gutom ka na ba?
+                - Are you hungry yet?
+              - - B
+                - Oo! Kain tayo!
+                - Yes! Let's eat!
+            wrong:
+              - Malamig ang gatas.
+              - May tinapay ba?
 
       - slug: pamilya
         title: Pamilya
@@ -313,13 +416,14 @@ units:
               ex: ["May kapatid ka ba?", "Do you have a sibling?"],
               exAccept: ["Do you have siblings?", "Do you have a brother or sister?"],
             }
-          - { tl: bahay, en: house, accept: [home], pos: noun, ex: ["Malaki ang bahay.", "The house is big."] }
+          - { tl: bahay, en: house, accept: [home], pos: noun, ex: ["Malaki ang bahay.", "The house is big."], pic: 🏠 }
           - {
               tl: pamilya,
               en: family,
               pos: noun,
               ex: ["Malaki ang pamilya ko.", "My family is big."],
               exAccept: ["I have a big family."],
+              pic: 👨‍👩‍👧,
             }
           - {
               tl: ate,
@@ -346,6 +450,7 @@ units:
               pos: noun,
               ex: ["Mahal ko si Lola.", "I love Grandma."],
               exAccept: ["I love grandmother.", "I love my grandma."],
+              pic: 👵,
             }
           - {
               tl: lolo,
@@ -354,6 +459,7 @@ units:
               pos: noun,
               ex: ["Natutulog si Lolo.", "Grandpa is sleeping."],
               exAccept: ["Grandfather is sleeping."],
+              pic: 👴,
             }
           - {
               tl: anak,
@@ -363,7 +469,35 @@ units:
               note: "Your own child (son or daughter), not a child in general (bata).",
               ex: ["Dalawa ang anak nila.", "They have two children."],
               exAccept: ["They have two kids."],
+              pic: 👶,
             }
+        tips:
+          - Ate and kuya (older sister and brother) are used for any slightly older person, such as a shop assistant or a neighbour, as a friendly sign of respect.
+          - "Si goes in front of people's names and family titles: si Lola, si Kuya, si Ana."
+          - Kapatid means sibling of either gender. Add babae or lalaki only when you need to be specific.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - May kapatid ka ba?
+                - Do you have any siblings?
+              - - B
+                - Oo, may kapatid ako.
+                - Yes, I have a sibling.
+            wrong:
+              - Malaki ang bahay.
+              - Nagluluto si Tatay.
+          - lesson: 2
+            lines:
+              - - A
+                - Si Kuya ba iyan?
+                - Is that your big brother?
+              - - B
+                - Hindi, si Lolo iyan.
+                - No, that's Grandpa.
+            wrong:
+              - Oo, dalawa ang anak nila.
+              - Mahal ko ang pamilya ko.
 
   - slug: sa-bayan
     title: Sa Bayan
@@ -387,25 +521,28 @@ units:
               note: "Before a noun it takes the linker -ng: isang kape.",
               ex: ["Isa lang po.", "Just one, please."],
               exAccept: ["Only one, please.", "Just one."],
+              pic: 1️⃣,
             }
-          - { tl: dalawa, en: two, pos: number, ex: ["Dalawa ang kapatid ko.", "I have two siblings."] }
-          - { tl: tatlo, en: three, pos: number, ex: ["Tatlo ang aso ko.", "I have three dogs."] }
+          - { tl: dalawa, en: two, pos: number, ex: ["Dalawa ang kapatid ko.", "I have two siblings."], pic: 2️⃣ }
+          - { tl: tatlo, en: three, pos: number, ex: ["Tatlo ang aso ko.", "I have three dogs."], pic: 3️⃣ }
           - {
               tl: apat,
               en: four,
               pos: number,
               ex: ["Apat kami sa pamilya.", "There are four of us in the family."],
               exAccept: ["We are four in the family."],
+              pic: 4️⃣,
             }
-          - { tl: lima, en: five, pos: number, ex: ["Lima ang daliri ko.", "I have five fingers."] }
-          - { tl: anim, en: six, pos: number, ex: ["Anim ang itlog.", "There are six eggs."] }
+          - { tl: lima, en: five, pos: number, ex: ["Lima ang daliri ko.", "I have five fingers."], pic: 5️⃣ }
+          - { tl: anim, en: six, pos: number, ex: ["Anim ang itlog.", "There are six eggs."], pic: 6️⃣ }
           - {
               tl: pito,
               en: seven,
               pos: number,
               ex: ["Pito ang araw sa isang linggo.", "There are seven days in a week."],
+              pic: 7️⃣,
             }
-          - { tl: walo, en: eight, pos: number, ex: ["Walo ang pusa ni Lola.", "Grandma has eight cats."] }
+          - { tl: walo, en: eight, pos: number, ex: ["Walo ang pusa ni Lola.", "Grandma has eight cats."], pic: 8️⃣ }
           - {
               tl: siyam,
               en: nine,
@@ -419,8 +556,35 @@ units:
                   "She is nine.",
                   "He is nine.",
                 ],
+              pic: 9️⃣,
             }
-          - { tl: sampu, en: ten, pos: number, ex: ["Sampu ang estudyante.", "There are ten students."] }
+          - { tl: sampu, en: ten, pos: number, ex: ["Sampu ang estudyante.", "There are ten students."], pic: 🔟 }
+        tips:
+          - Before a noun, numbers take a linker. Words ending in a vowel add -ng (isang kape, dalawang tao); others use na (apat na tao).
+          - Prices, times and big numbers are very often said in Spanish-based numbers (singko, alas tres) or in English. You'll hear all three in Manila.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Ilan ang kapatid mo?
+                - How many siblings do you have?
+              - - B
+                - Tatlo ang kapatid ko.
+                - I have three siblings.
+            wrong:
+              - Isa lang po ang kape.
+              - Lima ang daliri ko.
+          - lesson: 2
+            lines:
+              - - A
+                - Ilang taon ka na?
+                - How old are you?
+              - - B
+                - Siyam na taon na ako.
+                - I'm nine years old.
+            wrong:
+              - Pito ang araw sa isang linggo.
+              - Walo ang pusa ni Lola.
 
       - slug: mga-lugar
         title: Mga Lugar
@@ -445,6 +609,7 @@ units:
               pos: noun,
               ex: ["Pupunta ako sa paaralan.", "I will go to school."],
               exAccept: ["I'm going to school.", "I am going to school."],
+              pic: 🏫,
             }
           - {
               tl: palengke,
@@ -461,15 +626,17 @@ units:
               pos: noun,
               ex: ["Sarado ang tindahan.", "The store is closed."],
               exAccept: ["The shop is closed."],
+              pic: 🏪,
             }
-          - { tl: simbahan, en: church, pos: noun, ex: ["Luma ang simbahan.", "The church is old."] }
-          - { tl: ospital, en: hospital, pos: noun, ex: ["Nasaan ang ospital?", "Where is the hospital?"] }
+          - { tl: simbahan, en: church, pos: noun, ex: ["Luma ang simbahan.", "The church is old."], pic: ⛪ }
+          - { tl: ospital, en: hospital, pos: noun, ex: ["Nasaan ang ospital?", "Where is the hospital?"], pic: 🏥 }
           - {
               tl: opisina,
               en: office,
               pos: noun,
               ex: ["Nasa opisina si Tatay.", "Dad is at the office."],
               exAccept: ["Father is at the office."],
+              pic: 🏢,
             }
           - {
               tl: dagat,
@@ -478,6 +645,7 @@ units:
               pos: noun,
               ex: ["Maganda ang dagat.", "The sea is beautiful."],
               exAccept: ["The ocean is beautiful."],
+              pic: 🌊,
             }
           - {
               tl: bundok,
@@ -485,6 +653,7 @@ units:
               pos: noun,
               ex: ["Mataas ang bundok.", "The mountain is high."],
               exAccept: ["The mountain is tall."],
+              pic: ⛰️,
             }
           - {
               tl: malapit,
@@ -501,6 +670,33 @@ units:
               ex: ["Malayo ang bundok.", "The mountain is far."],
               exAccept: ["The mountain is far away."],
             }
+        tips:
+          - "Nasaan asks where something is: Nasaan ang ospital? Saan is used with actions: Saan ka pupunta?"
+          - "Nasa means “at” or “in” a place: Nasa palengke si Nanay (Mom is at the market)."
+          - Malapit (near) and malayo (far) start with ma-, the most common way to make adjectives.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Nasaan ang palengke?
+                - Where is the market?
+              - - B
+                - Malapit sa simbahan.
+                - Near the church.
+            wrong:
+              - Sarado ang paaralan.
+              - Pupunta ako bukas.
+          - lesson: 2
+            lines:
+              - - A
+                - Malayo ba ang ospital?
+                - Is the hospital far?
+              - - B
+                - Hindi, malapit lang.
+                - No, it's close by.
+            wrong:
+              - Maganda ang dagat.
+              - Nasa opisina si Tatay.
 
       - slug: oras-at-araw
         title: Oras at Araw
@@ -541,6 +737,7 @@ units:
               pos: noun,
               ex: ["Maganda ang umaga.", "The morning is beautiful."],
               exAccept: ["It's a beautiful morning."],
+              pic: 🌅,
             }
           - {
               tl: gabi,
@@ -549,6 +746,7 @@ units:
               pos: noun,
               ex: ["Tahimik ang gabi.", "The night is quiet."],
               exAccept: ["The evening is quiet."],
+              pic: 🌙,
             }
           - {
               tl: hapon,
@@ -557,6 +755,7 @@ units:
               note: "Capitalised, Hapon means Japan or Japanese.",
               ex: ["Mainit sa hapon.", "It's hot in the afternoon."],
               exAccept: ["It is hot in the afternoon."],
+              pic: 🌇,
             }
           - {
               tl: araw,
@@ -566,8 +765,9 @@ units:
               note: "Means both day and sun.",
               ex: ["Mainit ang araw.", "The sun is hot."],
               exAccept: ["The day is hot.", "It is a hot day."],
+              pic: ☀️,
             }
-          - { tl: oras, en: time, accept: [hour], pos: noun, ex: ["Anong oras na?", "What time is it?"] }
+          - { tl: oras, en: time, accept: [hour], pos: noun, ex: ["Anong oras na?", "What time is it?"], pic: ⏰ }
           - {
               tl: Lunes,
               en: Monday,
@@ -590,6 +790,33 @@ units:
               note: "Linggo is Sunday; lowercase linggo also means week.",
               ex: ["Nagsisimba kami tuwing Linggo.", "We go to church every Sunday."],
             }
+        tips:
+          - Bukas means both “tomorrow” and “open”. Bukas ang tindahan bukas means the store is open tomorrow.
+          - "Days of the week come from Spanish: Lunes, Martes, Miyerkules, Huwebes, Biyernes, Sabado, Linggo."
+          - Araw means both “day” and “sun”, so Mainit ang araw can describe a hot sun or a hot day.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Kailan ka pupunta?
+                - When are you going?
+              - - B
+                - Bukas ng umaga.
+                - Tomorrow morning.
+            wrong:
+              - Umulan kahapon.
+              - Tahimik ang gabi.
+          - lesson: 2
+            lines:
+              - - A
+                - Anong araw ngayon?
+                - What day is it today?
+              - - B
+                - Lunes ngayon.
+                - It's Monday today.
+            wrong:
+              - Alas tres na.
+              - Mainit sa hapon.
 
   - slug: araw-araw
     title: Araw-araw
@@ -612,6 +839,7 @@ units:
               pos: noun,
               ex: ["Ano ang pangalan mo?", "What is your name?"],
               exAccept: ["What's your name?"],
+              pic: 📛,
             }
           - {
               tl: taga,
@@ -652,6 +880,7 @@ units:
               pos: noun,
               ex: ["Ano ang trabaho mo?", "What is your job?"],
               exAccept: ["What's your job?", "What do you do for work?", "What is your work?"],
+              pic: 💼,
             }
           - {
               tl: ikinagagalak kitang makilala,
@@ -676,8 +905,9 @@ units:
               pos: noun,
               ex: ["Pilipino ang nanay ko.", "My mother is Filipino."],
               exAccept: ["My mom is Filipino."],
+              pic: 🇵🇭,
             }
-          - { tl: Amerikano, en: American, pos: noun, ex: ["Amerikano si Ben.", "Ben is American."] }
+          - { tl: Amerikano, en: American, pos: noun, ex: ["Amerikano si Ben.", "Ben is American."], pic: 🇺🇸 }
           - {
               tl: nakatira,
               en: lives,
@@ -685,6 +915,33 @@ units:
               pos: verb,
               ex: ["Nakatira ako sa Cebu.", "I live in Cebu."],
             }
+        tips:
+          - "To say where you're from, attach taga- to a place with a hyphen: Taga-Cebu ako (I'm from Cebu). Taga-saan ka? asks where someone is from."
+          - "Ba turns a statement into a yes/no question and comes after the first word or pronoun: Pilipino ka ba?"
+          - Kilala is for knowing people; alam is for knowing facts. Kilala ko si Ana, but Alam ko ang sagot (I know the answer).
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Ano ang pangalan mo?
+                - What's your name?
+              - - B
+                - Ako si Maria. Ikaw?
+                - I'm Maria. And you?
+            wrong:
+              - Taga-Maynila ang guro.
+              - Pilipino ka ba?
+          - lesson: 2
+            lines:
+              - - A
+                - Saan ka nakatira?
+                - Where do you live?
+              - - B
+                - Nakatira ako sa Davao.
+                - I live in Davao.
+            wrong:
+              - Guro ang trabaho ko.
+              - Kilala ko si Ben.
 
       - slug: biyahe
         title: Biyahe
@@ -733,6 +990,7 @@ units:
               pos: noun,
               ex: ["Matindi ang trapik ngayon.", "The traffic is bad today."],
               exAccept: ["Traffic is bad today.", "The traffic is heavy today.", "Traffic is heavy today."],
+              pic: 🚦,
             }
           - {
               tl: kotse,
@@ -740,8 +998,9 @@ units:
               pos: noun,
               ex: ["Bago ang kotse ni Tatay.", "Dad's car is new."],
               exAccept: ["Father's car is new."],
+              pic: 🚗,
             }
-          - { tl: bus, en: bus, pos: noun, ex: ["Mabagal ang bus.", "The bus is slow."] }
+          - { tl: bus, en: bus, pos: noun, ex: ["Mabagal ang bus.", "The bus is slow."], pic: 🚌 }
           - {
               tl: eroplano,
               en: airplane,
@@ -749,6 +1008,7 @@ units:
               pos: noun,
               ex: ["Malaki ang eroplano.", "The airplane is big."],
               exAccept: ["The plane is big."],
+              pic: ✈️,
             }
           - { tl: kaliwa, en: left, pos: noun, ex: ["Sa kaliwa ang ospital.", "The hospital is on the left."] }
           - { tl: kanan, en: right, pos: noun, ex: ["Sa kanan ang simbahan.", "The church is on the right."] }
@@ -760,6 +1020,33 @@ units:
               ex: ["Diretso lang po.", "Just go straight."],
               exAccept: ["Go straight ahead.", "Just straight ahead."],
             }
+        tips:
+          - On a jeepney, say Para po! to ask the driver to stop, and pass your fare forward saying Bayad po.
+          - "Directions: kaliwa (left), kanan (right), diretso (straight). Kumaliwa and kumanan mean “turn left” and “turn right”."
+          - "Many travel words are borrowed and respelled the Filipino way: trapik (traffic), bus, kotse (from Spanish coche)."
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Saan po kayo bababa?
+                - Where are you getting off?
+              - - B
+                - Sa may simbahan po.
+                - By the church, please.
+            wrong:
+              - Matindi ang trapik.
+              - Sumakay ako ng jeep kahapon.
+          - lesson: 2
+            lines:
+              - - A
+                - Paano pumunta sa ospital?
+                - How do I get to the hospital?
+              - - B
+                - Diretso, tapos kumanan ka.
+                - Go straight, then turn right.
+            wrong:
+              - Mabagal ang bus.
+              - Bago ang kotse ko.
 
       - slug: mga-pandiwa
         title: Mga Pandiwa
@@ -779,6 +1066,7 @@ units:
               note: "-um- inside the root kain marks a finished action.",
               ex: ["Kumain na ako.", "I already ate."],
               exAccept: ["I've already eaten.", "I have eaten.", "I ate already."],
+              pic: 🍽️,
             }
           - {
               tl: kumakain,
@@ -802,6 +1090,7 @@ units:
               pos: verb,
               ex: ["Uminom siya ng tubig.", "She drank water."],
               exAccept: ["He drank water.", "She drank some water.", "He drank some water."],
+              pic: 🥤,
             }
           - {
               tl: iinom,
@@ -816,6 +1105,7 @@ units:
               pos: verb,
               note: "mag- verbs change to nag- for finished actions.",
               ex: ["Nagluto si Lola ng adobo.", "Grandma cooked adobo."],
+              pic: 🍳,
             }
           - {
               tl: magluluto,
@@ -831,6 +1121,7 @@ units:
               pos: verb,
               ex: ["Nag-aaral ako ng Tagalog.", "I am studying Tagalog."],
               exAccept: ["I'm studying Tagalog.", "I'm learning Tagalog.", "I am learning Tagalog."],
+              pic: 📚,
             }
           - {
               tl: naglaro,
@@ -838,6 +1129,7 @@ units:
               pos: verb,
               ex: ["Naglaro ang mga bata sa labas.", "The children played outside."],
               exAccept: ["The kids played outside."],
+              pic: ⚽,
             }
           - {
               tl: natulog,
@@ -845,7 +1137,35 @@ units:
               pos: verb,
               ex: ["Natulog ako nang maaga.", "I slept early."],
               exAccept: ["I went to bed early.", "I went to sleep early."],
+              pic: 😴,
             }
+        tips:
+          - "Tagalog verbs show aspect (finished, ongoing, not yet started) rather than tense. With -um- verbs: kumain (ate), kumakain (is eating), kakain (will eat)."
+          - "Mag- verbs work the same way with nag- for finished and ongoing actions: nagluto (cooked), nagluluto (is cooking), magluluto (will cook)."
+          - "Repeating the first syllable of the root marks an action that hasn't finished: kain → kakain, luto → luluto."
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Kumain ka na ba?
+                - Have you eaten yet?
+              - - B
+                - Oo, busog na ako.
+                - Yes, I'm already full.
+            wrong:
+              - Iinom ako bukas.
+              - Kumakain ang pusa.
+          - lesson: 2
+            lines:
+              - - A
+                - Ano ang ginawa mo kahapon?
+                - What did you do yesterday?
+              - - B
+                - Nagluto ako ng adobo.
+                - I cooked adobo.
+            wrong:
+              - Magluluto ako bukas.
+              - Natutulog si Lolo ngayon.
 
       - slug: sa-bahay
         title: Sa Bahay
@@ -863,6 +1183,7 @@ units:
               pos: noun,
               ex: ["Nasa kusina si Nanay.", "Mom is in the kitchen."],
               exAccept: ["Mother is in the kitchen."],
+              pic: 🍳,
             }
           - {
               tl: kuwarto,
@@ -880,6 +1201,7 @@ units:
               note: "Many Filipinos also say CR (comfort room).",
               ex: ["Nasaan ang banyo?", "Where is the bathroom?"],
               exAccept: ["Where's the bathroom?", "Where is the restroom?", "Where's the restroom?"],
+              pic: 🚽,
             }
           - {
               tl: sala,
@@ -887,6 +1209,7 @@ units:
               pos: noun,
               ex: ["Nanonood kami ng TV sa sala.", "We watch TV in the living room."],
               exAccept: ["We're watching TV in the living room.", "We are watching TV in the living room."],
+              pic: 🛋️,
             }
           - {
               tl: pinto,
@@ -894,6 +1217,7 @@ units:
               pos: noun,
               ex: ["Isara mo ang pinto.", "Close the door."],
               exAccept: ["Please close the door."],
+              pic: 🚪,
             }
           - {
               tl: mesa,
@@ -909,14 +1233,16 @@ units:
               pos: noun,
               ex: ["Umupo ka sa upuan.", "Sit on the chair."],
               exAccept: ["Sit in the chair.", "Sit down on the chair."],
+              pic: 🪑,
             }
-          - { tl: kama, en: bed, pos: noun, ex: ["Malambot ang kama.", "The bed is soft."] }
+          - { tl: kama, en: bed, pos: noun, ex: ["Malambot ang kama.", "The bed is soft."], pic: 🛏️ }
           - {
               tl: bintana,
               en: window,
               pos: noun,
               ex: ["Buksan mo ang bintana.", "Open the window."],
               exAccept: ["Please open the window."],
+              pic: 🪟,
             }
           - {
               tl: ilaw,
@@ -925,7 +1251,35 @@ units:
               pos: noun,
               ex: ["Patayin mo ang ilaw.", "Turn off the light."],
               exAccept: ["Switch off the light.", "Turn off the lights."],
+              pic: 💡,
             }
+        tips:
+          - Many Filipinos call the bathroom the CR, short for “comfort room”.
+          - "Commands often use mo: Isara mo ang pinto (Close the door). Add po or paki- to soften it: Pakisara po ang pinto."
+          - Kuwarto (room) comes from Spanish cuarto, and mesa (table) from Spanish mesa.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Nasaan si Tatay?
+                - Where is Dad?
+              - - B
+                - Nasa kusina siya.
+                - He's in the kitchen.
+            wrong:
+              - Malinis ang banyo.
+              - Isara mo ang pinto.
+          - lesson: 2
+            lines:
+              - - A
+                - Ang init dito!
+                - It's so hot in here!
+              - - B
+                - Bubuksan ko ang bintana.
+                - I'll open the window.
+            wrong:
+              - Malambot ang kama.
+              - Nasa mesa ang susi.
 
   - slug: sa-palengke
     title: Sa Palengke
@@ -949,6 +1303,7 @@ units:
               pos: noun,
               ex: ["Sampung piso lang.", "Only ten pesos."],
               exAccept: ["Just ten pesos."],
+              pic: 🪙,
             }
           - {
               tl: mahal,
@@ -966,7 +1321,7 @@ units:
               ex: ["Mura ang gulay dito.", "The vegetables are cheap here."],
               exAccept: ["Vegetables are cheap here."],
             }
-          - { tl: mangga, en: mango, pos: noun, ex: ["Matamis ang mangga.", "The mango is sweet."] }
+          - { tl: mangga, en: mango, pos: noun, ex: ["Matamis ang mangga.", "The mango is sweet."], pic: 🥭 }
           - {
               tl: bili,
               en: buy,
@@ -981,6 +1336,7 @@ units:
               pos: noun,
               ex: ["Wala akong pera.", "I have no money."],
               exAccept: ["I don't have money.", "I don't have any money."],
+              pic: 💵,
             }
           - {
               tl: sukli,
@@ -999,6 +1355,33 @@ units:
               exAccept: ["Here is my payment.", "Here's my payment.", "Here is my fare."],
             }
           - { tl: ito, en: this, pos: pronoun, ex: ["Gusto ko ito.", "I like this."], exAccept: ["I want this."] }
+        tips:
+          - "Magkano asks how much something costs: Magkano ito? (How much is this?)."
+          - Mahal means both “expensive” and “dear/beloved”. Mahal kita means “I love you”, so mind the context at the market.
+          - Haggling politely in a palengke is normal. A friendly Tawad po? asks for a discount.
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Magkano po ang mangga?
+                - How much are the mangoes?
+              - - B
+                - Sampung piso po isa.
+                - Ten pesos each.
+            wrong:
+              - Matamis ang kape.
+              - Wala akong kapatid.
+          - lesson: 2
+            lines:
+              - - A
+                - Bayad ko po.
+                - Here's my payment.
+              - - B
+                - Salamat po. Heto ang sukli.
+                - Thank you. Here's your change.
+            wrong:
+              - Gusto ko ng mangga.
+              - Mahal ang karne.
 
       - slug: mga-kulay
         title: Mga Kulay
@@ -1010,12 +1393,12 @@ units:
           - title: Black and white
             words: [puti, itim, kulay, kahel]
         words:
-          - { tl: pula, en: red, pos: adjective, ex: ["Pula ang bulaklak.", "The flower is red."] }
-          - { tl: asul, en: blue, pos: adjective, ex: ["Asul ang langit.", "The sky is blue."] }
-          - { tl: dilaw, en: yellow, pos: adjective, ex: ["Dilaw ang mangga.", "The mango is yellow."] }
-          - { tl: berde, en: green, pos: adjective, ex: ["Berde ang dahon.", "The leaf is green."] }
-          - { tl: puti, en: white, pos: adjective, ex: ["Puti ang ulap.", "The cloud is white."] }
-          - { tl: itim, en: black, pos: adjective, ex: ["Itim ang pusa.", "The cat is black."] }
+          - { tl: pula, en: red, pos: adjective, ex: ["Pula ang bulaklak.", "The flower is red."], pic: 🟥 }
+          - { tl: asul, en: blue, pos: adjective, ex: ["Asul ang langit.", "The sky is blue."], pic: 🟦 }
+          - { tl: dilaw, en: yellow, pos: adjective, ex: ["Dilaw ang mangga.", "The mango is yellow."], pic: 🟨 }
+          - { tl: berde, en: green, pos: adjective, ex: ["Berde ang dahon.", "The leaf is green."], pic: 🟩 }
+          - { tl: puti, en: white, pos: adjective, ex: ["Puti ang ulap.", "The cloud is white."], pic: ⬜ }
+          - { tl: itim, en: black, pos: adjective, ex: ["Itim ang pusa.", "The cat is black."], pic: ⬛ }
           - {
               tl: kulay,
               en: colour,
@@ -1030,4 +1413,32 @@ units:
               pos: adjective,
               note: "The colour. The fruit is dalandan.",
               ex: ["Kahel ang langit sa hapon.", "The sky is orange in the afternoon."],
+              pic: 🟧,
             }
+        tips:
+          - "Colours work like other descriptions and usually come first: Pula ang bulaklak (The flower is red)."
+          - Several colour words come from Spanish (asul, berde, kahel). Many people also just use the English words.
+          - To ask about a colour, say Anong kulay ito? (What colour is this?).
+        dialogues:
+          - lesson: 1
+            lines:
+              - - A
+                - Anong kulay ang gusto mo?
+                - What colour do you like?
+              - - B
+                - Gusto ko ang asul.
+                - I like blue.
+            wrong:
+              - Malaki ang bahay namin.
+              - Tatlo ang aso ko.
+          - lesson: 2
+            lines:
+              - - A
+                - Itim ba ang pusa mo?
+                - Is your cat black?
+              - - B
+                - Hindi, puti ang pusa ko.
+                - No, my cat is white.
+            wrong:
+              - Asul ang langit.
+              - Gutom na ako.
