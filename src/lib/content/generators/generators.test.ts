@@ -43,10 +43,20 @@ describe("StubGenerator", () => {
       const { exercises } = await stub.generate(req);
       for (const ex of exercises) {
         if (ex.type !== "word_bank") continue;
-        const proper =
-          /^(I|I'm|I'll|Ana|Maria|Juan|Lola|Lolo|Nanay|Tatay|Ate|Kuya|Grandma|Grandpa|Mom|Dad|Lunes|Biyernes|Linggo|Monday|Friday|Sunday)$/;
+        // Proper nouns: "I"-forms, capitalised headwords (Pilipino, Lunes) and words written
+        // capitalised mid-sentence somewhere in the skill (Ana, Lola, Cebu).
+        const midSentence = (x: string) =>
+          x
+            .split(/\s+/)
+            .slice(1)
+            .map((y) => y.replace(/[^\p{L}'-]/gu, ""));
+        const isProper = (t: string) =>
+          /^I('|$)/.test(t) ||
+          req.allWords.some(
+            (w) => w.tl === t || [w.ex[0], w.ex[1], ...w.exAccept].some((x) => midSentence(x).includes(t)),
+          );
         for (const t of [...ex.payload.answer, ...ex.payload.distractors]) {
-          if (t[0] !== t[0].toLowerCase()) expect(t, JSON.stringify(ex.payload)).toMatch(proper);
+          if (t[0] !== t[0].toLowerCase()) expect(isProper(t), `${t} in ${JSON.stringify(ex.payload)}`).toBe(true);
         }
       }
     }

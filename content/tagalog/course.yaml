@@ -40,7 +40,7 @@ units:
           - {
               tl: kumusta,
               en: how are you,
-              accept: [hello, how are you?],
+              accept: [hello, "how are you?"],
               pos: phrase,
               note: "From Spanish ¿cómo está? — used as both hello and how are you.",
               ex: ["Kumusta ka?", "How are you?"],
@@ -81,8 +81,8 @@ units:
               tl: magandang umaga,
               en: good morning,
               pos: phrase,
-              ex: ["Magandang umaga po.", "Good morning, sir."],
-              exAccept: ["Good morning, ma'am.", "Good morning."],
+              ex: ["Magandang umaga po.", "Good morning."],
+              exAccept: ["Good morning, sir.", "Good morning, ma'am."],
             }
           - {
               tl: magandang gabi,
@@ -102,11 +102,11 @@ units:
           - {
               tl: po,
               en: (polite particle),
-              accept: [sir, ma'am],
+              accept: [please, sir, ma'am],
               pos: particle,
               note: "Added to sentences to show respect to elders and strangers. It has no direct English equivalent.",
-              ex: ["Salamat po.", "Thank you, sir."],
-              exAccept: ["Thank you, ma'am.", "Thank you."],
+              ex: ["Salamat po.", "Thank you."],
+              exAccept: ["Thank you, sir.", "Thank you, ma'am."],
             }
           - { tl: ingat, en: take care, pos: phrase, ex: ["Ingat ka!", "Take care!"] }
 
@@ -523,6 +523,7 @@ units:
           - {
               tl: bukas,
               en: tomorrow,
+              accept: [open],
               pos: adverb,
               note: "Also means open (Bukas ang tindahan = The store is open). Context decides.",
               ex: ["Kita tayo bukas.", "See you tomorrow."],
@@ -553,6 +554,7 @@ units:
               tl: hapon,
               en: afternoon,
               pos: noun,
+              note: "Capitalised, Hapon means Japan or Japanese.",
               ex: ["Mainit sa hapon.", "It's hot in the afternoon."],
               exAccept: ["It is hot in the afternoon."],
             }
@@ -587,6 +589,342 @@ units:
               pos: noun,
               note: "Linggo is Sunday; lowercase linggo also means week.",
               ex: ["Nagsisimba kami tuwing Linggo.", "We go to church every Sunday."],
+            }
+
+  - slug: araw-araw
+    title: Araw-araw
+    subtitle: Introduce yourself, get around town and say what you did.
+    color: "#3B5BA9"
+    skills:
+      - slug: pagpapakilala
+        title: Pagpapakilala
+        emoji: "🙋"
+        description: Introducing yourself
+        lessons:
+          - title: What's your name?
+            words: [pangalan, taga, saan, ba, taon]
+          - title: Nice to meet you
+            words: [trabaho, ikinagagalak kitang makilala, kilala, Pilipino, Amerikano, nakatira]
+        words:
+          - {
+              tl: pangalan,
+              en: name,
+              pos: noun,
+              ex: ["Ano ang pangalan mo?", "What is your name?"],
+              exAccept: ["What's your name?"],
+            }
+          - {
+              tl: taga,
+              en: from,
+              pos: particle,
+              note: "Joined to a place with a hyphen to say where someone is from: Taga-saan ka? = Where are you from?",
+              ex: ["Taga-Maynila ako.", "I'm from Manila."],
+              exAccept: ["I am from Manila."],
+            }
+          - {
+              tl: saan,
+              en: where,
+              pos: adverb,
+              note: "Used with actions (Saan ka pupunta?). Nasaan asks where someone or something is.",
+              ex: ["Saan ka pupunta?", "Where are you going?"],
+              exAccept: ["Where are you headed?"],
+            }
+          - {
+              tl: ba,
+              en: (question particle),
+              pos: particle,
+              note: "Turns a statement into a yes/no question. It has no English equivalent.",
+              ex: ["Pilipino ka ba?", "Are you Filipino?"],
+            }
+          - {
+              tl: taon,
+              en: year,
+              accept: [years],
+              pos: noun,
+              note: "Ilang taon ka na? literally asks how many years you are.",
+              ex: ["Ilang taon ka na?", "How old are you?"],
+              exAccept: ["How old are you now?"],
+            }
+          - {
+              tl: trabaho,
+              en: work,
+              accept: [job],
+              pos: noun,
+              ex: ["Ano ang trabaho mo?", "What is your job?"],
+              exAccept: ["What's your job?", "What do you do for work?", "What is your work?"],
+            }
+          - {
+              tl: ikinagagalak kitang makilala,
+              en: nice to meet you,
+              accept: [pleased to meet you],
+              pos: phrase,
+              note: "Polite and a little formal. Friends often just say Nice to meet you in English.",
+              ex: ["Ikinagagalak kitang makilala, Ana.", "Nice to meet you, Ana."],
+              exAccept: ["Pleased to meet you, Ana."],
+            }
+          - {
+              tl: kilala,
+              en: know,
+              accept: [knows],
+              pos: verb,
+              note: "Knowing a person. Knowing a fact is alam.",
+              ex: ["Kilala mo ba si Juan?", "Do you know Juan?"],
+            }
+          - {
+              tl: Pilipino,
+              en: Filipino,
+              pos: noun,
+              ex: ["Pilipino ang nanay ko.", "My mother is Filipino."],
+              exAccept: ["My mom is Filipino."],
+            }
+          - { tl: Amerikano, en: American, pos: noun, ex: ["Amerikano si Ben.", "Ben is American."] }
+          - {
+              tl: nakatira,
+              en: lives,
+              accept: [live, living],
+              pos: verb,
+              ex: ["Nakatira ako sa Cebu.", "I live in Cebu."],
+            }
+
+      - slug: biyahe
+        title: Biyahe
+        emoji: "🚌"
+        description: Getting around
+        lessons:
+          - title: Para po!
+            words: [jeep, para, kanto, bumaba, trapik]
+          - title: Left, right, straight
+            words: [kotse, bus, eroplano, kaliwa, kanan, diretso]
+        words:
+          - {
+              tl: jeep,
+              en: jeepney,
+              accept: [jeep],
+              pos: noun,
+              ex: ["Sasakay ako ng jeep.", "I will ride a jeepney."],
+              exAccept: ["I'll ride a jeepney.", "I will take a jeepney.", "I'll take a jeepney."],
+            }
+          - {
+              tl: para,
+              en: stop,
+              pos: phrase,
+              note: "Para po! is how you ask a jeepney or tricycle driver to stop. On its own para also means for.",
+              ex: ["Para po!", "Stop, please!"],
+              exAccept: ["Stop here, please!"],
+            }
+          - {
+              tl: kanto,
+              en: corner,
+              pos: noun,
+              ex: ["Sa kanto lang po.", "Just at the corner, please."],
+              exAccept: ["Just at the corner."],
+            }
+          - {
+              tl: bumaba,
+              en: got off,
+              accept: [get off, went down],
+              pos: verb,
+              ex: ["Bumaba siya sa kanto.", "She got off at the corner."],
+              exAccept: ["He got off at the corner."],
+            }
+          - {
+              tl: trapik,
+              en: traffic,
+              pos: noun,
+              ex: ["Matindi ang trapik ngayon.", "The traffic is bad today."],
+              exAccept: ["Traffic is bad today.", "The traffic is heavy today.", "Traffic is heavy today."],
+            }
+          - {
+              tl: kotse,
+              en: car,
+              pos: noun,
+              ex: ["Bago ang kotse ni Tatay.", "Dad's car is new."],
+              exAccept: ["Father's car is new."],
+            }
+          - { tl: bus, en: bus, pos: noun, ex: ["Mabagal ang bus.", "The bus is slow."] }
+          - {
+              tl: eroplano,
+              en: airplane,
+              accept: [plane],
+              pos: noun,
+              ex: ["Malaki ang eroplano.", "The airplane is big."],
+              exAccept: ["The plane is big."],
+            }
+          - { tl: kaliwa, en: left, pos: noun, ex: ["Sa kaliwa ang ospital.", "The hospital is on the left."] }
+          - { tl: kanan, en: right, pos: noun, ex: ["Sa kanan ang simbahan.", "The church is on the right."] }
+          - {
+              tl: diretso,
+              en: straight ahead,
+              accept: [straight],
+              pos: adverb,
+              ex: ["Diretso lang po.", "Just go straight."],
+              exAccept: ["Go straight ahead.", "Just straight ahead."],
+            }
+
+      - slug: mga-pandiwa
+        title: Mga Pandiwa
+        emoji: "🏃"
+        description: Saying what you did, do and will do
+        lessons:
+          - title: Ate, eating, will eat
+            words: [kumain, kumakain, kakain, uminom, iinom]
+          - title: Cooked, studying, played
+            words: [nagluto, magluluto, nag-aaral, naglaro, natulog]
+        words:
+          - {
+              tl: kumain,
+              en: ate,
+              accept: [eaten],
+              pos: verb,
+              note: "-um- inside the root kain marks a finished action.",
+              ex: ["Kumain na ako.", "I already ate."],
+              exAccept: ["I've already eaten.", "I have eaten.", "I ate already."],
+            }
+          - {
+              tl: kumakain,
+              en: is eating,
+              accept: [eating, eats],
+              pos: verb,
+              note: "Repeating the first syllable (ka-kain) plus -um- marks an ongoing action.",
+              ex: ["Kumakain ang pusa.", "The cat is eating."],
+            }
+          - {
+              tl: kakain,
+              en: will eat,
+              pos: verb,
+              note: "Repeating the first syllable alone marks a future action.",
+              ex: ["Kakain tayo mamaya.", "We will eat later."],
+              exAccept: ["We'll eat later.", "Let's eat later."],
+            }
+          - {
+              tl: uminom,
+              en: drank,
+              pos: verb,
+              ex: ["Uminom siya ng tubig.", "She drank water."],
+              exAccept: ["He drank water.", "She drank some water.", "He drank some water."],
+            }
+          - {
+              tl: iinom,
+              en: will drink,
+              pos: verb,
+              ex: ["Iinom ako ng kape.", "I will drink coffee."],
+              exAccept: ["I'll drink coffee.", "I'll have coffee."],
+            }
+          - {
+              tl: nagluto,
+              en: cooked,
+              pos: verb,
+              note: "mag- verbs change to nag- for finished actions.",
+              ex: ["Nagluto si Lola ng adobo.", "Grandma cooked adobo."],
+            }
+          - {
+              tl: magluluto,
+              en: will cook,
+              pos: verb,
+              ex: ["Magluluto ako bukas.", "I will cook tomorrow."],
+              exAccept: ["I'll cook tomorrow."],
+            }
+          - {
+              tl: nag-aaral,
+              en: is studying,
+              accept: [studying, studies],
+              pos: verb,
+              ex: ["Nag-aaral ako ng Tagalog.", "I am studying Tagalog."],
+              exAccept: ["I'm studying Tagalog.", "I'm learning Tagalog.", "I am learning Tagalog."],
+            }
+          - {
+              tl: naglaro,
+              en: played,
+              pos: verb,
+              ex: ["Naglaro ang mga bata sa labas.", "The children played outside."],
+              exAccept: ["The kids played outside."],
+            }
+          - {
+              tl: natulog,
+              en: slept,
+              pos: verb,
+              ex: ["Natulog ako nang maaga.", "I slept early."],
+              exAccept: ["I went to bed early.", "I went to sleep early."],
+            }
+
+      - slug: sa-bahay
+        title: Sa Bahay
+        emoji: "🛋️"
+        description: Rooms and things at home
+        lessons:
+          - title: Room by room
+            words: [kusina, kuwarto, banyo, sala, pinto]
+          - title: Open the window
+            words: [mesa, upuan, kama, bintana, ilaw]
+        words:
+          - {
+              tl: kusina,
+              en: kitchen,
+              pos: noun,
+              ex: ["Nasa kusina si Nanay.", "Mom is in the kitchen."],
+              exAccept: ["Mother is in the kitchen."],
+            }
+          - {
+              tl: kuwarto,
+              en: room,
+              accept: [bedroom],
+              pos: noun,
+              ex: ["Malinis ang kuwarto ko.", "My room is clean."],
+              exAccept: ["My bedroom is clean."],
+            }
+          - {
+              tl: banyo,
+              en: bathroom,
+              accept: [restroom, toilet],
+              pos: noun,
+              note: "Many Filipinos also say CR (comfort room).",
+              ex: ["Nasaan ang banyo?", "Where is the bathroom?"],
+              exAccept: ["Where's the bathroom?", "Where is the restroom?", "Where's the restroom?"],
+            }
+          - {
+              tl: sala,
+              en: living room,
+              pos: noun,
+              ex: ["Nanonood kami ng TV sa sala.", "We watch TV in the living room."],
+              exAccept: ["We're watching TV in the living room.", "We are watching TV in the living room."],
+            }
+          - {
+              tl: pinto,
+              en: door,
+              pos: noun,
+              ex: ["Isara mo ang pinto.", "Close the door."],
+              exAccept: ["Please close the door."],
+            }
+          - {
+              tl: mesa,
+              en: table,
+              pos: noun,
+              ex: ["Nasa mesa ang susi.", "The key is on the table."],
+              exAccept: ["The keys are on the table."],
+            }
+          - {
+              tl: upuan,
+              en: chair,
+              accept: [seat],
+              pos: noun,
+              ex: ["Umupo ka sa upuan.", "Sit on the chair."],
+              exAccept: ["Sit in the chair.", "Sit down on the chair."],
+            }
+          - { tl: kama, en: bed, pos: noun, ex: ["Malambot ang kama.", "The bed is soft."] }
+          - {
+              tl: bintana,
+              en: window,
+              pos: noun,
+              ex: ["Buksan mo ang bintana.", "Open the window."],
+              exAccept: ["Please open the window."],
+            }
+          - {
+              tl: ilaw,
+              en: light,
+              accept: [lights, lamp],
+              pos: noun,
+              ex: ["Patayin mo ang ilaw.", "Turn off the light."],
+              exAccept: ["Switch off the light.", "Turn off the lights."],
             }
 
   - slug: sa-palengke
@@ -654,7 +992,7 @@ units:
           - {
               tl: bayad,
               en: payment,
-              accept: [fare],
+              accept: [fare, fee],
               pos: noun,
               note: "Bayad po! is what you say when passing your fare on a jeepney.",
               ex: ["Bayad po.", "Here's my fare."],
