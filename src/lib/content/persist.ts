@@ -24,6 +24,10 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
     create: def.course,
     update: { title: def.course.title, fromLang: def.course.fromLang, toLang: def.course.toLang },
   });
+  // Shift existing positions out of the way first so reordering course.yaml can't collide with
+  // the (courseId, order) / (unitId, order) unique indexes mid-sync.
+  await prisma.unit.updateMany({ where: { courseId: course.id }, data: { order: { increment: 10_000 } } });
+  await prisma.skill.updateMany({ where: { unit: { courseId: course.id } }, data: { order: { increment: 10_000 } } });
   for (const [ui, u] of def.units.entries()) {
     const unitData = { courseId: course.id, order: ui + 1, title: u.title, subtitle: u.subtitle, color: u.color };
     const unit = await prisma.unit.upsert({

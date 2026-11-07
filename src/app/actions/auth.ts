@@ -7,6 +7,7 @@ import { AuthError } from "next-auth";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { db } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { DEMO_ACCOUNT } from "@/lib/demo";
 
 export type AuthFormState = { error?: string; fields?: Record<string, string> } | undefined;
@@ -61,15 +62,23 @@ export async function signupAction(_: AuthFormState, form: FormData): Promise<Au
   if (await db.user.findUnique({ where: { email } })) {
     return { error: "An account with that email already exists. Log in instead.", fields };
   }
-  await db.user.create({
-    data: {
-      name,
-      email,
-      passwordHash: await bcrypt.hash(password, 10),
-      timezone: validTimezone(timezone),
-      avatarHue: Math.floor(Math.random() * 360),
-    },
-  });
+  try {
+    await db.user.create({
+      data: {
+        name,
+        email,
+        passwordHash: await bcrypt.hash(password, 10),
+        timezone: validTimezone(timezone),
+        avatarHue: Math.floor(Math.random() * 360),
+      },
+    });
+  } catch (e) {
+    // Two sign-ups racing for the same email: the unique index wins, report it like the check above.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "An account with that email already exists. Log in instead.", fields };
+    }
+    throw e;
+  }
   return signInOrError(email, password);
 }
 

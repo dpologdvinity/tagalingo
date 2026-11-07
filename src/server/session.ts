@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import type { User } from "@/generated/prisma/client";
+import { canReview } from "@/lib/roles";
 
 /** The signed-in user, or null (no session, or session for a user that no longer exists). */
 export async function getCurrentUser(): Promise<User | null> {
@@ -25,6 +26,6 @@ export async function requireUser(): Promise<User> {
 /** Studio pages: non-reviewers get a 404 rather than a hint that the page exists. */
 export async function requireReviewer(): Promise<User> {
   const user = await requireUser();
-  if (!user.isReviewer) notFound();
+  if (!canReview(user)) notFound();
   return user;
 }

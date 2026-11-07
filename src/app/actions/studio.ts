@@ -12,12 +12,13 @@ import { COURSE_FILE } from "@/lib/content/paths";
 import { generateDraftsForLesson } from "@/lib/content/persist";
 import { ExerciseValidationError, parseExercise, type ExerciseType } from "@/lib/content/schema";
 import { getCurrentUser } from "@/server/session";
+import { canReview } from "@/lib/roles";
 
 export type StudioResult = { ok: true; message: string } | { ok: false; message: string };
 
 async function reviewer() {
   const user = await getCurrentUser();
-  if (!user?.isReviewer) throw new Error("Only reviewers can change course content.");
+  if (!user || !canReview(user)) throw new Error("Only reviewers can change course content.");
   return user;
 }
 

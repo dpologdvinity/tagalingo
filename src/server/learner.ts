@@ -8,6 +8,7 @@ import { liveHearts, MAX_HEARTS } from "@/lib/game/hearts";
 import { weekStartUtc } from "@/lib/game/league";
 import { dayKey, visibleStreak } from "@/lib/game/streak";
 import type { User } from "@/generated/prisma/client";
+import { canReview } from "@/lib/roles";
 
 export type LearnerStats = {
   name: string;
@@ -45,6 +46,6 @@ export async function getLearnerStats(user: User, now = new Date()): Promise<Lea
     weeklyXp: weekly._sum.amount ?? 0,
     totalXp: user.totalXp,
     avatarHue: user.avatarHue,
-    isReviewer: user.isReviewer,
+    isReviewer: canReview(user),
   };
 }

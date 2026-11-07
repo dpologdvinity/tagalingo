@@ -176,7 +176,8 @@ describe("concurrency and content changes", () => {
     const [first] = await firstLessons();
     const attempts = [await startAttempt(user, first.id), await startAttempt(user, first.id)];
     for (const { attemptId } of attempts)
-      for (const { id, ex } of await lessonExercises(first.id)) await submitAnswer(user.id, attemptId, id, correctAnswer(ex));
+      for (const { id, ex } of await lessonExercises(first.id))
+        await submitAnswer(user.id, attemptId, id, correctAnswer(ex));
     const results = await Promise.allSettled(attempts.map((a) => completeAttempt(user.id, a.attemptId)));
     expect(results.map((r) => r.status)).toEqual(["fulfilled", "fulfilled"]);
     // 20 (base + perfect + first time) + 15 (base + perfect)

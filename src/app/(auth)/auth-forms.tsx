@@ -30,9 +30,14 @@ function ErrorBanner({ state }: { state: AuthFormState }) {
 }
 
 export function DemoButton() {
-  const [, action] = useActionState(demoLoginAction, undefined);
+  const [state, action] = useActionState(demoLoginAction, undefined);
   return (
-    <form action={action}>
+    <form action={action} className="space-y-3">
+      {state?.error && (
+        <p role="alert" className="rounded-2xl bg-gumamela-soft px-4 py-3 font-bold text-gumamela">
+          The demo account isn’t available on this site. Create an account instead.
+        </p>
+      )}
       <Submit variant="secondary">Try the demo account</Submit>
     </form>
   );

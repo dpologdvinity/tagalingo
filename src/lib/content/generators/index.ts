@@ -22,7 +22,8 @@ export function selectGenerator(env: GeneratorEnv = process.env): ExerciseGenera
   if (choice !== "claude") throw new Error(`Unknown CONTENT_GENERATOR "${env.CONTENT_GENERATOR}" (use claude or stub)`);
   if (!env.ANTHROPIC_API_KEY) throw new Error("CONTENT_GENERATOR=claude requires ANTHROPIC_API_KEY");
 
-  const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  // Generation runs inside a server action: bound how long a slow or failing call can hold it.
+  const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, timeout: 120_000, maxRetries: 2 });
   // Narrow the SDK to the interface the generator needs (keeps tests free of the SDK).
   const client: MessagesClient = {
     messages: {
