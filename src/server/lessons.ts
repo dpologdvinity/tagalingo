@@ -55,7 +55,13 @@ export async function getLessonForPlay(userId: string, lessonId: string): Promis
     return parsed ? [toClientExercise(e.id, parsed)] : []; // never serve corrupt rows
   });
   if (exercises.length === 0) throw new LessonError("not_found", "This lesson has no approved exercises yet");
-  return { id: lesson.id, title: lesson.title, skillTitle: lesson.skill.title, skillEmoji: lesson.skill.emoji, exercises };
+  return {
+    id: lesson.id,
+    title: lesson.title,
+    skillTitle: lesson.skill.title,
+    skillEmoji: lesson.skill.emoji,
+    exercises,
+  };
 }
 
 export async function startAttempt(user: User, lessonId: string, now = new Date()) {
@@ -83,9 +89,12 @@ export async function submitAnswer(
 ): Promise<AnswerFeedback> {
   return db.$transaction(async (tx) => {
     const attempt = await tx.lessonAttempt.findFirst({ where: { id: attemptId, userId }, include: { user: true } });
-    if (!attempt || attempt.status !== "IN_PROGRESS") throw new LessonError("not_in_progress", "This lesson attempt is over");
+    if (!attempt || attempt.status !== "IN_PROGRESS")
+      throw new LessonError("not_in_progress", "This lesson attempt is over");
 
-    const row = await tx.exercise.findFirst({ where: { id: exerciseId, lessonId: attempt.lessonId, status: "APPROVED" } });
+    const row = await tx.exercise.findFirst({
+      where: { id: exerciseId, lessonId: attempt.lessonId, status: "APPROVED" },
+    });
     const parsed = row && safeParseExercise(row.type as ExerciseType, row.payload);
     if (!row || !parsed) throw new LessonError("not_found", "Exercise not found in this lesson");
 
@@ -130,16 +139,22 @@ export type LessonResult = {
 export async function completeAttempt(userId: string, attemptId: string, now = new Date()): Promise<LessonResult> {
   return db.$transaction(async (tx) => {
     const attempt = await tx.lessonAttempt.findFirst({ where: { id: attemptId, userId }, include: { user: true } });
-    if (!attempt || attempt.status !== "IN_PROGRESS") throw new LessonError("not_in_progress", "This lesson attempt is over");
+    if (!attempt || attempt.status !== "IN_PROGRESS")
+      throw new LessonError("not_in_progress", "This lesson attempt is over");
     const user = attempt.user;
 
     // Every approved exercise must have been answered correctly at least once in this attempt.
     const [required, correct] = await Promise.all([
       tx.exercise.findMany({ where: { lessonId: attempt.lessonId, status: "APPROVED" }, select: { id: true } }),
-      tx.attemptAnswer.findMany({ where: { attemptId, correct: true }, select: { exerciseId: true }, distinct: ["exerciseId"] }),
+      tx.attemptAnswer.findMany({
+        where: { attemptId, correct: true },
+        select: { exerciseId: true },
+        distinct: ["exerciseId"],
+      }),
     ]);
     const done = new Set(correct.map((c) => c.exerciseId));
-    if (required.some((r) => !done.has(r.id))) throw new LessonError("incomplete", "Some exercises are not finished yet");
+    if (required.some((r) => !done.has(r.id)))
+      throw new LessonError("incomplete", "Some exercises are not finished yet");
 
     // Compare-and-swap so a double submit can't award XP twice.
     const flipped = await tx.lessonAttempt.updateMany({
@@ -148,7 +163,9 @@ export async function completeAttempt(userId: string, attemptId: string, now = n
     });
     if (flipped.count !== 1) throw new LessonError("not_in_progress", "This lesson attempt is over");
 
-    const prior = await tx.lessonProgress.findUnique({ where: { userId_lessonId: { userId, lessonId: attempt.lessonId } } });
+    const prior = await tx.lessonProgress.findUnique({
+      where: { userId_lessonId: { userId, lessonId: attempt.lessonId } },
+    });
     const xp = xpForLesson({ mistakes: attempt.mistakes, firstCompletion: !prior });
     const today = dayKey(now, user.timezone);
     const streak = applyLessonToStreak(user, today);

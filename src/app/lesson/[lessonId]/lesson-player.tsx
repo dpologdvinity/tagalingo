@@ -17,7 +17,15 @@ import { LessonResults, OutOfHearts } from "./lesson-screens";
 
 type Phase = "starting" | "answering" | "checking" | "feedback" | "finishing" | "done" | "out_of_hearts" | "error";
 
-export function LessonPlayer({ lesson, hearts: initialHearts, nextHeartAt: initialNext }: { lesson: LessonForPlay; hearts: number; nextHeartAt: string | null }) {
+export function LessonPlayer({
+  lesson,
+  hearts: initialHearts,
+  nextHeartAt: initialNext,
+}: {
+  lesson: LessonForPlay;
+  hearts: number;
+  nextHeartAt: string | null;
+}) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("starting");
   const [error, setError] = useState<string | null>(null);
@@ -142,9 +150,15 @@ export function LessonPlayer({ lesson, hearts: initialHearts, nextHeartAt: initi
           aria-valuemin={0}
           aria-valuemax={100}
         >
-          <div className="h-full rounded-full bg-lagoon-bright transition-[width] duration-500" style={{ width: `${Math.max(progress, 3)}%` }} />
+          <div
+            className="h-full rounded-full bg-lagoon-bright transition-[width] duration-500"
+            style={{ width: `${Math.max(progress, 3)}%` }}
+          />
         </div>
-        <span className="inline-flex items-center gap-1 text-lg font-bold text-gumamela" aria-label={`${hearts} hearts`}>
+        <span
+          className="inline-flex items-center gap-1 text-lg font-bold text-gumamela"
+          aria-label={`${hearts} hearts`}
+        >
           <HeartIcon size={24} />
           {hearts}
         </span>
@@ -162,11 +176,17 @@ export function LessonPlayer({ lesson, hearts: initialHearts, nextHeartAt: initi
         )}
         {current && phase !== "starting" && phase !== "error" && (
           <div key={`${current.id}-${round}`} data-exercise-id={current.id}>
-            {current.type === "select_translation" && <SelectTranslation exercise={current} disabled={locked} onChange={setAnswer} />}
+            {current.type === "select_translation" && (
+              <SelectTranslation exercise={current} disabled={locked} onChange={setAnswer} />
+            )}
             {current.type === "fill_blank" && <FillBlank exercise={current} disabled={locked} onChange={setAnswer} />}
             {current.type === "word_bank" && <WordBank exercise={current} disabled={locked} onChange={setAnswer} />}
-            {current.type === "type_translation" && <TypeTranslation exercise={current} disabled={locked} onChange={setAnswer} />}
-            {current.type === "match_pairs" && <MatchPairs exercise={current} disabled={locked} onSolved={onMatchSolved} />}
+            {current.type === "type_translation" && (
+              <TypeTranslation exercise={current} disabled={locked} onChange={setAnswer} />
+            )}
+            {current.type === "match_pairs" && (
+              <MatchPairs exercise={current} disabled={locked} onSolved={onMatchSolved} />
+            )}
           </div>
         )}
       </main>
@@ -232,7 +252,9 @@ function Footer({
                   {feedback.correctAnswer}
                 </p>
               )}
-              {!good && feedback.outOfHearts && <p className="mt-1 font-bold text-gumamela">That was your last heart.</p>}
+              {!good && feedback.outOfHearts && (
+                <p className="mt-1 font-bold text-gumamela">That was your last heart.</p>
+              )}
             </div>
           </div>
           <Button variant={good ? "primary" : "danger"} onClick={onContinue} className="sm:min-w-40" autoFocus>
@@ -248,7 +270,11 @@ function Footer({
         {isMatch ? (
           <p className="py-3 text-ink-soft">Tap a word, then its meaning.</p>
         ) : (
-          <Button onClick={onCheck} disabled={!canCheck || phase !== "answering"} className="w-full sm:w-auto sm:min-w-40">
+          <Button
+            onClick={onCheck}
+            disabled={!canCheck || phase !== "answering"}
+            className="w-full sm:w-auto sm:min-w-40"
+          >
             {phase === "checking" ? "Checking…" : phase === "finishing" ? "Saving…" : "Check"}
           </Button>
         )}

@@ -137,7 +137,11 @@ function Stop({ skill, index, open, onToggle }: { skill: Skill; index: number; o
               <li key={l.id} className="flex items-center gap-2">
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                    l.state === "complete" ? "bg-mango text-ink" : l.state === "active" ? "bg-lagoon-bright text-white" : "bg-line text-ink-soft"
+                    l.state === "complete"
+                      ? "bg-mango text-ink"
+                      : l.state === "active"
+                        ? "bg-lagoon-bright text-white"
+                        : "bg-line text-ink-soft"
                   }`}
                 >
                   {l.state === "complete" ? <CheckIcon size={14} /> : i + 1}
@@ -187,7 +191,9 @@ export function SkillPath({ path }: { path: PathView }) {
         </section>
       ))}
       {firstActive === null && path.units.length > 0 && (
-        <p className="text-center text-ink-soft">You’ve reached the end of the road for now. New stops are in review.</p>
+        <p className="text-center text-ink-soft">
+          You’ve reached the end of the road for now. New stops are in review.
+        </p>
       )}
     </div>
   );

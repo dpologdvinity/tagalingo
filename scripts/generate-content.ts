@@ -22,7 +22,9 @@ async function main() {
   const { values } = parseArgs({ options: { skill: { type: "string" }, lesson: { type: "string" } } });
   if (!values.skill) throw new Error("Usage: npm run content:generate -- --skill <slug> [--lesson <n>]");
 
-  const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }) });
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }),
+  });
   try {
     const course = loadCourseFile(COURSE_FILE);
     await syncCourseStructure(prisma, course); // pick up any word-list edits first
@@ -33,7 +35,9 @@ async function main() {
     console.log(`Generator: ${generator.provider} (${generator.model})`);
     for (const lessonOrder of lessons) {
       const r = await generateDraftsForLesson(prisma, generator, course, { skillSlug: skill.slug, lessonOrder });
-      console.log(`  ${skill.slug} lesson ${lessonOrder}: ${r.created} drafts${r.rejected ? `, ${r.rejected} rejected` : ""}`);
+      console.log(
+        `  ${skill.slug} lesson ${lessonOrder}: ${r.created} drafts${r.rejected ? `, ${r.rejected} rejected` : ""}`,
+      );
     }
     console.log("Review them at /studio.");
   } finally {

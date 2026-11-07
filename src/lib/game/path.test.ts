@@ -2,8 +2,20 @@ import { describe, expect, it } from "vitest";
 import { buildPath, type PathSkillInput } from "./path";
 
 const skills: PathSkillInput[] = [
-  { id: "s1", lessons: [{ id: "l1", playable: true }, { id: "l2", playable: true }] },
-  { id: "s2", lessons: [{ id: "l3", playable: true }, { id: "l4", playable: true }] },
+  {
+    id: "s1",
+    lessons: [
+      { id: "l1", playable: true },
+      { id: "l2", playable: true },
+    ],
+  },
+  {
+    id: "s2",
+    lessons: [
+      { id: "l3", playable: true },
+      { id: "l4", playable: true },
+    ],
+  },
   { id: "s3", lessons: [{ id: "l5", playable: false }] },
 ];
 

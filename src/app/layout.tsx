@@ -8,7 +8,8 @@ const atkinson = Atkinson_Hyperlegible({ weight: ["400", "700"], subsets: ["lati
 
 export const metadata: Metadata = {
   title: { default: "Tagalingo — learn Tagalog in five minutes a day", template: "%s | Tagalingo" },
-  description: "Short, playful Tagalog lessons for English speakers. Keep a streak, earn XP and climb the weekly Barkada League.",
+  description:
+    "Short, playful Tagalog lessons for English speakers. Keep a streak, earn XP and climb the weekly Barkada League.",
   icons: { icon: "/icon.svg" },
 };
 

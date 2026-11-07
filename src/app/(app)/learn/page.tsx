@@ -24,7 +24,10 @@ export default async function LearnPage() {
     <>
       <h1 className="sr-only">{path.courseTitle}</h1>
       {/* On narrow screens the side column is hidden, so the daily goal lives at the top of the path. */}
-      <section aria-label="Daily goal" className="mb-6 flex items-center gap-4 rounded-3xl border-2 border-line bg-surface p-4 xl:hidden">
+      <section
+        aria-label="Daily goal"
+        className="mb-6 flex items-center gap-4 rounded-3xl border-2 border-line bg-surface p-4 xl:hidden"
+      >
         <GoalRing xp={stats.todayXp} goal={stats.dailyGoalXp} size={64} />
         <p>
           <strong className="block font-display text-lg">Daily goal</strong>

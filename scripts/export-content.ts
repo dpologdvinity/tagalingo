@@ -12,7 +12,9 @@ import { exportApprovedExercises } from "../src/lib/content/persist";
 import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
 
 async function main() {
-  const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }) });
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }),
+  });
   try {
     const files = await exportApprovedExercises(prisma, CONTENT_DIR);
     console.log(files.length ? `Wrote:\n  ${files.join("\n  ")}` : "No approved exercises to export.");

@@ -53,7 +53,6 @@ describe("the shipped Tagalog course", () => {
   it("loads and validates", () => {
     const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
     expect(course.units.length).toBeGreaterThanOrEqual(3);
-    for (const unit of course.units)
-      for (const skill of unit.skills) expect(skill.lessons.length).toBeGreaterThan(0);
+    for (const unit of course.units) for (const skill of unit.skills) expect(skill.lessons.length).toBeGreaterThan(0);
   });
 });

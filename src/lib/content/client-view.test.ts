@@ -13,7 +13,13 @@ describe("toClientExercise", () => {
         answerIndex: 1,
       }),
     );
-    expect(view).toEqual({ id: "ex1", type: "select_translation", prompt: "tubig", promptLang: "tl", options: ["rice", "water", "fish"] });
+    expect(view).toEqual({
+      id: "ex1",
+      type: "select_translation",
+      prompt: "tubig",
+      promptLang: "tl",
+      options: ["rice", "water", "fish"],
+    });
   });
 
   it("mixes word-bank answer tiles with distractors without revealing which is which", () => {

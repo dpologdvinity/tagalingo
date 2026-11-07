@@ -76,7 +76,9 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
           : null;
       if (!tokens) return { correct: false, correctAnswer };
       const given = normalizeAnswer(tokens.join(" "));
-      const accepted = [ex.payload.answer, ...(ex.payload.alternates ?? [])].map((seq) => normalizeAnswer(seq.join(" ")));
+      const accepted = [ex.payload.answer, ...(ex.payload.alternates ?? [])].map((seq) =>
+        normalizeAnswer(seq.join(" ")),
+      );
       return { correct: accepted.includes(given), correctAnswer };
     }
     case "match_pairs": {

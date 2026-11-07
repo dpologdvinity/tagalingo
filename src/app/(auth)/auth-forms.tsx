@@ -45,7 +45,14 @@ export function LoginForm() {
       <ErrorBanner state={state} />
       <label className="block">
         <span className="mb-1 block font-bold">Email</span>
-        <input name="email" type="email" autoComplete="email" required defaultValue={state?.fields?.email} className={input} />
+        <input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          defaultValue={state?.fields?.email}
+          className={input}
+        />
       </label>
       <label className="block">
         <span className="mb-1 block font-bold">Password</span>
@@ -68,11 +75,25 @@ export function SignupForm() {
       <ErrorBanner state={state} />
       <label className="block">
         <span className="mb-1 block font-bold">Your name</span>
-        <input name="name" autoComplete="given-name" required maxLength={40} defaultValue={state?.fields?.name} className={input} />
+        <input
+          name="name"
+          autoComplete="given-name"
+          required
+          maxLength={40}
+          defaultValue={state?.fields?.name}
+          className={input}
+        />
       </label>
       <label className="block">
         <span className="mb-1 block font-bold">Email</span>
-        <input name="email" type="email" autoComplete="email" required defaultValue={state?.fields?.email} className={input} />
+        <input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          defaultValue={state?.fields?.email}
+          className={input}
+        />
       </label>
       <label className="block">
         <span className="mb-1 block font-bold">Password</span>

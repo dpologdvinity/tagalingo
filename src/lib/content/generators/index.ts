@@ -26,9 +26,10 @@ export function selectGenerator(env: GeneratorEnv = process.env): ExerciseGenera
   // Narrow the SDK to the interface the generator needs (keeps tests free of the SDK).
   const client: MessagesClient = {
     messages: {
-      create: async (params) => (await anthropic.messages.create(params)) as unknown as Awaited<
-        ReturnType<MessagesClient["messages"]["create"]>
-      >,
+      create: async (params) =>
+        (await anthropic.messages.create(params)) as unknown as Awaited<
+          ReturnType<MessagesClient["messages"]["create"]>
+        >,
     },
   };
   return new ClaudeGenerator({ client, model: env.ANTHROPIC_MODEL?.trim() || DEFAULT_CLAUDE_MODEL });

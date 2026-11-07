@@ -43,7 +43,8 @@ describe("StubGenerator", () => {
       const { exercises } = await stub.generate(req);
       for (const ex of exercises) {
         if (ex.type !== "word_bank") continue;
-        const proper = /^(I|I'm|I'll|Ana|Maria|Juan|Lola|Lolo|Nanay|Tatay|Ate|Kuya|Grandma|Grandpa|Mom|Dad|Lunes|Biyernes|Linggo|Monday|Friday|Sunday)$/;
+        const proper =
+          /^(I|I'm|I'll|Ana|Maria|Juan|Lola|Lolo|Nanay|Tatay|Ate|Kuya|Grandma|Grandpa|Mom|Dad|Lunes|Biyernes|Linggo|Monday|Friday|Sunday)$/;
         for (const t of [...ex.payload.answer, ...ex.payload.distractors]) {
           if (t[0] !== t[0].toLowerCase()) expect(t, JSON.stringify(ex.payload)).toMatch(proper);
         }
@@ -67,7 +68,10 @@ describe("StubGenerator", () => {
   it("includes at least one fill-in-the-blank in every lesson, even single-POS skills", async () => {
     for (const req of allRequests) {
       const { exercises } = await stub.generate(req);
-      expect(exercises.some((e) => e.type === "fill_blank"), `${req.skill.slug} ${req.lesson.title}`).toBe(true);
+      expect(
+        exercises.some((e) => e.type === "fill_blank"),
+        `${req.skill.slug} ${req.lesson.title}`,
+      ).toBe(true);
     }
   });
 
@@ -86,7 +90,8 @@ describe("StubGenerator", () => {
           const hits =
             text.includes(JSON.stringify(tl.toLowerCase())) ||
             text.includes(JSON.stringify(en.toLowerCase())) ||
-            (e.type === "word_bank" && (tiles(e.payload.answer.join(" ")) === tiles(tl) || tiles(e.payload.answer.join(" ")) === tiles(en)));
+            (e.type === "word_bank" &&
+              (tiles(e.payload.answer.join(" ")) === tiles(tl) || tiles(e.payload.answer.join(" ")) === tiles(en)));
           if (hits) used.set(i, (used.get(i) ?? 0) + 1);
         });
       }

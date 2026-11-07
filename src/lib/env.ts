@@ -12,7 +12,12 @@ const isProd = process.env.NODE_ENV === "production";
 const schema = z.object({
   DATABASE_URL: z.url().default(LOCAL_DATABASE_URL),
   AUTH_SECRET: z.string().min(16).default(DEV_AUTH_SECRET),
-  HEART_REFILL_MINUTES: z.coerce.number().int().positive().max(24 * 60).default(30),
+  HEART_REFILL_MINUTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(24 * 60)
+    .default(30),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -32,7 +37,10 @@ export function getEnv(): Env {
   if (!parsed.success) {
     throw new Error(`Invalid environment: ${parsed.error.issues.map((i) => `${i.path}: ${i.message}`).join("; ")}`);
   }
-  if (isProd && (!process.env.DATABASE_URL || !process.env.AUTH_SECRET || parsed.data.AUTH_SECRET === DEV_AUTH_SECRET)) {
+  if (
+    isProd &&
+    (!process.env.DATABASE_URL || !process.env.AUTH_SECRET || parsed.data.AUTH_SECRET === DEV_AUTH_SECRET)
+  ) {
     throw new Error("DATABASE_URL and a real AUTH_SECRET must be set in production");
   }
   cached = parsed.data;

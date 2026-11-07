@@ -22,7 +22,9 @@ async function signInOrError(email: string, password: string): Promise<AuthFormS
 }
 
 export async function loginAction(_: AuthFormState, form: FormData): Promise<AuthFormState> {
-  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const email = String(form.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password.", fields: { email } };
   return { ...(await signInOrError(email, password)), fields: { email } };

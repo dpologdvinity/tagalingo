@@ -33,10 +33,30 @@ const between = (lo: number, hi: number) => lo + Math.floor(rand() * (hi - lo + 
 const DAY = 86_400_000;
 
 const RIVALS = [
-  "Marisol Reyes", "Paolo Santos", "Jasmine Cruz", "Miguel Bautista", "Liza Garcia", "Kenji Tanaka",
-  "Bea Villanueva", "Carlo Mendoza", "Anika Patel", "Rafael Dizon", "Hannah Lim", "Joaquin Ramos",
-  "Sofia Navarro", "Tomás Herrera", "Grace Ocampo", "Daniel Kim", "Isabel Aquino", "Noah Fischer",
-  "Camille Torres", "Luis Fernandez", "Mei Chen", "Andrés Castillo", "Patricia Flores", "Ethan Walker",
+  "Marisol Reyes",
+  "Paolo Santos",
+  "Jasmine Cruz",
+  "Miguel Bautista",
+  "Liza Garcia",
+  "Kenji Tanaka",
+  "Bea Villanueva",
+  "Carlo Mendoza",
+  "Anika Patel",
+  "Rafael Dizon",
+  "Hannah Lim",
+  "Joaquin Ramos",
+  "Sofia Navarro",
+  "Tomás Herrera",
+  "Grace Ocampo",
+  "Daniel Kim",
+  "Isabel Aquino",
+  "Noah Fischer",
+  "Camille Torres",
+  "Luis Fernandez",
+  "Mei Chen",
+  "Andrés Castillo",
+  "Patricia Flores",
+  "Ethan Walker",
 ];
 
 async function wipe() {
@@ -89,7 +109,11 @@ async function seedDemoLearner(now: Date, timezone: string) {
   const activeDays = [
     ...Array.from({ length: 7 }, (_, i) => i),
     ...Array.from({ length: 12 }, (_, i) => 8 + i),
-    25, 27, 30, 33, 41,
+    25,
+    27,
+    30,
+    33,
+    41,
   ];
   let totalXp = 0;
   for (const daysAgo of activeDays) {
@@ -99,12 +123,19 @@ async function seedDemoLearner(now: Date, timezone: string) {
     // Keep "when" on the intended local day.
     const createdAt = dayKey(when, timezone) === day ? when : instantDaysAgo(now, daysAgo);
     await prisma.xpEvent.create({ data: { userId: demo.id, amount: xp, reason: "lesson", createdAt } });
-    await prisma.dailyActivity.create({ data: { userId: demo.id, day, xp, lessons: Math.max(1, Math.round(xp / 15)) } });
+    await prisma.dailyActivity.create({
+      data: { userId: demo.id, day, xp, lessons: Math.max(1, Math.round(xp / 15)) },
+    });
     totalXp += xp;
   }
   const finishedAt = (i: number) => instantDaysAgo(now, 30 - i * 4);
   await prisma.lessonProgress.createMany({
-    data: finished.map((l, i) => ({ userId: demo.id, lessonId: l.id, firstCompletedAt: finishedAt(i), timesCompleted: 1 + (i % 3) })),
+    data: finished.map((l, i) => ({
+      userId: demo.id,
+      lessonId: l.id,
+      firstCompletedAt: finishedAt(i),
+      timesCompleted: 1 + (i % 3),
+    })),
   });
   await prisma.lessonAttempt.createMany({
     data: finished.map((l, i) => ({
@@ -130,7 +161,11 @@ async function seedRivals(now: Date) {
   for (const [i, name] of RIVALS.entries()) {
     const user = await prisma.user.create({
       data: {
-        email: `${name.toLowerCase().normalize("NFD").replace(/[^a-z ]/g, "").replace(/ /g, ".")}@example.com`,
+        email: `${name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[^a-z ]/g, "")
+          .replace(/ /g, ".")}@example.com`,
         name,
         passwordHash,
         avatarHue: (i * 47) % 360,
@@ -145,11 +180,21 @@ async function seedRivals(now: Date) {
     const events = Array.from({ length: sessions }, () => {
       const amount = [10, 15, 15, 20, 20][between(0, 4)];
       total += amount;
-      return { userId: user.id, amount, reason: "lesson", createdAt: new Date(between(weekStart, now.getTime() - 60_000)) };
+      return {
+        userId: user.id,
+        amount,
+        reason: "lesson",
+        createdAt: new Date(between(weekStart, now.getTime() - 60_000)),
+      };
     });
     // Some history from earlier weeks so lifetime XP is larger than weekly XP.
     const history = between(200, 3000);
-    events.push({ userId: user.id, amount: history, reason: "history", createdAt: new Date(weekStart - between(2, 60) * DAY) });
+    events.push({
+      userId: user.id,
+      amount: history,
+      reason: "history",
+      createdAt: new Date(weekStart - between(2, 60) * DAY),
+    });
     await prisma.xpEvent.createMany({ data: events });
     const streak = between(0, 45);
     await prisma.user.update({
@@ -181,7 +226,8 @@ async function main() {
   for (const skill of course.units.flatMap((u) => u.skills)) {
     if (reviewed.has(skill.slug)) continue;
     for (let order = 1; order <= skill.lessons.length; order++) {
-      drafts += (await generateDraftsForLesson(prisma, stub, course, { skillSlug: skill.slug, lessonOrder: order })).created;
+      drafts += (await generateDraftsForLesson(prisma, stub, course, { skillSlug: skill.slug, lessonOrder: order }))
+        .created;
     }
   }
 

@@ -95,7 +95,10 @@ class LessonBuilder {
   private choice(prompt: string, promptLang: "tl" | "en", answer: string, wrong: string[]): Draft | null {
     if (wrong.length < 2) return null;
     const options = shuffle([answer, ...wrong], this.rand);
-    return { type: "select_translation", payload: { prompt, promptLang, options, answerIndex: options.indexOf(answer) } };
+    return {
+      type: "select_translation",
+      payload: { prompt, promptLang, options, answerIndex: options.indexOf(answer) },
+    };
   }
 
   mcTlToEn(w: CourseWord): Draft | null {
@@ -129,14 +132,23 @@ class LessonBuilder {
       // Prefer sentences this lesson won't otherwise show, so wrong options don't spoil later exercises.
       .sort((a, b) => Number(inLesson.has(a.tl)) - Number(inLesson.has(b.tl)))
       .slice(0, 2);
-    const draft = this.choice(w.ex[0], "tl", w.ex[1], others.map((o) => o.ex[1]));
+    const draft = this.choice(
+      w.ex[0],
+      "tl",
+      w.ex[1],
+      others.map((o) => o.ex[1]),
+    );
     if (draft) [w, ...others].forEach((o) => this.usedSentences.add(o.tl));
     return draft;
   }
 
   matchPairs(focus: CourseWord[]): Draft | null {
     const chosen: CourseWord[] = [];
-    const candidates = [...focus, ...shuffle(this.req.reviewWords, this.rand), ...shuffle(this.req.allWords, this.rand)];
+    const candidates = [
+      ...focus,
+      ...shuffle(this.req.reviewWords, this.rand),
+      ...shuffle(this.req.allWords, this.rand),
+    ];
     for (const w of candidates) {
       if (chosen.length === 4) break;
       if (glossable(w) && !chosen.some((c) => overlaps(c, w))) chosen.push(w);

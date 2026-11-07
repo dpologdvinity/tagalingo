@@ -6,7 +6,14 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser } from "@/server/session";
-import { completeAttempt, LessonError, startAttempt, submitAnswer, type AnswerFeedback, type LessonResult } from "@/server/lessons";
+import {
+  completeAttempt,
+  LessonError,
+  startAttempt,
+  submitAnswer,
+  type AnswerFeedback,
+  type LessonResult,
+} from "@/server/lessons";
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string; message: string };
 
@@ -32,7 +39,11 @@ export async function startLessonAction(lessonId: string): Promise<ActionResult<
   return run(async () => startAttempt(await userOrError(), id.parse(lessonId)));
 }
 
-export async function answerAction(attemptId: string, exerciseId: string, answer: unknown): Promise<ActionResult<AnswerFeedback>> {
+export async function answerAction(
+  attemptId: string,
+  exerciseId: string,
+  answer: unknown,
+): Promise<ActionResult<AnswerFeedback>> {
   return run(async () => {
     const user = await userOrError();
     // Answers are tiny; refuse anything suspiciously large before touching the database.

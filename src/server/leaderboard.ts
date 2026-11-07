@@ -5,7 +5,14 @@ import "server-only";
 import { db } from "@/lib/db";
 import { nextWeekStartUtc, weekStartUtc } from "@/lib/game/league";
 
-export type LeaderboardRow = { rank: number; userId: string; name: string; xp: number; avatarHue: number; isMe: boolean };
+export type LeaderboardRow = {
+  rank: number;
+  userId: string;
+  name: string;
+  xp: number;
+  avatarHue: number;
+  isMe: boolean;
+};
 
 export type Leaderboard = {
   weekStart: string;
@@ -26,7 +33,10 @@ export async function getWeeklyLeaderboard(viewerId: string, limit = 30, now = n
   const top = totals.slice(0, limit);
   const myIndex = totals.findIndex((t) => t.userId === viewerId);
   const ids = [...new Set([...top.map((t) => t.userId), viewerId])];
-  const users = await db.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, avatarHue: true } });
+  const users = await db.user.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, avatarHue: true },
+  });
   const byId = new Map(users.map((u) => [u.id, u]));
 
   // Standard competition ranking: equal XP shares a rank.
@@ -37,7 +47,14 @@ export async function getWeeklyLeaderboard(viewerId: string, limit = 30, now = n
   const toRow = (i: number): LeaderboardRow => {
     const t = totals[i];
     const u = byId.get(t.userId);
-    return { rank: rankAt(i), userId: t.userId, name: u?.name ?? "Learner", xp: t._sum.amount ?? 0, avatarHue: u?.avatarHue ?? 180, isMe: t.userId === viewerId };
+    return {
+      rank: rankAt(i),
+      userId: t.userId,
+      name: u?.name ?? "Learner",
+      xp: t._sum.amount ?? 0,
+      avatarHue: u?.avatarHue ?? 180,
+      isMe: t.userId === viewerId,
+    };
   };
 
   const rows = top.map((_, i) => toRow(i));
@@ -45,7 +62,14 @@ export async function getWeeklyLeaderboard(viewerId: string, limit = 30, now = n
   if (myIndex >= limit) me = toRow(myIndex);
   if (myIndex === -1) {
     const u = byId.get(viewerId);
-    me = { rank: totals.length + 1, userId: viewerId, name: u?.name ?? "You", xp: 0, avatarHue: u?.avatarHue ?? 180, isMe: true };
+    me = {
+      rank: totals.length + 1,
+      userId: viewerId,
+      name: u?.name ?? "You",
+      xp: 0,
+      avatarHue: u?.avatarHue ?? 180,
+      isMe: true,
+    };
   }
   return { weekStart: since.toISOString(), resetsAt: nextWeekStartUtc(now).toISOString(), rows, me };
 }

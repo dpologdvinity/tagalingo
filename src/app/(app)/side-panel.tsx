@@ -50,7 +50,10 @@ export async function SidePanel({ userId, stats }: { userId: string; stats: Lear
         </div>
         <ol className="space-y-2">
           {around.map((r) => (
-            <li key={r.userId} className={`flex items-center gap-3 rounded-2xl px-2 py-1.5 ${r.isMe ? "bg-lagoon-soft" : ""}`}>
+            <li
+              key={r.userId}
+              className={`flex items-center gap-3 rounded-2xl px-2 py-1.5 ${r.isMe ? "bg-lagoon-soft" : ""}`}
+            >
               <span className="w-6 text-right font-bold text-ink-soft">{r.rank}</span>
               <Avatar name={r.name} hue={r.avatarHue} size={32} />
               <span className="flex-1 truncate font-bold">{r.isMe ? "You" : r.name}</span>

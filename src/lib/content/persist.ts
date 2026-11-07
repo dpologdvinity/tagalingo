@@ -26,10 +26,18 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
   });
   for (const [ui, u] of def.units.entries()) {
     const unitData = { courseId: course.id, order: ui + 1, title: u.title, subtitle: u.subtitle, color: u.color };
-    const unit = await prisma.unit.upsert({ where: { slug: u.slug }, create: { slug: u.slug, ...unitData }, update: unitData });
+    const unit = await prisma.unit.upsert({
+      where: { slug: u.slug },
+      create: { slug: u.slug, ...unitData },
+      update: unitData,
+    });
     for (const [si, s] of u.skills.entries()) {
       const skillData = { unitId: unit.id, order: si + 1, title: s.title, emoji: s.emoji, description: s.description };
-      const skill = await prisma.skill.upsert({ where: { slug: s.slug }, create: { slug: s.slug, ...skillData }, update: skillData });
+      const skill = await prisma.skill.upsert({
+        where: { slug: s.slug },
+        create: { slug: s.slug, ...skillData },
+        update: skillData,
+      });
       for (const [li, l] of s.lessons.entries()) {
         await prisma.lesson.upsert({
           where: { skillId_order: { skillId: skill.id, order: li + 1 } },
@@ -94,7 +102,9 @@ export async function generateDraftsForLesson(
       model: generator.model,
       requestedById,
       exerciseCount: result.exercises.length,
-      error: result.rejected.length ? `${result.rejected.length} item(s) failed validation: ${result.rejected.map((r) => r.reason).join(" | ")}` : null,
+      error: result.rejected.length
+        ? `${result.rejected.length} item(s) failed validation: ${result.rejected.map((r) => r.reason).join(" | ")}`
+        : null,
     },
   });
   await prisma.exercise.createMany({
@@ -152,7 +162,12 @@ export async function exportApprovedExercises(prisma: PrismaClient, contentDir: 
       lessons: skill.lessons.map((l) => ({
         order: l.order,
         title: l.title,
-        exercises: l.exercises.map((e) => ({ type: e.type, payload: e.payload, source: e.source, reviewNote: e.reviewNote })),
+        exercises: l.exercises.map((e) => ({
+          type: e.type,
+          payload: e.payload,
+          source: e.source,
+          reviewNote: e.reviewNote,
+        })),
       })),
     };
     const target = path.join(exercisesDir(contentDir), `${skill.slug}.json`);
@@ -167,12 +182,17 @@ export async function importApprovedExercises(prisma: PrismaClient, contentDir: 
   const dir = exercisesDir(contentDir);
   if (!fs.existsSync(dir)) return new Set<string>();
   const imported = new Set<string>();
-  for (const name of fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort()) {
+  for (const name of fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()) {
     const file = exportFileSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")));
     const skill = await prisma.skill.findUnique({ where: { slug: file.skill } });
     if (!skill) throw new Error(`${name}: skill "${file.skill}" is not in course.yaml`);
     for (const l of file.lessons) {
-      const lesson = await prisma.lesson.findUniqueOrThrow({ where: { skillId_order: { skillId: skill.id, order: l.order } } });
+      const lesson = await prisma.lesson.findUniqueOrThrow({
+        where: { skillId_order: { skillId: skill.id, order: l.order } },
+      });
       await prisma.exercise.createMany({
         data: l.exercises.map((e, i) => {
           const parsed = parseExercise(e.type, e.payload); // reject corrupt files loudly

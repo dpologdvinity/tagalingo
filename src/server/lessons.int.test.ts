@@ -42,7 +42,12 @@ let n = 0;
 
 beforeEach(async () => {
   user = await db.user.create({
-    data: { email: `learner${Date.now()}-${n++}@test.local`, name: "Test Learner", passwordHash: "x", timezone: "Asia/Manila" },
+    data: {
+      email: `learner${Date.now()}-${n++}@test.local`,
+      name: "Test Learner",
+      passwordHash: "x",
+      timezone: "Asia/Manila",
+    },
   });
 });
 
@@ -132,7 +137,9 @@ describe("lesson loop", () => {
     const feedback = await submitAnswer(u.id, attemptId, target.id, wrongAnswer(target.ex));
     expect(feedback).toMatchObject({ hearts: 0, outOfHearts: true });
     expect((await db.lessonAttempt.findUniqueOrThrow({ where: { id: attemptId } })).status).toBe("FAILED");
-    await expect(submitAnswer(u.id, attemptId, target.id, correctAnswer(target.ex))).rejects.toMatchObject({ code: "not_in_progress" });
+    await expect(submitAnswer(u.id, attemptId, target.id, correctAnswer(target.ex))).rejects.toMatchObject({
+      code: "not_in_progress",
+    });
     const drained = await db.user.findUniqueOrThrow({ where: { id: user.id } });
     await expect(startAttempt(drained, first.id)).rejects.toMatchObject({ code: "no_hearts" });
   });
@@ -140,9 +147,13 @@ describe("lesson loop", () => {
   it("rejects answers for another learner's attempt", async () => {
     const [first] = await firstLessons();
     const { attemptId } = await startAttempt(user, first.id);
-    const intruder = await db.user.create({ data: { email: `intruder${Date.now()}@test.local`, name: "X", passwordHash: "x" } });
+    const intruder = await db.user.create({
+      data: { email: `intruder${Date.now()}@test.local`, name: "X", passwordHash: "x" },
+    });
     const [one] = await lessonExercises(first.id);
-    await expect(submitAnswer(intruder.id, attemptId, one.id, correctAnswer(one.ex))).rejects.toMatchObject({ code: "not_in_progress" });
+    await expect(submitAnswer(intruder.id, attemptId, one.id, correctAnswer(one.ex))).rejects.toMatchObject({
+      code: "not_in_progress",
+    });
   });
 });
 

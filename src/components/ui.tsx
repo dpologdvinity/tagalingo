@@ -22,7 +22,11 @@ export function buttonClass(variant: Variant = "primary", extra = "") {
   return `${base} ${variants[variant]} ${extra}`;
 }
 
-export function Button({ variant = "primary", className = "", ...props }: ComponentProps<"button"> & { variant?: Variant }) {
+export function Button({
+  variant = "primary",
+  className = "",
+  ...props
+}: ComponentProps<"button"> & { variant?: Variant }) {
   return <button className={buttonClass(variant, className)} {...props} />;
 }
 

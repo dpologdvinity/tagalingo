@@ -7,14 +7,7 @@ type Mood = "happy" | "cheer" | "sad" | "sleepy";
 export function Tala({ size = 64, mood = "happy", className }: { size?: number; mood?: Mood; className?: string }) {
   const eyeOpen = mood !== "sleepy";
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      className={className}
-      role="img"
-      aria-label="Tala the tarsier"
-    >
+    <svg width={size} height={size} viewBox="0 0 64 64" className={className} role="img" aria-label="Tala the tarsier">
       {/* ears */}
       <ellipse cx="10" cy="18" rx="9" ry="11" fill="#8b6b4a" />
       <ellipse cx="54" cy="18" rx="9" ry="11" fill="#8b6b4a" />

@@ -5,7 +5,14 @@ type IconProps = SVGProps<SVGSVGElement> & { title?: string; size?: number };
 
 function Svg({ title, size = 24, children, ...rest }: IconProps & { children: React.ReactNode }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden={title ? undefined : true} role={title ? "img" : undefined} {...rest}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden={title ? undefined : true}
+      role={title ? "img" : undefined}
+      {...rest}
+    >
       {title && <title>{title}</title>}
       {children}
     </svg>
@@ -75,7 +82,14 @@ export const LockIcon = (p: IconProps) => (
 
 export const CheckIcon = (p: IconProps) => (
   <Svg {...p}>
-    <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="m5 12.5 4.5 4.5L19 7.5"
+      stroke="currentColor"
+      strokeWidth="3"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </Svg>
 );
 

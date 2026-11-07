@@ -14,19 +14,14 @@ function items(isReviewer: boolean): Item[] {
     { href: "/leaderboard", label: "League", icon: TrophyIcon },
     { href: "/profile", label: "Profile", icon: UserIcon },
   ];
-  return isReviewer
-    ? [...base, { href: "/studio", label: "Studio", icon: PencilIcon }]
-    : base;
+  return isReviewer ? [...base, { href: "/studio", label: "Studio", icon: PencilIcon }] : base;
 }
 
 export function SideNav({ isReviewer }: { isReviewer: boolean }) {
   const pathname = usePathname();
   return (
     <div className="hidden w-60 shrink-0 border-r-2 border-line bg-surface lg:block">
-      <nav
-        aria-label="Main"
-        className="sticky top-0 flex h-screen flex-col gap-2 px-4 py-6"
-      >
+      <nav aria-label="Main" className="sticky top-0 flex h-screen flex-col gap-2 px-4 py-6">
         <Link href="/learn" className="mb-6 px-2" aria-label="Tagalingo home">
           <Logo />
         </Link>
