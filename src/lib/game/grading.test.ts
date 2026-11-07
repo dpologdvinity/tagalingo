@@ -142,3 +142,17 @@ describe("gradeAnswer: v1.1 types", () => {
     expect(gradeAnswer(d, { choice: 0 })).toMatchObject({ correct: false, correctAnswer: "Mabuti naman. (I'm fine.)" });
   });
 });
+
+describe("gradeAnswer: speech edge cases", () => {
+  it("accepts a transcript with extra filler words around the full sentence", () => {
+    const ex = parseExercise("speak", { text: "Salamat po.", translation: "Thank you." });
+    expect(gradeAnswer(ex, { transcript: "ah salamat po talaga" }).correct).toBe(true);
+  });
+
+  it("is strict on very short phrases", () => {
+    const ex = parseExercise("speak", { text: "Oo.", translation: "Yes." });
+    expect(gradeAnswer(ex, { transcript: "oo" }).correct).toBe(true);
+    expect(gradeAnswer(ex, { transcript: "o" }).correct).toBe(false);
+    expect(gradeAnswer(ex, { transcript: "" }).correct).toBe(false);
+  });
+});

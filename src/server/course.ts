@@ -164,7 +164,11 @@ export async function getSkillPage(userId: string, slug: string): Promise<SkillP
     unitId: skill.unit.id,
     unitTitle: skill.unit.title,
     tips: skill.tips,
-    dialogues: Array.isArray(skill.dialogues) ? (skill.dialogues as SkillPageData["dialogues"]) : [],
+    // Conversations double as the answers to dialogue exercises, so only show the ones from
+    // lessons the learner has already finished.
+    dialogues: (Array.isArray(skill.dialogues) ? (skill.dialogues as SkillPageData["dialogues"]) : []).filter(
+      (d) => view.lessons.filter((l) => l.state === "complete").length >= d.lesson,
+    ),
     words: skill.words.map((w) => ({
       tl: w.tagalog,
       en: w.english,

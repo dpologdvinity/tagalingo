@@ -213,6 +213,8 @@ model LessonAttempt {
   answers     AttemptAnswer[]
 
   @@index([userId, startedAt])
+  @@index([skillId])
+  @@index([unitId])
 }
 
 model AttemptAnswer {

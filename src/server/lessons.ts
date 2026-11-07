@@ -160,10 +160,12 @@ export async function submitAnswer(
     const refill = heartRefillMs();
     let hearts = liveHearts(attempt.user, now, refill);
     let outOfHearts = false;
-    if (!result.correct) {
+    // Free exercises (match pairs, speaking) never count as mistakes: trying to speak shouldn't
+    // cost the perfect bonus when skipping doesn't.
+    if (!result.correct && !FREE_MISTAKES.has(parsed.type)) {
       await tx.lessonAttempt.update({ where: { id: attemptId }, data: { mistakes: { increment: 1 } } });
       // Practice is the way back from zero hearts, so it never costs any.
-      if (attempt.kind === "LESSON" && !FREE_MISTAKES.has(parsed.type)) {
+      if (attempt.kind === "LESSON") {
         const after = loseHeart(attempt.user, now, refill);
         await tx.user.update({ where: { id: userId }, data: after });
         hearts = liveHearts(after, now, refill);

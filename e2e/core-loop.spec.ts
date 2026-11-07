@@ -137,7 +137,7 @@ test.describe("richer lessons", () => {
   });
 
   test("skill pages show original tips, flashcards and conversations", async ({ page }) => {
-    await signUpFreshLearner(page);
+    await logInAsDemo(page); // conversations appear once the lesson is finished
     await page.goto("/skills/pagbati");
     await expect(page.getByRole("heading", { name: "Tips" })).toBeVisible();
     await expect(page.getByText(/Add po to a sentence/)).toBeVisible();

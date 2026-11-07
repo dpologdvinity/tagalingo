@@ -116,7 +116,15 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
       const correctAnswer = ex.payload.text;
       if (isRecord(answer) && answer.skipped === true) return { correct: true, skipped: true, correctAnswer };
       if (!isRecord(answer) || typeof answer.transcript !== "string") return { correct: false, correctAnswer };
-      return { correct: similarity(answer.transcript, ex.payload.text) >= SPEECH_MATCH_THRESHOLD, correctAnswer };
+      const heard = normalizeAnswer(answer.transcript);
+      const target = normalizeAnswer(ex.payload.text);
+      // Recognisers often add filler ("ah …") around a correct sentence; accept the full
+      // sentence inside the transcript for multi-word targets. Short phrases must match closely.
+      const contained = target.includes(" ") && ` ${heard} `.includes(` ${target} `);
+      return {
+        correct: heard.length > 0 && (contained || similarity(heard, target) >= SPEECH_MATCH_THRESHOLD),
+        correctAnswer,
+      };
     }
     case "type_translation": {
       const correctAnswer = ex.payload.answers[0];

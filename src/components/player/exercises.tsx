@@ -2,7 +2,7 @@
  * The five exercise types (client components; rendered inside the client-side LessonPlayer). Each reports its current answer through `onChange` (null = not ready
  * to check yet). The player owns checking, feedback and progression.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClientExercise } from "@/lib/content/client-view";
 import { hash, rng, shuffle } from "@/lib/random";
 import { useRecognitionSupported, useSpeechRecognition } from "@/lib/speech/client";
@@ -365,15 +365,20 @@ export function SelectPicture({ exercise, disabled, onChange }: Props<"select_pi
     setSelected(i);
     onChange({ choice: i });
   };
+  const count = exercise.pictures.length;
   useEffect(() => {
     if (disabled) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const n = Number(e.key);
-      if (n >= 1 && n <= exercise.pictures.length) select(n - 1);
+      if (n >= 1 && n <= count) {
+        setSelected(n - 1);
+        onChange({ choice: n - 1 });
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [disabled, count, onChange]);
   return (
     <div className="space-y-6">
       <Instruction>Which picture shows this?</Instruction>
@@ -385,7 +390,6 @@ export function SelectPicture({ exercise, disabled, onChange }: Props<"select_pi
             type="button"
             role="radio"
             aria-checked={selected === i}
-            aria-label={`Picture ${i + 1}`}
             disabled={disabled}
             onClick={() => select(i)}
             className={`flex aspect-[4/3] items-center justify-center rounded-3xl border-2 text-6xl transition-[transform,box-shadow] active:translate-y-[2px] sm:text-7xl ${
@@ -394,7 +398,9 @@ export function SelectPicture({ exercise, disabled, onChange }: Props<"select_pi
                 : "border-line bg-surface shadow-press"
             }`}
           >
-            <span aria-hidden>{pic}</span>
+            {/* Screen readers announce the emoji's name, the same information sighted learners get. */}
+            <span className="sr-only">Picture {i + 1}: </span>
+            <span>{pic}</span>
           </button>
         ))}
       </div>
@@ -410,18 +416,36 @@ export function Speak({
   onSubmit,
 }: Props<"speak"> & { onSubmit: (answer: unknown) => void }) {
   const supported = useRecognitionSupported();
-  const { listen } = useSpeechRecognition();
+  const { listen, stop } = useSpeechRecognition();
   const [state, setState] = useState<"idle" | "listening" | "heard" | "error">("idle");
   const [transcript, setTranscript] = useState("");
+  // Once this exercise is gone (or skipped), a late transcript must not leak into the next one.
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      stop();
+    };
+  }, [stop]);
+
+  const skip = () => {
+    active.current = false;
+    stop();
+    onChange(null);
+    onSubmit({ skipped: true });
+  };
 
   const record = async () => {
     setState("listening");
     try {
       const heard = await listen();
+      if (!active.current) return;
       setTranscript(heard);
       setState(heard ? "heard" : "error");
       onChange(heard ? { transcript: heard } : null);
     } catch {
+      if (!active.current) return;
       setState("error");
       onChange(null);
     }
@@ -469,7 +493,7 @@ export function Speak({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => onSubmit({ skipped: true })}
+          onClick={skip}
           className="font-bold text-lagoon underline-offset-4 hover:underline"
         >
           {supported ? "Can’t speak now" : "Continue"}

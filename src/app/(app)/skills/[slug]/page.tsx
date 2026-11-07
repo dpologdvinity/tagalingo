@@ -81,6 +81,11 @@ export default async function SkillPage({ params }: PageProps<"/skills/[slug]">)
         </details>
       </Card>
 
+      {skill.dialogues.length === 0 && skill.completedLessons === 0 && (
+        <p className="rounded-3xl border-2 border-dashed border-line p-5 text-ink-soft">
+          Finish a lesson here to unlock its conversation for reading practice.
+        </p>
+      )}
       {skill.dialogues.length > 0 && (
         <Card>
           <h2 className="mb-3 font-display text-2xl">Conversations</h2>

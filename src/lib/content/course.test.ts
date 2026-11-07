@@ -101,6 +101,12 @@ describe("v1.1 course fields", () => {
     expect(() => parseCourse(bad)).toThrow(/lesson/);
   });
 
+  it("rejects a dialogue whose wrong replies include the right one", () => {
+    const bad = withExtras();
+    (bad.units[0].skills[0].dialogues as { wrong: string[] }[])[0].wrong = ["Walang anuman.", "Oo."];
+    expect(() => parseCourse(bad)).toThrow(/wrong/);
+  });
+
   it("rejects the same picture on two words in a skill", () => {
     const bad = withExtras();
     (bad.units[0].skills[0].words as Record<string, unknown>[])[1].pic = "🙏";

@@ -7,6 +7,7 @@
  */
 import { auth } from "@/auth";
 import { selectSpeechProvider } from "@/lib/speech/provider";
+import { ttsLimiter } from "@/server/rate-limit";
 
 const MAX_TEXT = 200;
 const CACHE_LIMIT = 500;
@@ -24,6 +25,8 @@ export async function GET(request: Request) {
 
   let audio = cache.get(text);
   if (!audio) {
+    // Only fresh synthesis costs money, so only cache misses count against the learner's limit.
+    if (!ttsLimiter.take(session.user.id)) return new Response("Too many audio requests", { status: 429 });
     try {
       audio = await provider.synthesize(text);
     } catch (e) {

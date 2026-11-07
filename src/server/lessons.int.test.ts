@@ -294,6 +294,37 @@ describe("practice", () => {
   });
 });
 
+describe("v1.1 rules", () => {
+  it("doesn't count a failed speaking attempt as a mistake (skipping wouldn't be)", async () => {
+    const [first] = await firstLessons();
+    const { attemptId, exercises } = await startAttempt(user, first.id);
+    const speak = exercises.find((e) => e.type === "speak");
+    expect(speak).toBeDefined();
+    const feedback = await submitAnswer(user.id, attemptId, speak!.id, { transcript: "zzz" });
+    expect(feedback).toMatchObject({ correct: false, hearts: 5 });
+    expect((await db.lessonAttempt.findUniqueOrThrow({ where: { id: attemptId } })).mistakes).toBe(0);
+  });
+
+  it("still completes attempts started before exercise snapshots existed", async () => {
+    const [first] = await firstLessons();
+    const legacy = await db.lessonAttempt.create({
+      data: { userId: user.id, lessonId: first.id, startedAt: new Date(Date.now() + 60_000) },
+    });
+    for (const { id, ex } of await lessonExercises(first.id))
+      await submitAnswer(user.id, legacy.id, id, correctAnswer(ex));
+    await expect(completeAttempt(user.id, legacy.id)).resolves.toMatchObject({ kind: "LESSON" });
+  });
+
+  it("unit practice only uses lessons the learner has finished", async () => {
+    const [first] = await firstLessons();
+    await playPerfect(first.id);
+    const lesson = await db.lesson.findUniqueOrThrow({ where: { id: first.id }, include: { skill: true } });
+    const { exercises } = await startPractice(user, { unitId: lesson.skill.unitId });
+    const allowed = new Set((await lessonExercises(first.id)).map((e) => e.id));
+    expect(exercises.every((e) => allowed.has(e.id))).toBe(true);
+  });
+});
+
 describe("weekly leaderboard", () => {
   it("ranks learners by XP earned this week and includes the viewer", async () => {
     const [first] = await firstLessons();

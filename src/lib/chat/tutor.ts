@@ -9,6 +9,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessagesClient } from "@/lib/content/generators/claude";
 import { normalizeAnswer } from "@/lib/game/grading";
+import { CHAT_LIMITS } from "./history";
 
 export type ChatTurn = { role: "learner" | "tala"; text: string };
 export type ChatReply = {
@@ -202,8 +203,8 @@ export class ClaudeTutor implements ChatTutor {
     if (typeof input.text !== "string" || typeof input.translation !== "string")
       throw new Error("Tala's reply was malformed");
     return {
-      text: input.text.slice(0, 400),
-      translation: input.translation.slice(0, 400),
+      text: input.text.slice(0, CHAT_LIMITS.talaChars),
+      translation: input.translation.slice(0, CHAT_LIMITS.talaChars),
       ...(input.correction ? { correction: String(input.correction).slice(0, 300) } : {}),
       ...(input.hint ? { hint: String(input.hint).slice(0, 120) } : {}),
     };

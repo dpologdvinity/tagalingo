@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { chatAction } from "@/app/actions/chat";
+import { CHAT_LIMITS } from "@/lib/chat/history";
 import type { ChatReply, ChatTurn } from "@/lib/chat/tutor";
 import { SpeakButton } from "@/components/speak-button";
 import { Tala } from "@/components/tala";
@@ -58,14 +59,16 @@ export function ChatRoom() {
   }, [messages, pending]);
 
   const send = (text: string) => {
-    const clean = text.trim().slice(0, 200);
+    const clean = text.trim().slice(0, CHAT_LIMITS.learnerChars);
     if (!clean || pending) return;
     const next: Message[] = [...messages, { role: "learner", text: clean }];
     setMessages(next);
     setDraft("");
     setError(null);
     start(async () => {
-      const r = await chatAction(next.map(({ role, text: t }) => ({ role, text: t })));
+      // Only recent turns matter to Tala, and sending fewer keeps long chats working.
+      const recent = next.slice(-CHAT_LIMITS.contextTurns).map(({ role, text: t }) => ({ role, text: t }));
+      const r = await chatAction(recent);
       if (!r.ok) {
         setError(r.message);
         return;
@@ -137,7 +140,7 @@ export function ChatRoom() {
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              maxLength={200}
+              maxLength={CHAT_LIMITS.learnerChars}
               lang="tl"
               autoComplete="off"
               placeholder="Type in Tagalog…"

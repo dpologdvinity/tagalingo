@@ -38,6 +38,10 @@ const dialogueSchema = z
   .refine((d) => d.lines[d.lines.length - 1][0] === "B", {
     message: "a dialogue must end with B's reply (the line learners choose)",
     path: ["lines"],
+  })
+  .refine((d) => !d.wrong.some((w) => w.trim().toLowerCase() === d.lines[d.lines.length - 1][1].trim().toLowerCase()), {
+    message: "a dialogue's wrong replies must not include the right reply",
+    path: ["wrong"],
   });
 
 const skillSchema = z

@@ -1,25 +1,20 @@
 "use server";
 /** Chat with Tala: one reply per call. The conversation lives in the browser; nothing is stored. */
-import { z } from "zod";
+import { prepareChatHistory } from "@/lib/chat/history";
 import { selectChatTutor, type ChatReply } from "@/lib/chat/tutor";
+import { chatLimiter } from "@/server/rate-limit";
 import { getCurrentUser } from "@/server/session";
-
-const historySchema = z
-  .array(z.object({ role: z.enum(["learner", "tala"]), text: z.string().trim().min(1).max(200) }))
-  .min(1)
-  .max(24);
 
 export type ChatResult = { ok: true; reply: ChatReply } | { ok: false; message: string };
 
 export async function chatAction(history: unknown): Promise<ChatResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Your session has ended. Log in again to keep chatting." };
-  const parsed = historySchema.safeParse(history);
-  if (!parsed.success) return { ok: false, message: "Messages must be 1–200 characters." };
+  const prepared = prepareChatHistory(history);
+  if (!prepared.ok) return prepared;
+  if (!chatLimiter.take(user.id)) return { ok: false, message: "Tala needs a short break. Try again in a minute." };
   try {
-    // Only the most recent turns matter for a beginner chat, and they keep requests small.
-    const reply = await selectChatTutor().reply({ history: parsed.data.slice(-12), learnerName: user.name });
-    return { ok: true, reply };
+    return { ok: true, reply: await selectChatTutor().reply({ history: prepared.history, learnerName: user.name }) };
   } catch (e) {
     console.error(e);
     return { ok: false, message: "Tala couldn't answer just now. Try again in a moment." };
