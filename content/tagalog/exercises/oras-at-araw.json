@@ -1,0 +1,379 @@
+{
+  "skill": "oras-at-araw",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Today and tomorrow",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "ngayon",
+            "options": [
+              "day",
+              "now",
+              "morning",
+              "Friday"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "tomorrow",
+            "options": [
+              "oras",
+              "gabi",
+              "ngayon",
+              "bukas"
+            ],
+            "promptLang": "en",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Lunes",
+              "kahapon",
+              "araw"
+            ],
+            "sentence": "Umulan ___.",
+            "answerIndex": 1,
+            "translation": "It rained yesterday."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "now",
+                "tl": "ngayon"
+              },
+              {
+                "en": "tomorrow",
+                "tl": "bukas"
+              },
+              {
+                "en": "yesterday",
+                "tl": "kahapon"
+              },
+              {
+                "en": "morning",
+                "tl": "umaga"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "maganda",
+              "ang",
+              "umaga"
+            ],
+            "prompt": "The morning is beautiful.",
+            "promptLang": "en",
+            "distractors": [
+              "anong",
+              "oras",
+              "na"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "gabi",
+            "answers": [
+              "night",
+              "evening"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "I'm",
+              "tired",
+              "today"
+            ],
+            "prompt": "Pagod ako ngayon.",
+            "alternates": [
+              [
+                "I",
+                "am",
+                "tired",
+                "today"
+              ],
+              [
+                "I'm",
+                "tired",
+                "now"
+              ],
+              [
+                "I",
+                "am",
+                "tired",
+                "now"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "it's",
+              "hot",
+              "in"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Kita tayo bukas.",
+            "options": [
+              "See you tomorrow.",
+              "What time is it?",
+              "Tomorrow is Friday."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "ngayon",
+              "gabi",
+              "kahapon"
+            ],
+            "sentence": "Tahimik ang ___.",
+            "answerIndex": 1,
+            "translation": "The night is quiet."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "yesterday",
+            "answers": [
+              "kahapon"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Days of the week",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "hapon",
+            "options": [
+              "day",
+              "now",
+              "morning",
+              "afternoon"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "day",
+            "options": [
+              "Lunes",
+              "kahapon",
+              "ngayon",
+              "araw"
+            ],
+            "promptLang": "en",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "oras",
+              "ngayon",
+              "bukas"
+            ],
+            "sentence": "Anong ___ na?",
+            "answerIndex": 0,
+            "translation": "What time is it?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "afternoon",
+                "tl": "hapon"
+              },
+              {
+                "en": "day",
+                "tl": "araw"
+              },
+              {
+                "en": "time",
+                "tl": "oras"
+              },
+              {
+                "en": "Monday",
+                "tl": "Lunes"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "may",
+              "klase",
+              "ako",
+              "sa",
+              "Lunes"
+            ],
+            "prompt": "I have class on Monday.",
+            "promptLang": "en",
+            "distractors": [
+              "nagsisimba",
+              "kami",
+              "tuwing"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "Biyernes",
+            "answers": [
+              "Friday"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "it's",
+              "hot",
+              "in",
+              "the",
+              "afternoon"
+            ],
+            "prompt": "Mainit sa hapon.",
+            "alternates": [
+              [
+                "it",
+                "is",
+                "hot",
+                "in",
+                "the",
+                "afternoon"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "night",
+              "quiet",
+              "I'm"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Mainit ang araw.",
+            "options": [
+              "The morning is beautiful.",
+              "Tomorrow is Friday.",
+              "The sun is hot."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "kahapon",
+              "Linggo",
+              "ngayon"
+            ],
+            "sentence": "Nagsisimba kami tuwing ___.",
+            "answerIndex": 1,
+            "translation": "We go to church every Sunday."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "time",
+            "answers": [
+              "oras"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

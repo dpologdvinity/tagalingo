@@ -1,0 +1,345 @@
+{
+  "skill": "mga-numero",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "One to five",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "isa",
+            "options": [
+              "ten",
+              "one",
+              "eight",
+              "six"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "two",
+            "options": [
+              "isa",
+              "tatlo",
+              "dalawa",
+              "sampu"
+            ],
+            "promptLang": "en",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Anim",
+              "Siyam",
+              "Tatlo"
+            ],
+            "sentence": "___ ang aso ko.",
+            "answerIndex": 2,
+            "translation": "I have three dogs."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "one",
+                "tl": "isa"
+              },
+              {
+                "en": "two",
+                "tl": "dalawa"
+              },
+              {
+                "en": "three",
+                "tl": "tatlo"
+              },
+              {
+                "en": "four",
+                "tl": "apat"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "apat",
+              "kami",
+              "sa",
+              "pamilya"
+            ],
+            "prompt": "There are four of us in the family.",
+            "promptLang": "en",
+            "distractors": [
+              "lima",
+              "ang",
+              "daliri"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "lima",
+            "answers": [
+              "five"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "just",
+              "one",
+              "please"
+            ],
+            "prompt": "Isa lang po.",
+            "alternates": [
+              [
+                "only",
+                "one",
+                "please"
+              ],
+              [
+                "just",
+                "one"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "there",
+              "are",
+              "ten"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Dalawa ang kapatid ko.",
+            "options": [
+              "I have two siblings.",
+              "Grandma has eight cats.",
+              "There are seven days in a week."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Anim",
+              "Lima",
+              "Dalawa"
+            ],
+            "sentence": "___ ang daliri ko.",
+            "answerIndex": 1,
+            "translation": "I have five fingers."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "three",
+            "answers": [
+              "tatlo"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Six to ten",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "anim",
+            "options": [
+              "nine",
+              "three",
+              "ten",
+              "six"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "seven",
+            "options": [
+              "anim",
+              "tatlo",
+              "siyam",
+              "pito"
+            ],
+            "promptLang": "en",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Walo",
+              "Siyam",
+              "Lima"
+            ],
+            "sentence": "___ ang pusa ni Lola.",
+            "answerIndex": 0,
+            "translation": "Grandma has eight cats."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "six",
+                "tl": "anim"
+              },
+              {
+                "en": "seven",
+                "tl": "pito"
+              },
+              {
+                "en": "eight",
+                "tl": "walo"
+              },
+              {
+                "en": "nine",
+                "tl": "siyam"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "siyam",
+              "na",
+              "taon",
+              "na",
+              "siya"
+            ],
+            "prompt": "She is nine years old.",
+            "promptLang": "en",
+            "distractors": [
+              "dalawa",
+              "ang",
+              "kapatid"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "sampu",
+            "answers": [
+              "ten"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "there",
+              "are",
+              "six",
+              "eggs"
+            ],
+            "prompt": "Anim ang itlog.",
+            "promptLang": "tl",
+            "distractors": [
+              "I",
+              "have",
+              "three"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Pito ang araw sa isang linggo.",
+            "options": [
+              "I have two siblings.",
+              "There are ten students.",
+              "There are seven days in a week."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "eight",
+            "answers": [
+              "walo"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

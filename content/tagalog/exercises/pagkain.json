@@ -1,0 +1,367 @@
+{
+  "skill": "pagkain",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Rice and water",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "kanin",
+            "options": [
+              "bread",
+              "rice",
+              "eat",
+              "fish"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "water",
+            "options": [
+              "tubig",
+              "kape",
+              "gatas",
+              "manok"
+            ],
+            "promptLang": "en",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "isda",
+              "kain",
+              "gutom"
+            ],
+            "sentence": "Sariwa ang ___.",
+            "answerIndex": 0,
+            "translation": "The fish is fresh."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "rice",
+                "tl": "kanin"
+              },
+              {
+                "en": "water",
+                "tl": "tubig"
+              },
+              {
+                "en": "fish",
+                "tl": "isda"
+              },
+              {
+                "en": "chicken",
+                "tl": "manok"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "kumakain",
+              "siya",
+              "ng",
+              "manok"
+            ],
+            "prompt": "She is eating chicken.",
+            "promptLang": "en",
+            "distractors": [
+              "may",
+              "tinapay",
+              "ba"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "kape",
+            "answers": [
+              "coffee"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "I",
+              "ate",
+              "rice"
+            ],
+            "prompt": "Kumain ako ng kanin.",
+            "promptLang": "tl",
+            "distractors": [
+              "the",
+              "milk",
+              "is"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Gusto ko ng tubig.",
+            "options": [
+              "Let's eat!",
+              "I'm hungry now.",
+              "I want water."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "kape",
+              "gutom",
+              "masarap"
+            ],
+            "sentence": "Umiinom ako ng ___.",
+            "answerIndex": 0,
+            "translation": "I am drinking coffee."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "fish",
+            "answers": [
+              "isda"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Let's eat!",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "tinapay",
+            "options": [
+              "bread",
+              "hungry",
+              "delicious",
+              "rice"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "milk",
+            "options": [
+              "masarap",
+              "prutas",
+              "gatas",
+              "gutom"
+            ],
+            "promptLang": "en",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Masarap",
+              "Prutas",
+              "Kanin"
+            ],
+            "sentence": "___ ang adobo.",
+            "answerIndex": 0,
+            "translation": "The adobo is delicious."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "bread",
+                "tl": "tinapay"
+              },
+              {
+                "en": "milk",
+                "tl": "gatas"
+              },
+              {
+                "en": "delicious",
+                "tl": "masarap"
+              },
+              {
+                "en": "hungry",
+                "tl": "gutom"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "gutom",
+              "na",
+              "ako"
+            ],
+            "prompt": "I'm hungry now.",
+            "promptLang": "en",
+            "distractors": [
+              "may",
+              "tinapay",
+              "ba"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "kain",
+            "answers": [
+              "eat"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "is",
+              "there",
+              "bread"
+            ],
+            "prompt": "May tinapay ba?",
+            "alternates": [
+              [
+                "is",
+                "there",
+                "any",
+                "bread"
+              ],
+              [
+                "do",
+                "you",
+                "have",
+                "bread"
+              ],
+              [
+                "do",
+                "you",
+                "have",
+                "any",
+                "bread"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "I",
+              "am",
+              "drinking"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Malamig ang gatas.",
+            "options": [
+              "The milk is cold.",
+              "I love fruit.",
+              "The fish is fresh."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Kain",
+              "Isda",
+              "Prutas"
+            ],
+            "sentence": "___ tayo!",
+            "answerIndex": 0,
+            "translation": "Let's eat!"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "delicious",
+            "answers": [
+              "masarap"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

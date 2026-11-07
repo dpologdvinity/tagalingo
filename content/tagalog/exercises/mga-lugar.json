@@ -1,0 +1,367 @@
+{
+  "skill": "mga-lugar",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Where is it?",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "nasaan",
+            "options": [
+              "church",
+              "where",
+              "store",
+              "hospital"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "school",
+            "options": [
+              "palengke",
+              "paaralan",
+              "malapit",
+              "simbahan"
+            ],
+            "promptLang": "en",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "malayo",
+              "palengke",
+              "malapit"
+            ],
+            "sentence": "Nasa ___ si Nanay.",
+            "answerIndex": 1,
+            "translation": "Mom is at the market."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "where",
+                "tl": "nasaan"
+              },
+              {
+                "en": "school",
+                "tl": "paaralan"
+              },
+              {
+                "en": "market",
+                "tl": "palengke"
+              },
+              {
+                "en": "store",
+                "tl": "tindahan"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "sarado",
+              "ang",
+              "tindahan"
+            ],
+            "prompt": "The store is closed.",
+            "promptLang": "en",
+            "distractors": [
+              "malapit",
+              "palengke",
+              "luma"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "simbahan",
+            "answers": [
+              "church"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "where",
+              "are",
+              "you"
+            ],
+            "prompt": "Nasaan ka?",
+            "promptLang": "tl",
+            "distractors": [
+              "dad",
+              "is",
+              "at"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Pupunta ako sa paaralan.",
+            "options": [
+              "I will go to school.",
+              "The market is near.",
+              "The mountain is high."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "simbahan",
+              "malayo",
+              "malapit"
+            ],
+            "sentence": "Luma ang ___.",
+            "answerIndex": 0,
+            "translation": "The church is old."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "market",
+            "answers": [
+              "palengke"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Near and far",
+      "exercises": [
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "ospital",
+            "options": [
+              "office",
+              "school",
+              "hospital",
+              "church"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "office",
+            "options": [
+              "bundok",
+              "malapit",
+              "ospital",
+              "opisina"
+            ],
+            "promptLang": "en",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "malapit",
+              "nasaan",
+              "dagat"
+            ],
+            "sentence": "Maganda ang ___.",
+            "answerIndex": 2,
+            "translation": "The sea is beautiful."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "hospital",
+                "tl": "ospital"
+              },
+              {
+                "en": "office",
+                "tl": "opisina"
+              },
+              {
+                "en": "sea",
+                "tl": "dagat"
+              },
+              {
+                "en": "mountain",
+                "tl": "bundok"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "mataas",
+              "ang",
+              "bundok"
+            ],
+            "prompt": "The mountain is high.",
+            "promptLang": "en",
+            "distractors": [
+              "malapit",
+              "palengke",
+              "sarado"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "malapit",
+            "answers": [
+              "near",
+              "close",
+              "nearby"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "where",
+              "is",
+              "the",
+              "hospital"
+            ],
+            "prompt": "Nasaan ang ospital?",
+            "promptLang": "tl",
+            "distractors": [
+              "market",
+              "near",
+              "mountain"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Nasa opisina si Tatay.",
+            "options": [
+              "Where are you?",
+              "Mom is at the market.",
+              "Dad is at the office."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Malayo",
+              "Tindahan",
+              "Bundok"
+            ],
+            "sentence": "___ ang bundok.",
+            "answerIndex": 0,
+            "translation": "The mountain is far."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "sea",
+            "answers": [
+              "dagat"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "malapit",
+              "ang",
+              "palengke"
+            ],
+            "prompt": "The market is near.",
+            "promptLang": "en",
+            "distractors": [
+              "tindahan",
+              "mataas",
+              "bundok"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}
