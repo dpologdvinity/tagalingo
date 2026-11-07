@@ -459,7 +459,6 @@ units:
               pos: noun,
               ex: ["Natutulog si Lolo.", "Grandpa is sleeping."],
               exAccept: ["Grandfather is sleeping."],
-              pic: 👴,
             }
           - {
               tl: anak,
@@ -755,7 +754,6 @@ units:
               note: "Capitalised, Hapon means Japan or Japanese.",
               ex: ["Mainit sa hapon.", "It's hot in the afternoon."],
               exAccept: ["It is hot in the afternoon."],
-              pic: 🌇,
             }
           - {
               tl: araw,

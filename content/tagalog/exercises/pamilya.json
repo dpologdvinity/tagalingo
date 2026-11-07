@@ -10,14 +10,14 @@
           "payload": {
             "labels": [
               "family",
-              "grandpa",
+              "grandma",
               "house",
               "child"
             ],
             "prompt": "bahay",
             "pictures": [
               "👨‍👩‍👧",
-              "👴",
+              "👵",
               "🏠",
               "👶"
             ],
@@ -31,9 +31,9 @@
           "payload": {
             "prompt": "nanay",
             "options": [
-              "grandma",
-              "grandpa",
               "older brother",
+              "child",
+              "house",
               "mom"
             ],
             "promptLang": "tl",
@@ -47,12 +47,12 @@
           "payload": {
             "audio": "kapatid",
             "options": [
-              "child",
               "grandpa",
               "mom",
-              "sibling"
+              "sibling",
+              "family"
             ],
-            "answerIndex": 3
+            "answerIndex": 2
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -86,12 +86,12 @@
           "type": "fill_blank",
           "payload": {
             "options": [
-              "Tatay",
-              "Ate",
-              "pamilya"
+              "Nanay",
+              "pamilya",
+              "anak"
             ],
             "sentence": "Malaki ang ___ ko.",
-            "answerIndex": 2,
+            "answerIndex": 1,
             "translation": "My family is big."
           },
           "source": "STUB",
@@ -109,9 +109,9 @@
             "prompt": "Mom is at home.",
             "promptLang": "en",
             "distractors": [
-              "nag-aaral",
-              "Ate",
-              "nagluluto"
+              "malaki",
+              "ang",
+              "pamilya"
             ]
           },
           "source": "STUB",
@@ -140,12 +140,12 @@
               }
             ],
             "options": [
-              "Malaki ang bahay.",
               "Oo, may kapatid ako.",
+              "Malaki ang bahay.",
               "Nagluluto si Tatay."
             ],
             "replyEn": "Yes, I have a sibling.",
-            "answerIndex": 1
+            "answerIndex": 0
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -181,19 +181,19 @@
           "type": "select_picture",
           "payload": {
             "labels": [
-              "grandpa",
               "grandma",
-              "house",
-              "family"
+              "family",
+              "child",
+              "house"
             ],
             "prompt": "lola",
             "pictures": [
-              "👴",
               "👵",
-              "🏠",
-              "👨‍👩‍👧"
+              "👨‍👩‍👧",
+              "👶",
+              "🏠"
             ],
-            "answerIndex": 1
+            "answerIndex": 0
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -203,13 +203,13 @@
           "payload": {
             "prompt": "ate",
             "options": [
-              "older brother",
-              "sibling",
+              "family",
               "older sister",
-              "family"
+              "child",
+              "grandma"
             ],
             "promptLang": "tl",
-            "answerIndex": 2
+            "answerIndex": 1
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -219,12 +219,12 @@
           "payload": {
             "audio": "lolo",
             "options": [
-              "family",
-              "sibling",
+              "dad",
               "grandpa",
-              "older sister"
+              "grandma",
+              "family"
             ],
-            "answerIndex": 2
+            "answerIndex": 1
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -258,12 +258,12 @@
           "type": "fill_blank",
           "payload": {
             "options": [
-              "anak",
-              "Lola",
-              "Tatay"
+              "Lolo",
+              "kapatid",
+              "Lola"
             ],
             "sentence": "Mahal ko si ___.",
-            "answerIndex": 1,
+            "answerIndex": 2,
             "translation": "I love Grandma."
           },
           "source": "STUB",
@@ -280,9 +280,9 @@
             "prompt": "Grandpa is sleeping.",
             "promptLang": "en",
             "distractors": [
-              "dalawa",
-              "ang",
-              "anak"
+              "may",
+              "kapatid",
+              "ka"
             ]
           },
           "source": "STUB",
@@ -358,9 +358,9 @@
             ],
             "promptLang": "tl",
             "distractors": [
-              "mom",
-              "at",
-              "home"
+              "they",
+              "have",
+              "two"
             ]
           },
           "source": "STUB",
@@ -381,8 +381,8 @@
             "prompt": "Dalawa ang anak nila.",
             "options": [
               "They have two children.",
-              "My family is big.",
-              "Do you have a sibling?"
+              "Do you have a sibling?",
+              "The house is big."
             ],
             "promptLang": "tl",
             "answerIndex": 0

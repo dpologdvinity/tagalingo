@@ -10,18 +10,18 @@
           "payload": {
             "labels": [
               "day",
-              "afternoon",
               "time",
-              "morning"
+              "morning",
+              "night"
             ],
             "prompt": "umaga",
             "pictures": [
               "☀️",
-              "🌇",
               "⏰",
-              "🌅"
+              "🌅",
+              "🌙"
             ],
-            "answerIndex": 3
+            "answerIndex": 2
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -31,13 +31,13 @@
           "payload": {
             "prompt": "ngayon",
             "options": [
-              "Sunday",
-              "Friday",
               "day",
-              "now"
+              "afternoon",
+              "now",
+              "Monday"
             ],
             "promptLang": "tl",
-            "answerIndex": 3
+            "answerIndex": 2
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -47,12 +47,12 @@
           "payload": {
             "audio": "kahapon",
             "options": [
-              "Friday",
-              "yesterday",
-              "afternoon",
-              "day"
+              "Monday",
+              "day",
+              "night",
+              "yesterday"
             ],
-            "answerIndex": 1
+            "answerIndex": 3
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -86,12 +86,12 @@
           "type": "fill_blank",
           "payload": {
             "options": [
-              "ngayon",
               "umaga",
+              "kahapon",
               "bukas"
             ],
             "sentence": "Maganda ang ___.",
-            "answerIndex": 1,
+            "answerIndex": 0,
             "translation": "The morning is beautiful."
           },
           "source": "STUB",
@@ -108,9 +108,9 @@
             "prompt": "I'm tired today.",
             "promptLang": "en",
             "distractors": [
-              "maganda",
-              "ang",
-              "umaga"
+              "anong",
+              "oras",
+              "na"
             ]
           },
           "source": "STUB",
@@ -140,12 +140,12 @@
               }
             ],
             "options": [
-              "Bukas ng umaga.",
               "Tahimik ang gabi.",
+              "Bukas ng umaga.",
               "Umulan kahapon."
             ],
             "replyEn": "Tomorrow morning.",
-            "answerIndex": 0
+            "answerIndex": 1
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -161,9 +161,9 @@
             "prompt": "Kita tayo bukas.",
             "promptLang": "tl",
             "distractors": [
-              "the",
-              "morning",
-              "is"
+              "we",
+              "go",
+              "to"
             ]
           },
           "source": "STUB",
@@ -201,18 +201,18 @@
           "payload": {
             "labels": [
               "night",
-              "afternoon",
-              "time",
-              "morning"
+              "morning",
+              "day",
+              "time"
             ],
-            "prompt": "hapon",
+            "prompt": "araw",
             "pictures": [
               "🌙",
-              "🌇",
-              "⏰",
-              "🌅"
+              "🌅",
+              "☀️",
+              "⏰"
             ],
-            "answerIndex": 1
+            "answerIndex": 2
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -220,15 +220,15 @@
         {
           "type": "select_translation",
           "payload": {
-            "prompt": "araw",
+            "prompt": "hapon",
             "options": [
-              "time",
+              "afternoon",
+              "Sunday",
               "day",
-              "night",
               "Friday"
             ],
             "promptLang": "tl",
-            "answerIndex": 1
+            "answerIndex": 0
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -238,12 +238,12 @@
           "payload": {
             "audio": "oras",
             "options": [
-              "Monday",
               "time",
-              "Friday",
-              "night"
+              "night",
+              "yesterday",
+              "tomorrow"
             ],
-            "answerIndex": 1
+            "answerIndex": 0
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -277,12 +277,12 @@
           "type": "fill_blank",
           "payload": {
             "options": [
-              "oras",
-              "kahapon",
-              "ngayon"
+              "bukas",
+              "ngayon",
+              "oras"
             ],
             "sentence": "Anong ___ na?",
-            "answerIndex": 0,
+            "answerIndex": 2,
             "translation": "What time is it?"
           },
           "source": "STUB",
@@ -301,9 +301,9 @@
             "prompt": "I have class on Monday.",
             "promptLang": "en",
             "distractors": [
-              "anong",
-              "oras",
-              "na"
+              "nagsisimba",
+              "kami",
+              "tuwing"
             ]
           },
           "source": "STUB",
@@ -332,12 +332,12 @@
               }
             ],
             "options": [
-              "Lunes ngayon.",
               "Mainit sa hapon.",
-              "Alas tres na."
+              "Alas tres na.",
+              "Lunes ngayon."
             ],
             "replyEn": "It's Monday today.",
-            "answerIndex": 0
+            "answerIndex": 2
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
@@ -369,9 +369,9 @@
             ],
             "promptLang": "tl",
             "distractors": [
-              "I",
-              "have",
-              "class"
+              "what",
+              "time",
+              "we"
             ]
           },
           "source": "STUB",
@@ -391,8 +391,8 @@
           "payload": {
             "prompt": "Nagsisimba kami tuwing Linggo.",
             "options": [
-              "See you tomorrow.",
               "The morning is beautiful.",
+              "See you tomorrow.",
               "We go to church every Sunday."
             ],
             "promptLang": "tl",
