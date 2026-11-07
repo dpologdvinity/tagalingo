@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
 import { Logo } from "./tala";
-import { PathIcon, PencilIcon, TrophyIcon, UserIcon } from "./icons";
+import { ChatIcon, PathIcon, PencilIcon, TrophyIcon, UserIcon } from "./icons";
 
 type Item = { href: Route; label: string; icon: typeof PathIcon };
 
@@ -12,6 +12,7 @@ function items(isReviewer: boolean): Item[] {
   const base: Item[] = [
     { href: "/learn", label: "Learn", icon: PathIcon },
     { href: "/leaderboard", label: "League", icon: TrophyIcon },
+    { href: "/chat", label: "Chat", icon: ChatIcon },
     { href: "/profile", label: "Profile", icon: UserIcon },
   ];
   return isReviewer ? [...base, { href: "/studio", label: "Studio", icon: PencilIcon }] : base;

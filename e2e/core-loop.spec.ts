@@ -154,3 +154,14 @@ test.describe("richer lessons", () => {
     await expect(page.getByRole("button", { name: /Play: salamat/ })).toBeVisible();
   });
 });
+
+test("Tala replies in Tagalog in the chat (offline tutor)", async ({ page }) => {
+  await signUpFreshLearner(page);
+  await page.getByRole("link", { name: "Chat" }).first().click();
+  await expect(page.getByRole("heading", { name: "Chat with Tala" })).toBeVisible();
+  await page.getByLabel("Message in Tagalog").fill("Ako si Marco.");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByText(/Ikinagagalak kitang makilala, Marco!/)).toBeVisible();
+  await page.getByRole("button", { name: "Show translation" }).last().click();
+  await expect(page.getByText(/Nice to meet you, Marco!/)).toBeVisible();
+});
