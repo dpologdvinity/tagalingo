@@ -44,8 +44,12 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
 2. The player calls `startLessonAction` → a `LessonAttempt` row (refused with 0 hearts).
 3. Each Check calls `answerAction` → `gradeAnswer` on the server, an `AttemptAnswer` row, and a
    heart lost on a wrong answer (match-pairs is exempt). At 0 hearts the attempt is `FAILED`.
-4. Wrong exercises are re-queued client-side; when the queue empties the player calls
-   `completeLessonAction`, which verifies every exercise has a correct answer, flips the
+4. `submitAnswer` and `completeAttempt` first lock the learner's `User` row
+   (`SELECT … FOR UPDATE`), so concurrent requests from two tabs can't lose a heart update or
+   double-award the first-time bonus.
+5. Wrong exercises are re-queued client-side; when the queue empties the player calls
+   `completeLessonAction`, which verifies every exercise that was live when the attempt started
+   has a correct answer, flips the
    attempt `IN_PROGRESS → COMPLETED` with a compare-and-swap (no double XP), and in one
    transaction awards XP, updates the streak, `DailyActivity` and `LessonProgress`.
 
@@ -76,6 +80,8 @@ content/tagalog/course.yaml ─► ExerciseGenerator ─► DRAFT rows ─► /s
 Auth.js v5, Credentials provider (bcrypt hashes), JWT sessions. `auth.config.ts` is DB-free and
 used by `proxy.ts` for a cheap redirect; pages and actions call `requireUser()` /
 `requireReviewer()`, which re-load the user from the database (a deleted user is signed out).
+Reviewer rights go through `canReview()`: the public demo account is never a reviewer in
+production unless `DEMO_CAN_REVIEW=true`.
 
 ## Technology choices
 

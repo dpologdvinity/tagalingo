@@ -52,15 +52,16 @@ leaderboard, and reviewer access to the Studio.
 Everything has a working local default, so no `.env` file is required for development. To
 override, create `.env` (it's git-ignored) with any of:
 
-| Variable               | Required in production | Default (dev only)                                          | Purpose                                  |
-| ---------------------- | ---------------------- | ----------------------------------------------------------- | ---------------------------------------- |
-| `DATABASE_URL`         | yes                    | `postgresql://tagalingo:tagalingo@localhost:5433/tagalingo` | Postgres connection string               |
-| `AUTH_SECRET`          | yes                    | a fixed dev secret (refused in production)                  | Signs session cookies. `npx auth secret` |
-| `AUTH_TRUST_HOST`      | behind a proxy         | `true` is set in code                                       | Auth.js host trust                       |
-| `ANTHROPIC_API_KEY`    | no                     | unset                                                       | Enables Claude for draft generation      |
-| `CONTENT_GENERATOR`    | no                     | `claude` if a key is set, else `stub`                       | Force `stub` or `claude`                 |
-| `ANTHROPIC_MODEL`      | no                     | `claude-sonnet-5-5`                                         | Model used for drafts                    |
-| `HEART_REFILL_MINUTES` | no                     | `30`                                                        | Minutes per heart                        |
+| Variable               | Required in production | Default (dev only)                                          | Purpose                                                                                  |
+| ---------------------- | ---------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | yes                    | `postgresql://tagalingo:tagalingo@localhost:5433/tagalingo` | Postgres connection string                                                               |
+| `AUTH_SECRET`          | yes                    | a fixed dev secret (refused in production)                  | Signs session cookies. `npx auth secret`                                                 |
+| `AUTH_TRUST_HOST`      | behind a proxy         | `true` is set in code                                       | Auth.js host trust                                                                       |
+| `ANTHROPIC_API_KEY`    | no                     | unset                                                       | Enables Claude for draft generation                                                      |
+| `CONTENT_GENERATOR`    | no                     | `claude` if a key is set, else `stub`                       | Force `stub` or `claude`                                                                 |
+| `ANTHROPIC_MODEL`      | no                     | `claude-sonnet-5-5`                                         | Model used for drafts                                                                    |
+| `HEART_REFILL_MINUTES` | no                     | `30`                                                        | Minutes per heart                                                                        |
+| `DEMO_CAN_REVIEW`      | no                     | demo is a reviewer outside production                       | Set `true` to let the public demo account use the Studio in production (not recommended) |
 
 ## Writing lesson content
 
