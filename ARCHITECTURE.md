@@ -53,6 +53,24 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
    attempt `IN_PROGRESS → COMPLETED` with a compare-and-swap (no double XP), and in one
    transaction awards XP, updates the streak, `DailyActivity` and `LessonProgress`.
 
+## Practice, audio and chat (v1.1)
+
+- **Snapshots:** every `LessonAttempt` stores `exerciseIds`, exactly what was served, so only
+  those can be answered and completion requires each of them. `kind` is `LESSON` or `PRACTICE`;
+  practice attempts are scoped to a skill or a unit, never cost hearts, give 5–10 XP and win back
+  a heart.
+- **Audio:** `SpeechProvider` (`src/lib/speech/provider.ts`) uses Google Cloud TTS when
+  `GOOGLE_TTS_API_KEY` is set and is served through `/api/tts` (signed-in only, ≤200 characters,
+  cached in memory). Without it, the client falls back to a browser Filipino voice, then to
+  showing the text.
+- **Speech recognition:** the browser's Web Speech API (`fil-PH`). Transcripts are graded on the
+  server by normalised similarity (≥ 0.75). Skipping is always allowed and costs nothing.
+- **Chat:** `ChatTutor` (`src/lib/chat/tutor.ts`): `ClaudeTutor` (forced tool call → reply,
+  translation, optional correction and hint) or the offline `StubTutor`. The conversation stays in
+  the browser; the server action only sees the last 12 turns.
+- **Content:** `course.yaml` also holds emoji pictures, hand-written dialogues (with wrong
+  replies) and tips. They're synced into `Word.pic`, `Skill.dialogues` and `Skill.tips`.
+
 ## Time-based rules
 
 - **Hearts** are stored as `(hearts, heartsUpdatedAt)` and resolved lazily on read

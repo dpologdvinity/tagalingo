@@ -153,7 +153,7 @@ The layout has a left sidebar on desktop and a bottom tab bar on mobile.
 - Offline/PWA support and native apps.
 - An admin UI for editing course structure; that's done in `course.yaml`.
 
-## Version 1.1: richer lessons (in progress)
+## Version 1.1: richer lessons (done)
 
 **Request:** match the kinds of lesson activities that apps like Ling and Rosetta Stone offer. Only
 the activity types are matched. All sentences, dialogues, tips and pictures are written from

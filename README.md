@@ -23,6 +23,22 @@ the built-in content Studio before learners ever see it.
 - **Content Studio** (`/studio`, reviewers only): generate drafts, preview each exercise as a
   learner sees it with lint warnings, then edit, approve or reject.
 
+### Added in 1.1: richer lessons
+
+- **Nine exercise types:** the five above plus **listening** (hear it, pick the meaning),
+  **pictures** (pick the emoji that matches the word), **speaking** (graded by speech
+  recognition, with a no-penalty "Can't speak now") and **dialogues** (choose the next line of
+  a conversation).
+- **Audio everywhere:** speaker buttons on Tagalog text. Google Cloud TTS is used if
+  `GOOGLE_TTS_API_KEY` is set; otherwise the browser's own Filipino voice, or the text is shown.
+- **Practice:** review any finished skill, or a whole unit. It works with 0 hearts, never costs
+  hearts, and wins one back.
+- **Skill pages:** original grammar tips, flip-card flashcards with audio, and the skill's
+  conversations to read.
+- **"Sounds of Tagalog"** pronunciation guide, linked from the first unit.
+- **Chat with Tala:** a beginner conversation partner, using Claude with a key or an offline
+  scripted tutor without one.
+
 See [PLAN.md](PLAN.md) for the data model, screens and what's deliberately left out, and
 [ARCHITECTURE.md](ARCHITECTURE.md) for how it fits together.
 
@@ -60,6 +76,8 @@ override, create `.env` (it's git-ignored) with any of:
 | `ANTHROPIC_API_KEY`    | no                     | unset                                                       | Enables Claude for draft generation                                                      |
 | `CONTENT_GENERATOR`    | no                     | `claude` if a key is set, else `stub`                       | Force `stub` or `claude`                                                                 |
 | `ANTHROPIC_MODEL`      | no                     | `claude-sonnet-5-5`                                         | Model used for drafts                                                                    |
+| `GOOGLE_TTS_API_KEY`   | no                     | unset (browser voices)                                      | Server-side Tagalog audio via Google Cloud TTS                                           |
+| `CHAT_TUTOR`           | no                     | `claude` if a key is set, else `stub`                       | Force the Chat with Tala tutor                                                           |
 | `HEART_REFILL_MINUTES` | no                     | `30`                                                        | Minutes per heart                                                                        |
 | `DEMO_CAN_REVIEW`      | no                     | demo is a reviewer outside production                       | Set `true` to let the public demo account use the Studio in production (not recommended) |
 
@@ -114,6 +132,7 @@ and pull request to `master`. Pushing a `v*` tag drafts a GitHub release.
 
 ## Content status
 
-The shipped exercises for Units 1–2 were generated from the word list and reviewed by Claude
-during the initial build; **they still need a review by a native Tagalog speaker**. Unit 3 is
-left as drafts on purpose so the Studio review queue has real work in it.
+The shipped exercises for Units 1–3 (249 of them), plus the dialogues, tips and pronunciation
+guide, were written or generated during the build and reviewed by Claude only. **They still need
+a review by a native Tagalog speaker.** Unit 4 (Sa Palengke) is left as drafts on purpose so the
+Studio review queue has real work in it. All lesson content is original to Tagalingo.
