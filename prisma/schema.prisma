@@ -1,0 +1,237 @@
+// Tagalingo database schema.
+//
+// Content hierarchy: Course → Unit → Skill → Lesson → Exercise. Words hang off Skills
+// and are the raw material the content generators turn into Exercises.
+// Learner state: User (hearts, streak, goal), LessonAttempt/AttemptAnswer (one play-through),
+// LessonProgress (unlocks), XpEvent (leaderboard + daily goal), DailyActivity (streak calendar).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String
+  passwordHash    String
+  isReviewer      Boolean  @default(false)
+  /// IANA timezone used to decide what "today" means for streaks and daily goals.
+  timezone        String   @default("UTC")
+  dailyGoalXp     Int      @default(20)
+  totalXp         Int      @default(0)
+  /// Hearts as of `heartsUpdatedAt`; the live value is computed lazily (see lib/game/hearts).
+  hearts          Int      @default(5)
+  heartsUpdatedAt DateTime @default(now())
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  /// Last calendar day (YYYY-MM-DD, user's timezone) on which a lesson was completed.
+  lastStreakDay   String?
+  /// Mascot colour used for the generated avatar.
+  avatarHue       Int      @default(180)
+  createdAt       DateTime @default(now())
+
+  attempts       LessonAttempt[]
+  progress       LessonProgress[]
+  xpEvents       XpEvent[]
+  dailyActivity  DailyActivity[]
+  reviewed       Exercise[]       @relation("ReviewedBy")
+  generationRuns GenerationRun[]
+}
+
+model Course {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  fromLang String
+  toLang   String
+  units    Unit[]
+}
+
+model Unit {
+  id       String  @id @default(cuid())
+  courseId String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order    Int
+  slug     String  @unique
+  title    String
+  subtitle String
+  /// Tailwind-friendly hex colour for this unit's banner and path nodes.
+  color    String
+  skills   Skill[]
+
+  @@unique([courseId, order])
+}
+
+model Skill {
+  id             String          @id @default(cuid())
+  unitId         String
+  unit           Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  order          Int
+  slug           String          @unique
+  title          String
+  emoji          String
+  description    String
+  lessons        Lesson[]
+  words          Word[]
+  generationRuns GenerationRun[]
+
+  @@unique([unitId, order])
+}
+
+model Lesson {
+  id        String           @id @default(cuid())
+  skillId   String
+  skill     Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  order     Int
+  title     String
+  exercises Exercise[]
+  attempts  LessonAttempt[]
+  progress  LessonProgress[]
+
+  @@unique([skillId, order])
+}
+
+model Word {
+  id           String  @id @default(cuid())
+  skillId      String
+  skill        Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tagalog      String
+  english      String
+  partOfSpeech String
+  notes        String?
+  exampleTl    String?
+  exampleEn    String?
+
+  @@unique([skillId, tagalog])
+}
+
+enum ExerciseType {
+  select_translation
+  word_bank
+  match_pairs
+  fill_blank
+  type_translation
+}
+
+enum ExerciseStatus {
+  DRAFT
+  APPROVED
+  REJECTED
+}
+
+enum ExerciseSource {
+  HUMAN
+  CLAUDE
+  STUB
+}
+
+model Exercise {
+  id              String         @id @default(cuid())
+  lessonId        String
+  lesson          Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  order           Int
+  type            ExerciseType
+  /// Type-specific JSON, validated by `exercisePayloadSchema` in lib/content/schema.ts.
+  payload         Json
+  status          ExerciseStatus @default(DRAFT)
+  source          ExerciseSource
+  generationRunId String?
+  generationRun   GenerationRun? @relation(fields: [generationRunId], references: [id], onDelete: SetNull)
+  reviewedById    String?
+  reviewedBy      User?          @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  reviewNote      String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  answers         AttemptAnswer[]
+
+  @@index([lessonId, status])
+}
+
+model GenerationRun {
+  id            String     @id @default(cuid())
+  skillId       String
+  skill         Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  provider      String
+  model         String
+  requestedById String?
+  requestedBy   User?      @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  exerciseCount Int        @default(0)
+  error         String?
+  createdAt     DateTime   @default(now())
+  exercises     Exercise[]
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model LessonAttempt {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      AttemptStatus   @default(IN_PROGRESS)
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  mistakes    Int             @default(0)
+  xpAwarded   Int             @default(0)
+  answers     AttemptAnswer[]
+
+  @@index([userId, startedAt])
+}
+
+model AttemptAnswer {
+  id         String        @id @default(cuid())
+  attemptId  String
+  attempt    LessonAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  correct    Boolean
+  answer     Json
+  createdAt  DateTime      @default(now())
+
+  @@index([attemptId])
+}
+
+model LessonProgress {
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId         String
+  lesson           Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  firstCompletedAt DateTime @default(now())
+  timesCompleted   Int      @default(1)
+
+  @@id([userId, lessonId])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt, userId])
+  @@index([userId, createdAt])
+}
+
+model DailyActivity {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// YYYY-MM-DD in the user's timezone at the time of activity.
+  day     String
+  xp      Int    @default(0)
+  lessons Int    @default(0)
+
+  @@id([userId, day])
+}

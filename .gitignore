@@ -40,3 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+
+# prisma client (generated)
+/src/generated/
+# playwright
+/test-results/
+/playwright-report/
+/coverage/
