@@ -17,6 +17,10 @@ export const EXERCISE_TYPES = [
   "match_pairs",
   "fill_blank",
   "type_translation",
+  "listen_select",
+  "select_picture",
+  "speak",
+  "dialogue",
 ] as const;
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 
@@ -79,12 +83,68 @@ const typeTranslation = z.object({
   answers: z.array(text).min(1),
 });
 
+/** Hear a Tagalog phrase (text-to-speech), then pick its meaning. */
+const listenSelect = z
+  .object({
+    audio: text,
+    options: z.array(text).min(2).max(4),
+    answerIndex: z.number().int().min(0),
+  })
+  .refine((p) => p.answerIndex < p.options.length, {
+    message: "answerIndex must point at one of the options",
+    path: ["answerIndex"],
+  });
+
+/** See a Tagalog word, pick the matching picture (emoji). `labels` are the English names, for feedback. */
+const selectPicture = z
+  .object({
+    prompt: text,
+    pictures: z.array(text).min(2).max(4),
+    labels: z.array(text).min(2).max(4),
+    answerIndex: z.number().int().min(0),
+  })
+  .refine((p) => p.labels.length === p.pictures.length, {
+    message: "labels must have one entry per picture",
+    path: ["labels"],
+  })
+  .refine((p) => p.answerIndex < p.pictures.length, {
+    message: "answerIndex must point at one of the pictures",
+    path: ["answerIndex"],
+  });
+
+/** Say a Tagalog sentence aloud; graded on the speech-recognition transcript. */
+const speak = z.object({
+  text: text,
+  translation: text,
+});
+
+/** Read a short conversation and choose the next line. */
+const dialogue = z
+  .object({
+    lines: z
+      .array(z.object({ speaker: z.enum(["A", "B"]), tl: text, en: text }))
+      .min(1)
+      .max(6),
+    options: z.array(text).min(2).max(4),
+    answerIndex: z.number().int().min(0),
+    /** English meaning of the correct reply, shown in feedback. */
+    replyEn: text,
+  })
+  .refine((p) => p.answerIndex < p.options.length, {
+    message: "answerIndex must point at one of the options",
+    path: ["answerIndex"],
+  });
+
 export const payloadSchemas = {
   select_translation: selectTranslation,
   word_bank: wordBank,
   match_pairs: matchPairs,
   fill_blank: fillBlank,
   type_translation: typeTranslation,
+  listen_select: listenSelect,
+  select_picture: selectPicture,
+  speak,
+  dialogue,
 } as const;
 
 export type PayloadFor<T extends ExerciseType> = z.infer<(typeof payloadSchemas)[T]>;
@@ -140,7 +200,9 @@ export function lintExercise(ex: ParsedExercise): string[] {
   const warnings: string[] = [];
   switch (ex.type) {
     case "select_translation":
-    case "fill_blank": {
+    case "fill_blank":
+    case "listen_select":
+    case "dialogue": {
       const d = duplicates(ex.payload.options);
       if (d.length) warnings.push(`Duplicate options: ${d.join(", ")}`);
       if (ex.payload.options.length < 3) warnings.push("Only two options — easy to guess.");
@@ -161,6 +223,18 @@ export function lintExercise(ex: ParsedExercise): string[] {
     case "type_translation": {
       const d = duplicates(ex.payload.answers);
       if (d.length) warnings.push(`Duplicate accepted answers: ${d.join(", ")}`);
+      break;
+    }
+    case "select_picture": {
+      const d = duplicates(ex.payload.pictures);
+      if (d.length) warnings.push(`Duplicate pictures: ${d.join(" ")}`);
+      if (duplicates(ex.payload.labels).length)
+        warnings.push("Duplicate picture labels: two pictures mean the same thing.");
+      break;
+    }
+    case "speak": {
+      if (ex.payload.text.split(/\s+/).length > 8)
+        warnings.push("Long sentence: speech recognition struggles past ~8 words.");
       break;
     }
   }

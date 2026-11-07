@@ -12,6 +12,8 @@ export type GradeResult = {
   correctAnswer: string;
   /** True when a typed answer was accepted despite a one-letter typo. */
   typo?: boolean;
+  /** True when a speaking exercise was skipped ("can't speak now"): counts as done, no penalty. */
+  skipped?: boolean;
 };
 
 /**
@@ -45,6 +47,17 @@ export function levenshtein(a: string, b: string): number {
   }
   return row[b.length];
 }
+
+/** 0–1 similarity of two normalised strings (1 = identical). */
+export function similarity(a: string, b: string): number {
+  const x = normalizeAnswer(a);
+  const y = normalizeAnswer(b);
+  const longest = Math.max(x.length, y.length);
+  return longest === 0 ? 1 : 1 - levenshtein(x, y) / longest;
+}
+
+/** Speech recognition mishears small things; this much similarity counts as saying it right. */
+export const SPEECH_MATCH_THRESHOLD = 0.75;
 
 /** Answers shorter than this must be exact (after normalisation): "oo" vs "o" is not a typo. */
 const TYPO_MIN_LENGTH = 5;
@@ -84,6 +97,26 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
     case "match_pairs": {
       const correctAnswer = ex.payload.pairs.map((p) => `${p.tl} = ${p.en}`).join(", ");
       return { correct: isRecord(answer) && answer.completed === true, correctAnswer };
+    }
+    case "listen_select":
+      return {
+        correct: choiceOf(answer) === ex.payload.answerIndex,
+        correctAnswer: `${ex.payload.audio} (${ex.payload.options[ex.payload.answerIndex]})`,
+      };
+    case "select_picture": {
+      const i = ex.payload.answerIndex;
+      return { correct: choiceOf(answer) === i, correctAnswer: `${ex.payload.pictures[i]} ${ex.payload.labels[i]}` };
+    }
+    case "dialogue":
+      return {
+        correct: choiceOf(answer) === ex.payload.answerIndex,
+        correctAnswer: `${ex.payload.options[ex.payload.answerIndex]} (${ex.payload.replyEn})`,
+      };
+    case "speak": {
+      const correctAnswer = ex.payload.text;
+      if (isRecord(answer) && answer.skipped === true) return { correct: true, skipped: true, correctAnswer };
+      if (!isRecord(answer) || typeof answer.transcript !== "string") return { correct: false, correctAnswer };
+      return { correct: similarity(answer.transcript, ex.payload.text) >= SPEECH_MATCH_THRESHOLD, correctAnswer };
     }
     case "type_translation": {
       const correctAnswer = ex.payload.answers[0];

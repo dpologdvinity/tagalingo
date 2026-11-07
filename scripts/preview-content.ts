@@ -39,6 +39,31 @@ const only = process.argv.slice(2);
             case "match_pairs":
               console.log("match ", e.payload.pairs.map((x) => `${x.tl}=${x.en}`).join(", "));
               break;
+            case "listen_select":
+              console.log("listen", `🔊 ${e.payload.audio}`, "|", mark(e.payload.options, e.payload.answerIndex));
+              break;
+            case "select_picture":
+              console.log(
+                "pictur",
+                e.payload.prompt,
+                "|",
+                mark(
+                  e.payload.pictures.map((p, j) => `${p} ${e.payload.labels[j]}`),
+                  e.payload.answerIndex,
+                ),
+              );
+              break;
+            case "speak":
+              console.log("speak ", `🎤 ${e.payload.text}`, "=", e.payload.translation);
+              break;
+            case "dialogue":
+              console.log(
+                "dialog",
+                e.payload.lines.map((l) => `${l.speaker}: ${l.tl}`).join(" / "),
+                "→",
+                mark(e.payload.options, e.payload.answerIndex),
+              );
+              break;
             case "type_translation":
               console.log("type  ", e.payload.prompt, "→", e.payload.answers.join(" | "));
               break;

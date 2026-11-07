@@ -53,16 +53,17 @@ model Course {
 }
 
 model Unit {
-  id       String  @id @default(cuid())
+  id       String          @id @default(cuid())
   courseId String
-  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course   Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
   order    Int
-  slug     String  @unique
+  slug     String          @unique
   title    String
   subtitle String
   /// Tailwind-friendly hex colour for this unit's banner and path nodes.
   color    String
   skills   Skill[]
+  attempts LessonAttempt[]
 
   @@unique([courseId, order])
 }
@@ -79,6 +80,7 @@ model Skill {
   lessons        Lesson[]
   words          Word[]
   generationRuns GenerationRun[]
+  attempts       LessonAttempt[]
 
   @@unique([unitId, order])
 }
@@ -116,6 +118,10 @@ enum ExerciseType {
   match_pairs
   fill_blank
   type_translation
+  listen_select
+  select_picture
+  speak
+  dialogue
 }
 
 enum ExerciseStatus {
@@ -131,23 +137,23 @@ enum ExerciseSource {
 }
 
 model Exercise {
-  id              String         @id @default(cuid())
+  id              String          @id @default(cuid())
   lessonId        String
-  lesson          Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson          Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   order           Int
   type            ExerciseType
   /// Type-specific JSON, validated by `exercisePayloadSchema` in lib/content/schema.ts.
   payload         Json
-  status          ExerciseStatus @default(DRAFT)
+  status          ExerciseStatus  @default(DRAFT)
   source          ExerciseSource
   generationRunId String?
-  generationRun   GenerationRun? @relation(fields: [generationRunId], references: [id], onDelete: SetNull)
+  generationRun   GenerationRun?  @relation(fields: [generationRunId], references: [id], onDelete: SetNull)
   reviewedById    String?
-  reviewedBy      User?          @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy      User?           @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt      DateTime?
   reviewNote      String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   answers         AttemptAnswer[]
 
   @@index([lessonId, status])
@@ -167,6 +173,11 @@ model GenerationRun {
   exercises     Exercise[]
 }
 
+enum AttemptKind {
+  LESSON
+  PRACTICE
+}
+
 enum AttemptStatus {
   IN_PROGRESS
   COMPLETED
@@ -177,8 +188,17 @@ model LessonAttempt {
   id          String          @id @default(cuid())
   userId      String
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lessonId    String
-  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  kind        AttemptKind     @default(LESSON)
+  /// Set for LESSON attempts.
+  lessonId    String?
+  lesson      Lesson?         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  /// Set for PRACTICE attempts scoped to one skill or a whole unit.
+  skillId     String?
+  skill       Skill?          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  unitId      String?
+  unit        Unit?           @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  /// Snapshot of the exercises served, in order. Completion requires a correct answer for each.
+  exerciseIds String[]        @default([])
   status      AttemptStatus   @default(IN_PROGRESS)
   startedAt   DateTime        @default(now())
   completedAt DateTime?

@@ -12,13 +12,48 @@ const allRequests = course.units.flatMap((u) => u.skills.flatMap((s) => s.lesson
 describe("StubGenerator", () => {
   const stub = new StubGenerator();
 
-  it("produces a valid, mixed lesson of 8–12 exercises for every lesson in the course", async () => {
+  it("produces a valid, mixed lesson of 8–14 exercises for every lesson in the course", async () => {
     for (const req of allRequests) {
       const { exercises } = await stub.generate(req);
       expect(exercises.length, req.lesson.title).toBeGreaterThanOrEqual(8);
-      expect(exercises.length, req.lesson.title).toBeLessThanOrEqual(12);
+      expect(exercises.length, req.lesson.title).toBeLessThanOrEqual(14);
       for (const ex of exercises) expect(() => parseExercise(ex.type, ex.payload)).not.toThrow();
       expect(new Set(exercises.map((e) => e.type)).size, req.lesson.title).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it("adds listening and speaking practice to every lesson", async () => {
+    for (const req of allRequests) {
+      const types = new Set((await stub.generate(req)).exercises.map((e) => e.type));
+      expect(types.has("listen_select"), req.lesson.title).toBe(true);
+      expect(types.has("speak"), req.lesson.title).toBe(true);
+    }
+  });
+
+  it("adds a picture exercise when a lesson word has a picture", async () => {
+    for (const req of allRequests) {
+      if (!req.words.some((w) => w.pic)) continue;
+      const pics = (await stub.generate(req)).exercises.filter((e) => e.type === "select_picture");
+      expect(pics.length, req.lesson.title).toBe(1);
+      const [ex] = pics;
+      if (ex.type !== "select_picture") continue;
+      expect(new Set(ex.payload.pictures).size).toBe(ex.payload.pictures.length);
+      const answerWord = req.allWords.find((w) => w.tl === ex.payload.prompt)!;
+      expect(ex.payload.pictures[ex.payload.answerIndex]).toBe(answerWord.pic);
+    }
+  });
+
+  it("turns each lesson's dialogue into a pick-the-reply exercise with the authored wrong replies", async () => {
+    for (const req of allRequests) {
+      for (const d of req.dialogues) {
+        const ex = (await stub.generate(req)).exercises.find((e) => e.type === "dialogue");
+        expect(ex, req.lesson.title).toBeDefined();
+        if (ex?.type !== "dialogue") continue;
+        const reply = d.lines[d.lines.length - 1];
+        expect(ex.payload.options[ex.payload.answerIndex]).toBe(reply[1]);
+        expect([...ex.payload.options].sort()).toEqual([reply[1], ...d.wrong].sort());
+        expect(ex.payload.lines).toHaveLength(d.lines.length - 1);
+      }
     }
   });
 

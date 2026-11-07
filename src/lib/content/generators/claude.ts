@@ -42,14 +42,19 @@ Rules:
 - fill_blank sentences contain exactly one "___", and the wrong options should be clearly ungrammatical or wrong in context.
 - word_bank "answer" is the sentence split into tiles without punctuation. "distractors" are 2–3 plausible tiles that are NOT part of any correct answer.
 - match_pairs uses 4 pairs whose meanings do not overlap.
+- listen_select: "audio" is a Tagalog word or short sentence that will be spoken aloud; the options are English meanings.
+- select_picture: only for words that have a picture listed below; use those exact emoji as "pictures", with their English words as "labels".
+- speak: a short Tagalog sentence (8 words or fewer) for the learner to say aloud, with its English "translation".
+- dialogue: if a DIALOGUE is given below, use its lines as context and its final line as the correct option. Use the listed wrong replies as the other options.
 - Use "promptLang" to say which language the prompt is written in.
-- Produce 8–10 exercises. Use every exercise type at least once, order them from easier (recognition) to harder (production), and make sure every new word appears at least once.`;
+- Produce 10–13 exercises. Use every exercise type at least once, order them from easier (recognition) to harder (production), and make sure every new word appears at least once.`;
 
 function describeWord(w: CourseWord): string {
   const extras = [
     w.accept.length ? `also: ${w.accept.join(", ")}` : null,
     w.note ? `note: ${w.note}` : null,
     `example: "${w.ex[0]}" = "${w.ex[1]}"`,
+    w.pic ? `picture: ${w.pic}` : null,
   ].filter(Boolean);
   return `- ${w.tl} (${w.pos}) = ${w.en}; ${extras.join("; ")}`;
 }
@@ -64,6 +69,13 @@ export function buildUserPrompt(req: GenerationRequest): string {
     "",
     req.reviewWords.length ? "REVIEW words:" : "REVIEW words: (none — this is the first lesson)",
     ...req.reviewWords.map(describeWord),
+    "",
+    ...req.dialogues.flatMap((d, i) => [
+      "",
+      `DIALOGUE ${i + 1}:`,
+      ...d.lines.map(([speaker, tl, en]) => `${speaker}: ${tl} (${en})`),
+      `Wrong replies: ${d.wrong.join(" | ")}`,
+    ]),
     "",
     `Call ${TOOL_NAME} with the exercises.`,
   ].join("\n");

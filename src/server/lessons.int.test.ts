@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { parseExercise, type ExerciseType, type ParsedExercise } from "@/lib/content/schema";
 import type { User } from "@/generated/prisma/client";
-import { completeAttempt, getLessonForPlay, startAttempt, submitAnswer } from "./lessons";
+import { completeAttempt, getLessonInfo, startAttempt, startPractice, submitAnswer } from "./lessons";
 import { getPathForUser } from "./course";
 import { getWeeklyLeaderboard } from "./leaderboard";
 
@@ -11,7 +11,12 @@ function correctAnswer(ex: ParsedExercise): unknown {
   switch (ex.type) {
     case "select_translation":
     case "fill_blank":
+    case "listen_select":
+    case "select_picture":
+    case "dialogue":
       return { choice: ex.payload.answerIndex };
+    case "speak":
+      return { transcript: ex.payload.text };
     case "word_bank":
       return { tokens: ex.payload.answer };
     case "match_pairs":
@@ -22,7 +27,13 @@ function correctAnswer(ex: ParsedExercise): unknown {
 }
 
 const wrongAnswer = (ex: ParsedExercise): unknown =>
-  ex.type === "match_pairs" ? {} : ex.type === "type_translation" ? { text: "zzz" } : { choice: -1, tokens: ["zzz"] };
+  ex.type === "match_pairs"
+    ? {}
+    : ex.type === "type_translation"
+      ? { text: "zzz" }
+      : ex.type === "speak"
+        ? { transcript: "zzz" }
+        : { choice: -1, tokens: ["zzz"] };
 
 async function lessonExercises(lessonId: string) {
   const rows = await db.exercise.findMany({ where: { lessonId, status: "APPROVED" }, orderBy: { order: "asc" } });
@@ -64,15 +75,15 @@ async function playPerfect(lessonId: string, u: User = user) {
 describe("lesson loop", () => {
   it("only lets a new learner start the very first lesson", async () => {
     const [first, second] = await firstLessons();
-    await expect(getLessonForPlay(user.id, first.id)).resolves.toMatchObject({ id: first.id });
+    await expect(getLessonInfo(user.id, first.id)).resolves.toMatchObject({ id: first.id });
     await expect(startAttempt(user, second.id)).rejects.toMatchObject({ code: "locked" });
   });
 
-  it("serves exercises without answers", async () => {
+  it("serves a full lesson of exercises without answers", async () => {
     const [first] = await firstLessons();
-    const lesson = await getLessonForPlay(user.id, first.id);
-    expect(lesson.exercises.length).toBeGreaterThanOrEqual(8);
-    expect(JSON.stringify(lesson)).not.toMatch(/answerIndex|"answers"|distractors/);
+    const { exercises } = await startAttempt(user, first.id);
+    expect(exercises.length).toBeGreaterThanOrEqual(8);
+    expect(JSON.stringify(exercises)).not.toMatch(/answerIndex|"answers"|distractors/);
   });
 
   it("awards XP, starts a streak and unlocks the next lesson after a perfect run", async () => {
@@ -205,6 +216,81 @@ describe("concurrency and content changes", () => {
     } finally {
       await db.exercise.delete({ where: { id: added.id } });
     }
+  });
+});
+
+describe("exercise snapshots", () => {
+  it("returns exactly the exercises it will require, without answers", async () => {
+    const [first] = await firstLessons();
+    const started = await startAttempt(user, first.id);
+    expect(started.exercises.map((e) => e.id)).toEqual((await lessonExercises(first.id)).map((e) => e.id));
+    expect(JSON.stringify(started.exercises)).not.toMatch(/answerIndex|"answers"|distractors/);
+  });
+
+  it("rejects answers for exercises that weren't served in this attempt", async () => {
+    const [first, second] = await firstLessons();
+    const { attemptId } = await startAttempt(user, first.id);
+    const [other] = await lessonExercises(second.id);
+    await expect(submitAnswer(user.id, attemptId, other.id, correctAnswer(other.ex))).rejects.toMatchObject({
+      code: "not_found",
+    });
+  });
+});
+
+describe("practice", () => {
+  async function skillOf(lessonId: string) {
+    return (await db.lesson.findUniqueOrThrow({ where: { id: lessonId }, include: { skill: true } })).skill;
+  }
+
+  it("needs at least one finished lesson in the skill", async () => {
+    const [first] = await firstLessons();
+    const skill = await skillOf(first.id);
+    await expect(startPractice(user, { skillId: skill.id })).rejects.toMatchObject({ code: "locked" });
+  });
+
+  it("draws up to 10 exercises from finished lessons only", async () => {
+    const [first, second] = await firstLessons();
+    await playPerfect(first.id);
+    const skill = await skillOf(first.id);
+    const { exercises } = await startPractice(user, { skillId: skill.id });
+    expect(exercises.length).toBeGreaterThan(0);
+    expect(exercises.length).toBeLessThanOrEqual(10);
+    const allowed = new Set((await lessonExercises(first.id)).map((e) => e.id));
+    const secondIds = new Set((await lessonExercises(second.id)).map((e) => e.id));
+    for (const e of exercises) {
+      expect(allowed.has(e.id)).toBe(true);
+      expect(secondIds.has(e.id)).toBe(false);
+    }
+  });
+
+  it("works with no hearts, never costs hearts, and wins one back", async () => {
+    const [first] = await firstLessons();
+    await playPerfect(first.id);
+    await db.user.update({ where: { id: user.id }, data: { hearts: 0, heartsUpdatedAt: new Date() } });
+    const drained = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const { attemptId, exercises } = await startPractice(drained, { skillId: (await skillOf(first.id)).id });
+
+    const rows = await db.exercise.findMany({ where: { id: { in: exercises.map((e) => e.id) } } });
+    const byId = new Map(rows.map((r) => [r.id, parseExercise(r.type as ExerciseType, r.payload)]));
+    const firstGraded = exercises.find((e) => e.type !== "match_pairs" && e.type !== "speak")!;
+    const miss = await submitAnswer(user.id, attemptId, firstGraded.id, wrongAnswer(byId.get(firstGraded.id)!));
+    expect(miss).toMatchObject({ correct: false, hearts: 0, outOfHearts: false });
+
+    for (const e of exercises) await submitAnswer(user.id, attemptId, e.id, correctAnswer(byId.get(e.id)!));
+    const result = await completeAttempt(user.id, attemptId);
+    expect(result.xp.total).toBe(5); // practice base, no perfect bonus after a miss
+    expect(result.heartsRestored).toBe(1);
+    expect((await db.user.findUniqueOrThrow({ where: { id: user.id } })).hearts).toBe(1);
+  });
+
+  it("can review a whole unit", async () => {
+    const [first, second, third] = await firstLessons();
+    await playPerfect(first.id);
+    await playPerfect(second.id);
+    await playPerfect(third.id);
+    const unitId = (await db.skill.findUniqueOrThrow({ where: { id: (await skillOf(third.id)).id } })).unitId;
+    const { exercises } = await startPractice(user, { unitId });
+    expect(exercises.length).toBe(10);
   });
 });
 

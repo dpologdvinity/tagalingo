@@ -16,7 +16,11 @@ export type ClientExercise =
   | { id: string; type: "fill_blank"; sentence: string; translation: string; options: string[] }
   | { id: string; type: "word_bank"; prompt: string; promptLang: Lang; tiles: string[] }
   | { id: string; type: "match_pairs"; pairs: { tl: string; en: string }[] }
-  | { id: string; type: "type_translation"; prompt: string; promptLang: Lang };
+  | { id: string; type: "type_translation"; prompt: string; promptLang: Lang }
+  | { id: string; type: "listen_select"; audio: string; options: string[] }
+  | { id: string; type: "select_picture"; prompt: string; pictures: string[] }
+  | { id: string; type: "speak"; text: string; translation: string }
+  | { id: string; type: "dialogue"; lines: { speaker: "A" | "B"; tl: string; en: string }[]; options: string[] };
 
 export function toClientExercise(id: string, ex: ParsedExercise): ClientExercise {
   switch (ex.type) {
@@ -40,5 +44,13 @@ export function toClientExercise(id: string, ex: ParsedExercise): ClientExercise
       const { prompt, promptLang } = ex.payload;
       return { id, type: ex.type, prompt, promptLang };
     }
+    case "listen_select":
+      return { id, type: ex.type, audio: ex.payload.audio, options: ex.payload.options };
+    case "select_picture":
+      return { id, type: ex.type, prompt: ex.payload.prompt, pictures: ex.payload.pictures };
+    case "speak":
+      return { id, type: ex.type, text: ex.payload.text, translation: ex.payload.translation };
+    case "dialogue":
+      return { id, type: ex.type, lines: ex.payload.lines, options: ex.payload.options };
   }
 }

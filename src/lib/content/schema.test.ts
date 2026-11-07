@@ -77,3 +77,56 @@ describe("lintExercise", () => {
     expect(warnings).toEqual([]);
   });
 });
+
+describe("v1.1 exercise types", () => {
+  it("accepts a listening exercise and rejects an out-of-range answer", () => {
+    expect(
+      parseExercise("listen_select", { audio: "Salamat po.", options: ["Thank you.", "Goodbye."], answerIndex: 0 })
+        .type,
+    ).toBe("listen_select");
+    expect(() =>
+      parseExercise("listen_select", { audio: "Salamat po.", options: ["Thank you."], answerIndex: 3 }),
+    ).toThrow();
+  });
+
+  it("requires one label per picture", () => {
+    expect(() =>
+      parseExercise("select_picture", {
+        prompt: "isda",
+        pictures: ["🐟", "🍚", "☕"],
+        labels: ["fish", "rice"],
+        answerIndex: 0,
+      }),
+    ).toThrow(/labels/);
+  });
+
+  it("accepts a speaking exercise", () => {
+    expect(parseExercise("speak", { text: "Magandang umaga po.", translation: "Good morning." }).type).toBe("speak");
+  });
+
+  it("accepts a dialogue and requires at least one line of context", () => {
+    const ok = {
+      lines: [{ speaker: "A", tl: "Kumusta ka?", en: "How are you?" }],
+      options: ["Mabuti naman.", "Paalam."],
+      answerIndex: 0,
+      replyEn: "I'm fine.",
+    };
+    expect(parseExercise("dialogue", ok).type).toBe("dialogue");
+    expect(() => parseExercise("dialogue", { ...ok, lines: [] })).toThrow();
+  });
+
+  it("warns about duplicate pictures and long speaking prompts", () => {
+    const pics = parseExercise("select_picture", {
+      prompt: "isda",
+      pictures: ["🐟", "🐟", "☕"],
+      labels: ["fish", "fish", "coffee"],
+      answerIndex: 0,
+    });
+    expect(lintExercise(pics).join(" ")).toMatch(/duplicate/i);
+    const long = parseExercise("speak", {
+      text: "Pupunta ako sa palengke bukas ng umaga kasama si Nanay at si Lola",
+      translation: "x",
+    });
+    expect(lintExercise(long).join(" ")).toMatch(/long/i);
+  });
+});

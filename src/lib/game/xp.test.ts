@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { xpForLesson } from "./xp";
+import { xpForLesson, xpForPractice } from "./xp";
 
 describe("xpForLesson", () => {
   it("awards base + perfect + first-time bonuses", () => {
@@ -15,5 +15,12 @@ describe("xpForLesson", () => {
 
   it("awards only the base for a replay with mistakes", () => {
     expect(xpForLesson({ mistakes: 3, firstCompletion: false }).total).toBe(10);
+  });
+});
+
+describe("xpForPractice", () => {
+  it("awards 5 XP, plus 5 for a perfect run", () => {
+    expect(xpForPractice({ mistakes: 0 }).total).toBe(10);
+    expect(xpForPractice({ mistakes: 2 })).toEqual({ total: 5, breakdown: [{ label: "Practice complete", amount: 5 }] });
   });
 });

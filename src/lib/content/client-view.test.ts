@@ -71,3 +71,49 @@ describe("toClientExercise", () => {
     expect(JSON.stringify(view)).not.toContain("answerIndex");
   });
 });
+
+describe("toClientExercise: v1.1 types", () => {
+  it("hides the answer for listening, picture and dialogue exercises", () => {
+    const listen = toClientExercise(
+      "l",
+      parseExercise("listen_select", { audio: "Salamat.", options: ["Thanks.", "Bye."], answerIndex: 0 }),
+    );
+    expect(listen).toEqual({ id: "l", type: "listen_select", audio: "Salamat.", options: ["Thanks.", "Bye."] });
+
+    const pic = toClientExercise(
+      "p",
+      parseExercise("select_picture", {
+        prompt: "isda",
+        pictures: ["🐟", "🍚"],
+        labels: ["fish", "rice"],
+        answerIndex: 0,
+      }),
+    );
+    expect(pic).toEqual({ id: "p", type: "select_picture", prompt: "isda", pictures: ["🐟", "🍚"] });
+
+    const dialogue = toClientExercise(
+      "d",
+      parseExercise("dialogue", {
+        lines: [{ speaker: "A", tl: "Kumusta?", en: "How are you?" }],
+        options: ["Mabuti.", "Paalam."],
+        answerIndex: 0,
+        replyEn: "Fine.",
+      }),
+    );
+    expect(dialogue).toEqual({
+      id: "d",
+      type: "dialogue",
+      lines: [{ speaker: "A", tl: "Kumusta?", en: "How are you?" }],
+      options: ["Mabuti.", "Paalam."],
+    });
+  });
+
+  it("sends the sentence and its meaning for speaking exercises", () => {
+    expect(toClientExercise("s", parseExercise("speak", { text: "Salamat po.", translation: "Thank you." }))).toEqual({
+      id: "s",
+      type: "speak",
+      text: "Salamat po.",
+      translation: "Thank you.",
+    });
+  });
+});

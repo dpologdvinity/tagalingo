@@ -77,6 +77,13 @@ class LessonBuilder {
   constructor(private readonly req: GenerationRequest) {
     this.rand = rng(hash(`${req.skill.slug}#${req.lesson.index}`));
     this.proper = properNouns(req.allWords);
+    // Dialogue lines (including the hand-picked wrong replies) sometimes reuse a word's example
+    // sentence on purpose; reserve those so no other exercise in the lesson repeats them.
+    const dialogueText = new Set(
+      req.dialogues.flatMap((d) => [...d.lines.flatMap((l) => [l[1], l[2]]), ...d.wrong]).map(lower),
+    );
+    for (const w of req.allWords)
+      if (dialogueText.has(lower(w.ex[0])) || dialogueText.has(lower(w.ex[1]))) this.usedSentences.add(w.tl);
   }
 
   /** Tiles for a sentence with the sentence-initial capital removed (unless it's a proper noun). */
@@ -235,6 +242,64 @@ class LessonBuilder {
     return { type: "type_translation", payload: { prompt: w.tl, promptLang: "tl", answers: [w.en, ...w.accept] } };
   }
 
+  /** Hear the word (text-to-speech), pick its meaning. */
+  listenWord(w: CourseWord): Draft | null {
+    if (!glossable(w)) return null;
+    const wrong = this.distractors(w, 3, glossable).map((d) => d.en);
+    if (wrong.length < 2) return null;
+    const options = shuffle([w.en, ...wrong], this.rand);
+    return { type: "listen_select", payload: { audio: w.tl, options, answerIndex: options.indexOf(w.en) } };
+  }
+
+  /** See the Tagalog word, pick its picture. */
+  picture(w: CourseWord): Draft | null {
+    if (!w.pic) return null;
+    const others = this.distractors(w, 3, (d) => !!d.pic && d.pic !== w.pic);
+    if (others.length < 2) return null;
+    const cards = shuffle([w, ...others], this.rand);
+    return {
+      type: "select_picture",
+      payload: {
+        prompt: w.tl,
+        pictures: cards.map((c) => c.pic!),
+        labels: cards.map((c) => c.en),
+        answerIndex: cards.indexOf(w),
+      },
+    };
+  }
+
+  /** Say the word's example sentence aloud. */
+  speak(w: CourseWord): Draft | null {
+    if (tiles(w.ex[0]).length > 8 || !this.claimSentence(w)) return null;
+    return { type: "speak", payload: { text: w.ex[0], translation: w.ex[1] } };
+  }
+
+  /** Speak a sentence: prefer the lesson's words, then review words, then the rest of the skill. */
+  speakAny(): Draft | null {
+    for (const w of [...this.req.words, ...this.req.reviewWords, ...this.req.allWords]) {
+      const d = this.speak(w);
+      if (d) return d;
+    }
+    return null;
+  }
+
+  /** Read the lesson's dialogue and pick B's reply among the authored wrong ones. */
+  dialogue(): Draft | null {
+    const d = this.req.dialogues[0];
+    if (!d) return null;
+    const reply = d.lines[d.lines.length - 1];
+    const options = shuffle([reply[1], ...d.wrong], this.rand);
+    return {
+      type: "dialogue",
+      payload: {
+        lines: d.lines.slice(0, -1).map(([speaker, tl, en]) => ({ speaker, tl, en })),
+        options,
+        answerIndex: options.indexOf(reply[1]),
+        replyEn: reply[2],
+      },
+    };
+  }
+
   typeToTl(w: CourseWord): Draft | null {
     if (!glossable(w)) return null;
     const synonyms = this.req.allWords.filter((o) => o.tl !== w.tl && meanings(o).has(lower(w.en))).map((o) => o.tl);
@@ -242,40 +307,49 @@ class LessonBuilder {
   }
 }
 
-type Slot = { make: (b: LessonBuilder, w: CourseWord) => Draft | null; word: number };
+type Make = (b: LessonBuilder, w: CourseWord) => Draft | null;
+/** A recipe step: try `make` on each lesson word (starting at `word`); if none fits, try `fallback`. */
+type Slot = { make: Make; word: number; fallback?: Make };
 
-/** The lesson recipe: which template to use for which of the lesson's new words. */
+/**
+ * The lesson recipe. Recognition first (pick, picture, listen), then building and producing
+ * (tiles, dialogue, typing, speaking). A match-pairs round is dropped in after step three.
+ */
 const RECIPE: Slot[] = [
   { make: (b, w) => b.mcTlToEn(w), word: 0 },
-  { make: (b, w) => b.mcEnToTl(w), word: 1 },
+  { make: (b, w) => b.picture(w), word: 1, fallback: (b, w) => b.mcEnToTl(w) },
+  { make: (b, w) => b.listenWord(w), word: 2 },
   { make: (b, w) => b.fillBlank(w), word: 2 },
   { make: (b, w) => b.wordBankToTl(w), word: 3 },
   { make: (b, w) => b.typeToEn(w), word: 4 },
+  { make: (b) => b.dialogue(), word: 0 },
   { make: (b, w) => b.wordBankToEn(w), word: 0 },
+  { make: (b) => b.speakAny(), word: 0 },
   { make: (b, w) => b.mcSentence(w), word: 1 },
   { make: (b, w) => b.fillBlank(w), word: 5 },
   { make: (b, w) => b.typeToTl(w), word: 2 },
-  { make: (b, w) => b.wordBankToTl(w), word: 4 },
 ];
 
 export class StubGenerator implements ExerciseGenerator {
   readonly provider = "stub" as const;
-  readonly model = "stub-templates-v1";
+  readonly model = "stub-templates-v2";
 
   async generate(req: GenerationRequest): Promise<GenerationResult> {
     const b = new LessonBuilder(req);
     const drafts: Draft[] = [];
     const words = req.words;
 
-    RECIPE.forEach((slot, i) => {
+    const firstFit = (make: Make, start: number): Draft | null => {
       // Try the slot's word first, then the following words, until the template applies.
       for (let k = 0; k < words.length; k++) {
-        const d = slot.make(b, words[(slot.word + k) % words.length]);
-        if (d) {
-          drafts.push(d);
-          break;
-        }
+        const d = make(b, words[(start + k) % words.length]);
+        if (d) return d;
       }
+      return null;
+    };
+    RECIPE.forEach((slot, i) => {
+      const d = firstFit(slot.make, slot.word) ?? (slot.fallback ? firstFit(slot.fallback, slot.word) : null);
+      if (d) drafts.push(d);
       // Drop a match-pairs round in after the first three exercises.
       if (i === 2) {
         const mp = b.matchPairs(words);

@@ -93,3 +93,52 @@ describe("gradeAnswer", () => {
     expect(gradeAnswer(fb, { choice: 2 })).toMatchObject({ correct: false, correctAnswer: "Kumain ako ng kanin." });
   });
 });
+
+describe("gradeAnswer: v1.1 types", () => {
+  it("grades listening and picture exercises by index and reveals what was said", () => {
+    const listen = parseExercise("listen_select", {
+      audio: "Gutom na ako.",
+      options: ["I'm hungry.", "I'm tired."],
+      answerIndex: 0,
+    });
+    expect(gradeAnswer(listen, { choice: 0 }).correct).toBe(true);
+    expect(gradeAnswer(listen, { choice: 1 })).toMatchObject({
+      correct: false,
+      correctAnswer: "Gutom na ako. (I'm hungry.)",
+    });
+
+    const pic = parseExercise("select_picture", {
+      prompt: "isda",
+      pictures: ["🍚", "🐟", "☕"],
+      labels: ["rice", "fish", "coffee"],
+      answerIndex: 1,
+    });
+    expect(gradeAnswer(pic, { choice: 0 })).toMatchObject({ correct: false, correctAnswer: "🐟 fish" });
+  });
+
+  const speak = parseExercise("speak", { text: "Magandang umaga po.", translation: "Good morning." });
+
+  it("accepts a close speech-recognition transcript", () => {
+    expect(gradeAnswer(speak, { transcript: "magandang umaga po" }).correct).toBe(true);
+    expect(gradeAnswer(speak, { transcript: "maganda umaga po" }).correct).toBe(true); // one dropped letter
+  });
+
+  it("rejects a transcript of something else", () => {
+    expect(gradeAnswer(speak, { transcript: "salamat" }).correct).toBe(false);
+  });
+
+  it("treats “can't speak now” as a no-penalty skip", () => {
+    expect(gradeAnswer(speak, { skipped: true })).toMatchObject({ correct: true, skipped: true });
+  });
+
+  it("grades dialogues by index", () => {
+    const d = parseExercise("dialogue", {
+      lines: [{ speaker: "A", tl: "Kumusta ka?", en: "How are you?" }],
+      options: ["Paalam.", "Mabuti naman."],
+      answerIndex: 1,
+      replyEn: "I'm fine.",
+    });
+    expect(gradeAnswer(d, { choice: 1 }).correct).toBe(true);
+    expect(gradeAnswer(d, { choice: 0 })).toMatchObject({ correct: false, correctAnswer: "Mabuti naman. (I'm fine.)" });
+  });
+});
