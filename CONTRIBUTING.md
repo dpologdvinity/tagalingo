@@ -13,7 +13,7 @@ configuration table in README.md if you want to override defaults.
 
 ## Branches and commits
 
-- Branch from `main` (`feat/…`, `fix/…`, `chore/…`) and open a pull request; CI must pass.
+- Branch from `master` (`feat/…`, `fix/…`, `chore/…`) and open a pull request; CI must pass.
 - Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): …`,
   `fix: …`, `test: …`, `docs: …`, `refactor: …`, `chore: …`. Keep commits small and atomic.
 

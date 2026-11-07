@@ -110,7 +110,7 @@ Any Node host plus managed Postgres works. A straightforward setup:
    to run once real accounts exist, so it can't wipe production by accident.
 
 CI (GitHub Actions) runs lint, typecheck, unit, integration and end-to-end tests on every push
-and pull request to `main`. Pushing a `v*` tag drafts a GitHub release.
+and pull request to `master`. Pushing a `v*` tag drafts a GitHub release.
 
 ## Content status
 
