@@ -6,51 +6,56 @@
       "title": "Mom and Dad",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "family",
+              "grandpa",
+              "house",
+              "child"
+            ],
+            "prompt": "bahay",
+            "pictures": [
+              "👨‍👩‍👧",
+              "👴",
+              "🏠",
+              "👶"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
             "prompt": "nanay",
             "options": [
               "grandma",
+              "grandpa",
               "older brother",
-              "mom",
-              "older sister"
+              "mom"
             ],
             "promptLang": "tl",
-            "answerIndex": 2
+            "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "dad",
+            "audio": "kapatid",
             "options": [
-              "tatay",
-              "ate",
-              "kapatid",
-              "kuya"
+              "child",
+              "grandpa",
+              "mom",
+              "sibling"
             ],
-            "promptLang": "en",
-            "answerIndex": 0
+            "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "kapatid",
-              "Tatay",
-              "Ate"
-            ],
-            "sentence": "May ___ ka ba?",
-            "answerIndex": 0,
-            "translation": "Do you have a sibling?"
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -75,26 +80,42 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Tatay",
+              "Ate",
+              "pamilya"
+            ],
+            "sentence": "Malaki ang ___ ko.",
+            "answerIndex": 2,
+            "translation": "My family is big."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
           "payload": {
             "answer": [
-              "malaki",
-              "ang",
-              "bahay"
+              "nasa",
+              "bahay",
+              "si",
+              "Nanay"
             ],
-            "prompt": "The house is big.",
+            "prompt": "Mom is at home.",
             "promptLang": "en",
             "distractors": [
-              "mabait",
-              "si",
-              "Kuya"
+              "nag-aaral",
+              "Ate",
+              "nagluluto"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -106,76 +127,37 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "word_bank",
+          "type": "dialogue",
           "payload": {
-            "answer": [
-              "mom",
-              "is",
-              "at",
-              "home"
+            "lines": [
+              {
+                "en": "Do you have any siblings?",
+                "tl": "May kapatid ka ba?",
+                "speaker": "A"
+              }
             ],
-            "prompt": "Nasa bahay si Nanay.",
-            "alternates": [
-              [
-                "mother",
-                "is",
-                "at",
-                "home"
-              ],
-              [
-                "mom",
-                "is",
-                "home"
-              ],
-              [
-                "mum",
-                "is",
-                "at",
-                "home"
-              ]
-            ],
-            "promptLang": "tl",
-            "distractors": [
-              "do",
-              "you",
-              "have"
-            ]
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "select_translation",
-          "payload": {
-            "prompt": "Nagluluto si Tatay.",
             "options": [
-              "I love Grandma.",
-              "Grandpa is sleeping.",
-              "Dad is cooking."
+              "Malaki ang bahay.",
+              "Oo, may kapatid ako.",
+              "Nagluluto si Tatay."
             ],
-            "promptLang": "tl",
-            "answerIndex": 2
+            "replyEn": "Yes, I have a sibling.",
+            "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "fill_blank",
+          "type": "speak",
           "payload": {
-            "options": [
-              "Tatay",
-              "Lola",
-              "pamilya"
-            ],
-            "sentence": "Malaki ang ___ ko.",
-            "answerIndex": 2,
-            "translation": "My family is big."
+            "text": "Nag-aaral si Ate.",
+            "translation": "My older sister is studying."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -187,7 +169,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     },
@@ -196,51 +178,56 @@
       "title": "Ate, Kuya, Lola",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "grandpa",
+              "grandma",
+              "house",
+              "family"
+            ],
+            "prompt": "lola",
+            "pictures": [
+              "👴",
+              "👵",
+              "🏠",
+              "👨‍👩‍👧"
+            ],
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
             "prompt": "ate",
             "options": [
               "older brother",
-              "mom",
+              "sibling",
               "older sister",
-              "child"
+              "family"
             ],
             "promptLang": "tl",
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "older brother",
+            "audio": "lolo",
             "options": [
-              "bahay",
-              "ate",
-              "kuya",
-              "tatay"
+              "family",
+              "sibling",
+              "grandpa",
+              "older sister"
             ],
-            "promptLang": "en",
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Lola",
-              "Kuya",
-              "anak"
-            ],
-            "sentence": "Mahal ko si ___.",
-            "answerIndex": 0,
-            "translation": "I love Grandma."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -265,7 +252,22 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "anak",
+              "Lola",
+              "Tatay"
+            ],
+            "sentence": "Mahal ko si ___.",
+            "answerIndex": 1,
+            "translation": "I love Grandma."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -278,13 +280,13 @@
             "prompt": "Grandpa is sleeping.",
             "promptLang": "en",
             "distractors": [
-              "malaki",
+              "dalawa",
               "ang",
-              "bahay"
+              "anak"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -299,7 +301,28 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Is that your big brother?",
+                "tl": "Si Kuya ba iyan?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Oo, dalawa ang anak nila.",
+              "Mahal ko ang pamilya ko.",
+              "Hindi, si Lolo iyan."
+            ],
+            "replyEn": "No, that's Grandpa.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -335,43 +358,37 @@
             ],
             "promptLang": "tl",
             "distractors": [
-              "they",
-              "have",
-              "two"
+              "mom",
+              "at",
+              "home"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Mabait si Kuya.",
+            "translation": "My older brother is kind."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "select_translation",
           "payload": {
-            "prompt": "Mabait si Kuya.",
+            "prompt": "Dalawa ang anak nila.",
             "options": [
-              "My older brother is kind.",
+              "They have two children.",
               "My family is big.",
-              "Mom is at home."
+              "Do you have a sibling?"
             ],
             "promptLang": "tl",
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Lolo",
-              "anak",
-              "pamilya"
-            ],
-            "sentence": "Dalawa ang ___ nila.",
-            "answerIndex": 1,
-            "translation": "They have two children."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -383,7 +400,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     }

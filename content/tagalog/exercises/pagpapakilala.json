@@ -1,0 +1,433 @@
+{
+  "skill": "pagpapakilala",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "What's your name?",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "name",
+              "American",
+              "work",
+              "Filipino"
+            ],
+            "prompt": "pangalan",
+            "pictures": [
+              "📛",
+              "🇺🇸",
+              "💼",
+              "🇵🇭"
+            ],
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "taga",
+            "options": [
+              "lives",
+              "where",
+              "from",
+              "American"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "saan",
+            "options": [
+              "from",
+              "know",
+              "where",
+              "name"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "name",
+                "tl": "pangalan"
+              },
+              {
+                "en": "from",
+                "tl": "taga"
+              },
+              {
+                "en": "where",
+                "tl": "saan"
+              },
+              {
+                "en": "year",
+                "tl": "taon"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Saan",
+              "Pangalan",
+              "Pilipino"
+            ],
+            "sentence": "___ ka pupunta?",
+            "answerIndex": 0,
+            "translation": "Where are you going?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "ilang",
+              "taon",
+              "ka",
+              "na"
+            ],
+            "prompt": "How old are you?",
+            "promptLang": "en",
+            "distractors": [
+              "Amerikano",
+              "si",
+              "Ben"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "taon",
+            "answers": [
+              "year",
+              "years"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "What's your name?",
+                "tl": "Ano ang pangalan mo?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Ako si Maria. Ikaw?",
+              "Taga-Maynila ang guro.",
+              "Pilipino ka ba?"
+            ],
+            "replyEn": "I'm Maria. And you?",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "I'm",
+              "from",
+              "Manila"
+            ],
+            "prompt": "Taga-Maynila ako.",
+            "alternates": [
+              [
+                "I",
+                "am",
+                "from",
+                "Manila"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "nice",
+              "to",
+              "meet"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Ano ang trabaho mo?",
+            "translation": "What is your job?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "where",
+            "answers": [
+              "saan"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Nice to meet you",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "Filipino",
+              "work",
+              "American",
+              "name"
+            ],
+            "prompt": "trabaho",
+            "pictures": [
+              "🇵🇭",
+              "💼",
+              "🇺🇸",
+              "📛"
+            ],
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "ikinagagalak kitang makilala",
+            "options": [
+              "lives",
+              "nice to meet you",
+              "name",
+              "year"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "kilala",
+            "options": [
+              "know",
+              "nice to meet you",
+              "name",
+              "American"
+            ],
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "work",
+                "tl": "trabaho"
+              },
+              {
+                "en": "nice to meet you",
+                "tl": "ikinagagalak kitang makilala"
+              },
+              {
+                "en": "know",
+                "tl": "kilala"
+              },
+              {
+                "en": "Filipino",
+                "tl": "Pilipino"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Trabaho",
+              "Kilala",
+              "Taon"
+            ],
+            "sentence": "___ mo ba si Juan?",
+            "answerIndex": 1,
+            "translation": "Do you know Juan?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "Pilipino",
+              "ang",
+              "nanay",
+              "ko"
+            ],
+            "prompt": "My mother is Filipino.",
+            "promptLang": "en",
+            "distractors": [
+              "ano",
+              "trabaho",
+              "mo"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "Amerikano",
+            "answers": [
+              "American"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Where do you live?",
+                "tl": "Saan ka nakatira?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Guro ang trabaho ko.",
+              "Nakatira ako sa Davao.",
+              "Kilala ko si Ben."
+            ],
+            "replyEn": "I live in Davao.",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "what",
+              "is",
+              "your",
+              "job"
+            ],
+            "prompt": "Ano ang trabaho mo?",
+            "alternates": [
+              [
+                "what's",
+                "your",
+                "job"
+              ],
+              [
+                "what",
+                "do",
+                "you",
+                "do",
+                "for",
+                "work"
+              ],
+              [
+                "what",
+                "is",
+                "your",
+                "work"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "know",
+              "Juan",
+              "where"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Ikinagagalak kitang makilala, Ana.",
+            "translation": "Nice to meet you, Ana."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Amerikano si Ben.",
+            "options": [
+              "Ben is American.",
+              "I'm from Manila.",
+              "I live in Cebu."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "know",
+            "answers": [
+              "kilala"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

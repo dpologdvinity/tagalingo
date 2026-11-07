@@ -6,51 +6,56 @@
       "title": "Me, you, them",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "man",
+              "teacher",
+              "woman",
+              "friend"
+            ],
+            "prompt": "kaibigan",
+            "pictures": [
+              "👨",
+              "🧑‍🏫",
+              "👩",
+              "🤝"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
             "prompt": "ako",
             "options": [
               "we",
-              "woman",
-              "student",
+              "friend",
+              "he",
               "I"
             ],
             "promptLang": "tl",
             "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "you",
+            "audio": "siya",
             "options": [
-              "lalaki",
-              "guro",
-              "ikaw",
-              "kaibigan"
+              "I",
+              "woman",
+              "he",
+              "they"
             ],
-            "promptLang": "en",
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Kaibigan",
-              "Estudyante",
-              "Siya"
-            ],
-            "sentence": "___ ay guro.",
-            "answerIndex": 2,
-            "translation": "She is a teacher."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -75,25 +80,41 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Guro",
+              "Siya",
+              "Babae"
+            ],
+            "sentence": "___ ay guro.",
+            "answerIndex": 1,
+            "translation": "She is a teacher."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
           "payload": {
             "answer": [
-              "masaya",
-              "sila"
-            ],
-            "prompt": "They are happy.",
-            "promptLang": "en",
-            "distractors": [
               "kaibigan",
               "ko",
               "siya"
+            ],
+            "prompt": "He is my friend.",
+            "promptLang": "en",
+            "distractors": [
+              "estudyante",
+              "kami",
+              "ako"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -105,62 +126,56 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Is she your friend?",
+                "tl": "Kaibigan mo ba siya?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Masaya sila.",
+              "Ako si Maria.",
+              "Oo, kaibigan ko siya."
+            ],
+            "replyEn": "Yes, she's my friend.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
           "payload": {
             "answer": [
-              "I",
-              "am",
-              "Maria"
+              "are",
+              "you",
+              "Juan"
             ],
-            "prompt": "Ako si Maria.",
-            "alternates": [
-              [
-                "I'm",
-                "Maria"
-              ]
-            ],
+            "prompt": "Ikaw ba si Juan?",
             "promptLang": "tl",
             "distractors": [
-              "we",
-              "are",
-              "students"
+              "he",
+              "is",
+              "my"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "speak",
           "payload": {
-            "prompt": "Ikaw ba si Juan?",
-            "options": [
-              "Are you Juan?",
-              "The teacher is kind.",
-              "The woman is a teacher."
-            ],
-            "promptLang": "tl",
-            "answerIndex": 0
+            "text": "Estudyante kami.",
+            "translation": "We are students."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Ako",
-              "Siya",
-              "Kaibigan"
-            ],
-            "sentence": "___ ko siya.",
-            "answerIndex": 2,
-            "translation": "He is my friend."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -172,7 +187,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     },
@@ -181,51 +196,56 @@
       "title": "Who's who",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "friend",
+              "man",
+              "student",
+              "teacher"
+            ],
+            "prompt": "guro",
+            "pictures": [
+              "🤝",
+              "👨",
+              "🧑‍🎓",
+              "🧑‍🏫"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
             "prompt": "kami",
             "options": [
-              "he",
+              "we",
               "man",
-              "student",
-              "we"
+              "woman",
+              "you"
             ],
             "promptLang": "tl",
-            "answerIndex": 3
+            "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "we",
+            "audio": "estudyante",
             "options": [
-              "guro",
-              "lalaki",
-              "tayo",
-              "ako"
+              "woman",
+              "student",
+              "they",
+              "man"
             ],
-            "promptLang": "en",
-            "answerIndex": 2
+            "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "sila",
-              "guro",
-              "tayo"
-            ],
-            "sentence": "Mabait ang ___.",
-            "answerIndex": 1,
-            "translation": "The teacher is kind."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -250,7 +270,22 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "siya",
+              "guro",
+              "ikaw"
+            ],
+            "sentence": "Mabait ang ___.",
+            "answerIndex": 1,
+            "translation": "The teacher is kind."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -262,13 +297,13 @@
             "prompt": "I am a student.",
             "promptLang": "en",
             "distractors": [
-              "magkaibigan",
-              "tayo",
-              "kami"
+              "siya",
+              "ay",
+              "guro"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -282,7 +317,28 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Are you a teacher?",
+                "tl": "Guro ka ba?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Magkaibigan sila.",
+              "Oo, matangkad siya.",
+              "Hindi, estudyante ako."
+            ],
+            "replyEn": "No, I'm a student.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -301,43 +357,52 @@
             ],
             "promptLang": "tl",
             "distractors": [
-              "the",
-              "woman",
-              "is"
+              "she",
+              "is",
+              "a"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Magkaibigan tayo.",
+            "translation": "We are friends."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "select_translation",
           "payload": {
-            "prompt": "Magkaibigan tayo.",
+            "prompt": "Matangkad ang lalaki.",
             "options": [
-              "We are friends.",
-              "The man is tall.",
-              "He is my friend."
+              "He is my friend.",
+              "Are you Juan?",
+              "The man is tall."
             ],
             "promptLang": "tl",
-            "answerIndex": 0
+            "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "fill_blank",
           "payload": {
             "options": [
-              "sila",
               "babae",
-              "ako"
+              "tayo",
+              "kami"
             ],
             "sentence": "Guro ang ___.",
-            "answerIndex": 1,
+            "answerIndex": 0,
             "translation": "The woman is a teacher."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -349,7 +414,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     }

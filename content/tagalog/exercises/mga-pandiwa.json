@@ -1,0 +1,406 @@
+{
+  "skill": "mga-pandiwa",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Ate, eating, will eat",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "ate",
+              "slept",
+              "cooked",
+              "played"
+            ],
+            "prompt": "kumain",
+            "pictures": [
+              "🍽️",
+              "😴",
+              "🍳",
+              "⚽"
+            ],
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "kumakain",
+            "options": [
+              "drank",
+              "will drink",
+              "is eating",
+              "cooked"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "kakain",
+            "options": [
+              "drank",
+              "is eating",
+              "will eat",
+              "will cook"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "ate",
+                "tl": "kumain"
+              },
+              {
+                "en": "is eating",
+                "tl": "kumakain"
+              },
+              {
+                "en": "will eat",
+                "tl": "kakain"
+              },
+              {
+                "en": "drank",
+                "tl": "uminom"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Kakain",
+              "Natulog",
+              "Magluluto"
+            ],
+            "sentence": "___ tayo mamaya.",
+            "answerIndex": 0,
+            "translation": "We will eat later."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "uminom",
+              "siya",
+              "ng",
+              "tubig"
+            ],
+            "prompt": "She drank water.",
+            "promptLang": "en",
+            "distractors": [
+              "kumain",
+              "na",
+              "ako"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "iinom",
+            "answers": [
+              "will drink"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Have you eaten yet?",
+                "tl": "Kumain ka na ba?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Kumakain ang pusa.",
+              "Oo, busog na ako.",
+              "Iinom ako bukas."
+            ],
+            "replyEn": "Yes, I'm already full.",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "I",
+              "already",
+              "ate"
+            ],
+            "prompt": "Kumain na ako.",
+            "alternates": [
+              [
+                "I've",
+                "already",
+                "eaten"
+              ],
+              [
+                "I",
+                "have",
+                "eaten"
+              ],
+              [
+                "I",
+                "ate",
+                "already"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "the",
+              "cat",
+              "is"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Iinom ako ng kape.",
+            "translation": "I will drink coffee."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "will eat",
+            "answers": [
+              "kakain"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Cooked, studying, played",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "is studying",
+              "slept",
+              "cooked",
+              "ate"
+            ],
+            "prompt": "nagluto",
+            "pictures": [
+              "📚",
+              "😴",
+              "🍳",
+              "🍽️"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "magluluto",
+            "options": [
+              "will drink",
+              "will cook",
+              "is eating",
+              "ate"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "nag-aaral",
+            "options": [
+              "ate",
+              "will cook",
+              "will eat",
+              "is studying"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "cooked",
+                "tl": "nagluto"
+              },
+              {
+                "en": "will cook",
+                "tl": "magluluto"
+              },
+              {
+                "en": "is studying",
+                "tl": "nag-aaral"
+              },
+              {
+                "en": "played",
+                "tl": "naglaro"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Kumain",
+              "Nag-aaral",
+              "Naglaro"
+            ],
+            "sentence": "___ ako ng Tagalog.",
+            "answerIndex": 1,
+            "translation": "I am studying Tagalog."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "naglaro",
+              "ang",
+              "mga",
+              "bata",
+              "sa",
+              "labas"
+            ],
+            "prompt": "The children played outside.",
+            "promptLang": "en",
+            "distractors": [
+              "nag-aaral",
+              "ako",
+              "ng"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "natulog",
+            "answers": [
+              "slept"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "What did you do yesterday?",
+                "tl": "Ano ang ginawa mo kahapon?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Nagluto ako ng adobo.",
+              "Natutulog si Lolo ngayon.",
+              "Magluluto ako bukas."
+            ],
+            "replyEn": "I cooked adobo.",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "grandma",
+              "cooked",
+              "adobo"
+            ],
+            "prompt": "Nagluto si Lola ng adobo.",
+            "promptLang": "tl",
+            "distractors": [
+              "I",
+              "already",
+              "ate"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Natulog ako nang maaga.",
+            "translation": "I slept early."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "is studying",
+            "answers": [
+              "nag-aaral"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,418 @@
+{
+  "skill": "sa-bahay",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Room by room",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "light",
+              "door",
+              "window",
+              "kitchen"
+            ],
+            "prompt": "kusina",
+            "pictures": [
+              "💡",
+              "🚪",
+              "🪟",
+              "🍳"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "kuwarto",
+            "options": [
+              "room",
+              "bed",
+              "chair",
+              "bathroom"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "banyo",
+            "options": [
+              "light",
+              "room",
+              "bathroom",
+              "table"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "kitchen",
+                "tl": "kusina"
+              },
+              {
+                "en": "room",
+                "tl": "kuwarto"
+              },
+              {
+                "en": "bathroom",
+                "tl": "banyo"
+              },
+              {
+                "en": "living room",
+                "tl": "sala"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "pinto",
+              "banyo",
+              "kusina"
+            ],
+            "sentence": "Nasaan ang ___?",
+            "answerIndex": 1,
+            "translation": "Where is the bathroom?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "nanonood",
+              "kami",
+              "ng",
+              "TV",
+              "sa",
+              "sala"
+            ],
+            "prompt": "We watch TV in the living room.",
+            "promptLang": "en",
+            "distractors": [
+              "malambot",
+              "ang",
+              "kama"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "pinto",
+            "answers": [
+              "door"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Where is Dad?",
+                "tl": "Nasaan si Tatay?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Isara mo ang pinto.",
+              "Malinis ang banyo.",
+              "Nasa kusina siya."
+            ],
+            "replyEn": "He's in the kitchen.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "mom",
+              "is",
+              "in",
+              "the",
+              "kitchen"
+            ],
+            "prompt": "Nasa kusina si Nanay.",
+            "alternates": [
+              [
+                "mother",
+                "is",
+                "in",
+                "the",
+                "kitchen"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "key",
+              "on",
+              "table"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Malinis ang kuwarto ko.",
+            "translation": "My room is clean."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "bathroom",
+            "answers": [
+              "banyo"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Open the window",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "door",
+              "window",
+              "kitchen",
+              "chair"
+            ],
+            "prompt": "upuan",
+            "pictures": [
+              "🚪",
+              "🪟",
+              "🍳",
+              "🪑"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "mesa",
+            "options": [
+              "bathroom",
+              "living room",
+              "bed",
+              "table"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "kama",
+            "options": [
+              "light",
+              "bed",
+              "kitchen",
+              "table"
+            ],
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "table",
+                "tl": "mesa"
+              },
+              {
+                "en": "chair",
+                "tl": "upuan"
+              },
+              {
+                "en": "bed",
+                "tl": "kama"
+              },
+              {
+                "en": "window",
+                "tl": "bintana"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "upuan",
+              "bintana",
+              "ilaw"
+            ],
+            "sentence": "Buksan mo ang ___.",
+            "answerIndex": 1,
+            "translation": "Open the window."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "patayin",
+              "mo",
+              "ang",
+              "ilaw"
+            ],
+            "prompt": "Turn off the light.",
+            "promptLang": "en",
+            "distractors": [
+              "malambot",
+              "kama",
+              "isara"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "ilaw",
+            "answers": [
+              "light",
+              "lights",
+              "lamp"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "It's so hot in here!",
+                "tl": "Ang init dito!",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Bubuksan ko ang bintana.",
+              "Malambot ang kama.",
+              "Nasa mesa ang susi."
+            ],
+            "replyEn": "I'll open the window.",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "sit",
+              "on",
+              "the",
+              "chair"
+            ],
+            "prompt": "Umupo ka sa upuan.",
+            "alternates": [
+              [
+                "sit",
+                "in",
+                "the",
+                "chair"
+              ],
+              [
+                "sit",
+                "down",
+                "on",
+                "the",
+                "chair"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "key",
+              "is",
+              "table"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Nasa kusina si Nanay.",
+            "translation": "Mom is in the kitchen."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "bed",
+            "answers": [
+              "kama"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}

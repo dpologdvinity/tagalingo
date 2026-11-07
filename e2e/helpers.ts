@@ -45,8 +45,11 @@ export async function answerCurrent(page: Page, { wrong = false } = {}) {
   const p = ex.payload as Record<string, never>;
   switch (ex.type) {
     case "select_translation":
-    case "fill_blank": {
-      const options = p.options as string[];
+    case "fill_blank":
+    case "listen_select":
+    case "select_picture":
+    case "dialogue": {
+      const options = (p.options ?? p.pictures) as string[];
       const idx = wrong ? (Number(p.answerIndex) + 1) % options.length : Number(p.answerIndex);
       await page.getByRole("radio").nth(idx).click();
       break;
@@ -60,6 +63,13 @@ export async function answerCurrent(page: Page, { wrong = false } = {}) {
       for (const t of tokens) await bank.getByRole("button", { name: t, exact: true }).first().click();
       break;
     }
+    case "speak":
+      // Headless browsers have no microphone: use the no-penalty skip, which submits straight away.
+      await page
+        .getByRole("button", { name: /Can’t speak now|^Continue$/ })
+        .first()
+        .click();
+      return ex.type;
     case "match_pairs":
       for (const pair of p.pairs as { tl: string; en: string }[]) {
         await page.getByRole("button", { name: pair.tl, exact: true }).click();

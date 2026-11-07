@@ -6,51 +6,56 @@
       "title": "Hello and thanks",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "good evening",
+              "goodbye",
+              "thank you",
+              "good morning"
+            ],
+            "prompt": "salamat",
+            "pictures": [
+              "🌙",
+              "👋",
+              "🙏",
+              "🌅"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
             "prompt": "kumusta",
             "options": [
-              "no",
-              "thank you",
+              "goodbye",
               "good evening",
-              "how are you"
+              "how are you",
+              "take care"
             ],
             "promptLang": "tl",
-            "answerIndex": 3
+            "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "good",
+            "audio": "oo",
             "options": [
-              "mabuti",
-              "kumusta",
-              "magandang umaga",
-              "oo"
+              "goodbye",
+              "yes",
+              "take care",
+              "good evening"
             ],
-            "promptLang": "en",
-            "answerIndex": 0
+            "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Po",
-              "Mabuti",
-              "Salamat"
-            ],
-            "sentence": "___, Ana.",
-            "answerIndex": 2,
-            "translation": "Thank you, Ana."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -75,7 +80,22 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Salamat",
+              "Hindi",
+              "Mabuti"
+            ],
+            "sentence": "___, Ana.",
+            "answerIndex": 0,
+            "translation": "Thank you, Ana."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -88,13 +108,13 @@
             "prompt": "Yes, I'm hungry.",
             "promptLang": "en",
             "distractors": [
-              "magandang",
-              "gabi",
-              "Lola"
+              "ingat",
+              "ka",
+              "paalam"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -107,56 +127,72 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "How are you?",
+                "tl": "Kumusta ka?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Hindi, salamat.",
+              "Mabuti naman, salamat.",
+              "Paalam, kaibigan."
+            ],
+            "replyEn": "I'm fine, thanks.",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
           "payload": {
             "answer": [
-              "how",
-              "are",
-              "you"
+              "I'm",
+              "fine"
             ],
-            "prompt": "Kumusta ka?",
+            "prompt": "Mabuti naman ako.",
+            "alternates": [
+              [
+                "I",
+                "am",
+                "fine"
+              ],
+              [
+                "I'm",
+                "doing",
+                "well"
+              ],
+              [
+                "I",
+                "am",
+                "good"
+              ]
+            ],
             "promptLang": "tl",
             "distractors": [
-              "I'm",
-              "fine",
-              "not"
+              "take",
+              "care",
+              "yes"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "speak",
           "payload": {
-            "prompt": "Mabuti naman ako.",
-            "options": [
-              "Thank you, sir.",
-              "Good evening, Grandma.",
-              "I'm fine."
-            ],
-            "promptLang": "tl",
-            "answerIndex": 2
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Paalam",
-              "Kumusta",
-              "Hindi"
-            ],
-            "sentence": "___ ako gutom.",
-            "answerIndex": 2,
+            "text": "Hindi ako gutom.",
             "translation": "I'm not hungry."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -168,7 +204,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     },
@@ -177,51 +213,56 @@
       "title": "Morning to night",
       "exercises": [
         {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "goodbye",
+              "good morning",
+              "thank you",
+              "good evening"
+            ],
+            "prompt": "magandang umaga",
+            "pictures": [
+              "👋",
+              "🌅",
+              "🙏",
+              "🌙"
+            ],
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
           "type": "select_translation",
           "payload": {
-            "prompt": "magandang umaga",
+            "prompt": "magandang gabi",
             "options": [
+              "goodbye",
+              "take care",
               "good evening",
-              "thank you",
-              "good morning",
-              "no"
+              "yes"
             ],
             "promptLang": "tl",
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "listen_select",
           "payload": {
-            "prompt": "good evening",
+            "audio": "paalam",
             "options": [
-              "hindi",
-              "po",
-              "paalam",
-              "magandang gabi"
+              "goodbye",
+              "good evening",
+              "good morning",
+              "take care"
             ],
-            "promptLang": "en",
-            "answerIndex": 3
+            "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "options": [
-              "Po",
-              "Paalam",
-              "Hindi"
-            ],
-            "sentence": "___, kaibigan.",
-            "answerIndex": 1,
-            "translation": "Goodbye, friend."
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "match_pairs",
@@ -246,7 +287,22 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "Oo",
+              "Mabuti",
+              "Paalam"
+            ],
+            "sentence": "___, kaibigan.",
+            "answerIndex": 2,
+            "translation": "Goodbye, friend."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
@@ -255,16 +311,16 @@
               "salamat",
               "po"
             ],
-            "prompt": "Thank you, sir.",
+            "prompt": "Thank you.",
             "promptLang": "en",
             "distractors": [
-              "mabuti",
-              "naman",
-              "ako"
+              "magandang",
+              "gabi",
+              "Lola"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -276,52 +332,55 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Good evening, Grandma.",
+                "tl": "Magandang gabi po, Lola.",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Magandang gabi rin. Ingat ka!",
+              "Oo, gutom ako.",
+              "Magandang umaga po."
+            ],
+            "replyEn": "Good evening to you too. Take care!",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "word_bank",
           "payload": {
             "answer": [
-              "good",
-              "morning",
-              "sir"
+              "take",
+              "care"
             ],
-            "prompt": "Magandang umaga po.",
-            "alternates": [
-              [
-                "good",
-                "morning",
-                "ma'am"
-              ],
-              [
-                "good",
-                "morning"
-              ]
-            ],
+            "prompt": "Ingat ka!",
             "promptLang": "tl",
             "distractors": [
-              "take",
-              "care",
-              "thank"
+              "good",
+              "evening",
+              "Grandma"
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
-          "type": "select_translation",
+          "type": "speak",
           "payload": {
-            "prompt": "Magandang gabi, Lola.",
-            "options": [
-              "Good evening, Grandma.",
-              "How are you?",
-              "Take care!"
-            ],
-            "promptLang": "tl",
-            "answerIndex": 0
+            "text": "Kumusta ka?",
+            "translation": "How are you?"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         },
         {
           "type": "type_translation",
@@ -333,7 +392,7 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during initial build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
         }
       ]
     }

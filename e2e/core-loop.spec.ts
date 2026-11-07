@@ -12,8 +12,10 @@ test.describe("core loop", () => {
     let firstWrongDone = false;
     while (!(await page.getByText("Lesson complete!").isVisible())) {
       // Make one deliberate mistake on the first non-matching exercise to exercise the re-queue.
-      const isMatch = await page.getByText("Match the pairs").isVisible();
-      const wrong = !firstWrongDone && !isMatch;
+      const noPenalty =
+        (await page.getByText("Match the pairs").isVisible()) ||
+        (await page.getByText("Say this sentence").isVisible());
+      const wrong = !firstWrongDone && !noPenalty;
       seen.add(await answerCurrent(page, { wrong }));
       if (wrong) {
         await expect(page.getByText("Correct answer:")).toBeVisible();
@@ -102,5 +104,53 @@ test.describe("screens", () => {
     await expect(page.getByRole("heading", { name: "Learn Tagalog five minutes at a time." })).toBeVisible();
     await page.goto("/learn");
     await page.waitForURL("**/login**");
+  });
+});
+
+test.describe("richer lessons", () => {
+  async function finishLesson(page: import("@playwright/test").Page) {
+    while (!(await page.getByText(/Lesson complete!|Practice complete!/).isVisible())) {
+      await answerCurrent(page);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await expect(
+        page.locator("[data-exercise-id]").or(page.getByText(/Lesson complete!|Practice complete!/)),
+      ).toBeVisible();
+    }
+  }
+
+  test("practice reviews a finished skill and wins back a heart", async ({ page }) => {
+    const email = await signUpFreshLearner(page);
+    await page.getByRole("button", { name: /Pagbati/ }).click();
+    await page.getByRole("link", { name: "Start lesson" }).click();
+    await page.waitForURL("**/lesson/**");
+    await finishLesson(page);
+    await query(`update "User" set hearts = 2, "heartsUpdatedAt" = now() where email = $1`, [email]);
+
+    await page.goto("/learn");
+    await page.getByRole("button", { name: /Pagbati/ }).click();
+    await page.getByRole("link", { name: "Practise" }).click();
+    await page.waitForURL("**/practice?skill=**");
+    await finishLesson(page);
+    await expect(page.getByText("Heart won back")).toBeVisible();
+    const [user] = await query<{ hearts: number }>(`select hearts from "User" where email = $1`, [email]);
+    expect(user.hearts).toBe(3);
+  });
+
+  test("skill pages show original tips, flashcards and conversations", async ({ page }) => {
+    await signUpFreshLearner(page);
+    await page.goto("/skills/pagbati");
+    await expect(page.getByRole("heading", { name: "Tips" })).toBeVisible();
+    await expect(page.getByText(/Add po to a sentence/)).toBeVisible();
+    const card = page.getByRole("button", { name: /Tap to show the meaning/ });
+    await card.click();
+    await expect(page.getByRole("button", { name: /Meaning:/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Conversations" })).toBeVisible();
+  });
+
+  test("the pronunciation guide is reachable from the first unit", async ({ page }) => {
+    await signUpFreshLearner(page);
+    await page.getByRole("link", { name: "Hear the sounds of Tagalog" }).click();
+    await expect(page.getByRole("heading", { name: "Sounds of Tagalog" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Play: salamat/ })).toBeVisible();
   });
 });

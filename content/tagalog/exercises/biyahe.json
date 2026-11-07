@@ -1,0 +1,449 @@
+{
+  "skill": "biyahe",
+  "lessons": [
+    {
+      "order": 1,
+      "title": "Para po!",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "traffic",
+              "bus",
+              "car",
+              "airplane"
+            ],
+            "prompt": "trapik",
+            "pictures": [
+              "🚦",
+              "🚌",
+              "🚗",
+              "✈️"
+            ],
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "jeep",
+            "options": [
+              "airplane",
+              "car",
+              "jeepney",
+              "left"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "kanto",
+            "options": [
+              "car",
+              "bus",
+              "corner",
+              "stop"
+            ],
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "jeepney",
+                "tl": "jeep"
+              },
+              {
+                "en": "stop",
+                "tl": "para"
+              },
+              {
+                "en": "corner",
+                "tl": "kanto"
+              },
+              {
+                "en": "got off",
+                "tl": "bumaba"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "kanto",
+              "bumaba",
+              "para"
+            ],
+            "sentence": "Sa ___ lang po.",
+            "answerIndex": 0,
+            "translation": "Just at the corner, please."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "bumaba",
+              "siya",
+              "sa",
+              "kanto"
+            ],
+            "prompt": "She got off at the corner.",
+            "promptLang": "en",
+            "distractors": [
+              "lang",
+              "po",
+              "kanan"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "trapik",
+            "answers": [
+              "traffic"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "Where are you getting off?",
+                "tl": "Saan po kayo bababa?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Matindi ang trapik.",
+              "Sumakay ako ng jeep kahapon.",
+              "Sa may simbahan po."
+            ],
+            "replyEn": "By the church, please.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "I",
+              "will",
+              "ride",
+              "a",
+              "jeepney"
+            ],
+            "prompt": "Sasakay ako ng jeep.",
+            "alternates": [
+              [
+                "I'll",
+                "ride",
+                "a",
+                "jeepney"
+              ],
+              [
+                "I",
+                "will",
+                "take",
+                "a",
+                "jeepney"
+              ],
+              [
+                "I'll",
+                "take",
+                "a",
+                "jeepney"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "dad's",
+              "car",
+              "is"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Para po!",
+            "translation": "Stop, please!"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Matindi ang trapik ngayon.",
+            "options": [
+              "Dad's car is new.",
+              "The traffic is bad today.",
+              "Just go straight."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "corner",
+            "answers": [
+              "kanto"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Left, right, straight",
+      "exercises": [
+        {
+          "type": "select_picture",
+          "payload": {
+            "labels": [
+              "traffic",
+              "bus",
+              "airplane",
+              "car"
+            ],
+            "prompt": "kotse",
+            "pictures": [
+              "🚦",
+              "🚌",
+              "✈️",
+              "🚗"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "bus",
+            "options": [
+              "car",
+              "bus",
+              "straight ahead",
+              "traffic"
+            ],
+            "promptLang": "tl",
+            "answerIndex": 1
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "listen_select",
+          "payload": {
+            "audio": "eroplano",
+            "options": [
+              "left",
+              "right",
+              "traffic",
+              "airplane"
+            ],
+            "answerIndex": 3
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "match_pairs",
+          "payload": {
+            "pairs": [
+              {
+                "en": "car",
+                "tl": "kotse"
+              },
+              {
+                "en": "bus",
+                "tl": "bus"
+              },
+              {
+                "en": "airplane",
+                "tl": "eroplano"
+              },
+              {
+                "en": "left",
+                "tl": "kaliwa"
+              }
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "options": [
+              "diretso",
+              "para",
+              "eroplano"
+            ],
+            "sentence": "Malaki ang ___.",
+            "answerIndex": 2,
+            "translation": "The airplane is big."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "sa",
+              "kaliwa",
+              "ang",
+              "ospital"
+            ],
+            "prompt": "The hospital is on the left.",
+            "promptLang": "en",
+            "distractors": [
+              "kanan",
+              "simbahan",
+              "matindi"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "kanan",
+            "answers": [
+              "right"
+            ],
+            "promptLang": "tl"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "dialogue",
+          "payload": {
+            "lines": [
+              {
+                "en": "How do I get to the hospital?",
+                "tl": "Paano pumunta sa ospital?",
+                "speaker": "A"
+              }
+            ],
+            "options": [
+              "Bago ang kotse ko.",
+              "Mabagal ang bus.",
+              "Diretso, tapos kumanan ka."
+            ],
+            "replyEn": "Go straight, then turn right.",
+            "answerIndex": 2
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "word_bank",
+          "payload": {
+            "answer": [
+              "dad's",
+              "car",
+              "is",
+              "new"
+            ],
+            "prompt": "Bago ang kotse ni Tatay.",
+            "alternates": [
+              [
+                "father's",
+                "car",
+                "is",
+                "new"
+              ]
+            ],
+            "promptLang": "tl",
+            "distractors": [
+              "the",
+              "hospital",
+              "on"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "speak",
+          "payload": {
+            "text": "Sa kanan ang simbahan.",
+            "translation": "The church is on the right."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "select_translation",
+          "payload": {
+            "prompt": "Diretso lang po.",
+            "options": [
+              "Just go straight.",
+              "The traffic is bad today.",
+              "She got off at the corner."
+            ],
+            "promptLang": "tl",
+            "answerIndex": 0
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        },
+        {
+          "type": "type_translation",
+          "payload": {
+            "prompt": "airplane",
+            "answers": [
+              "eroplano"
+            ],
+            "promptLang": "en"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+        }
+      ]
+    }
+  ]
+}
