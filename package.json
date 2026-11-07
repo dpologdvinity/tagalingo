@@ -22,7 +22,8 @@
     "content:generate": "tsx scripts/generate-content.ts",
     "content:export": "tsx scripts/export-content.ts",
     "postinstall": "prisma generate",
-    "setup": "npm run db:up && prisma migrate deploy && prisma db seed"
+    "setup": "npm run db:up && prisma migrate deploy && prisma db seed",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
