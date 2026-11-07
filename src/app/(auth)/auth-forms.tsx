@@ -3,7 +3,7 @@
  * Login and sign-up forms. Both post to server actions via useActionState, so they also work
  * before JavaScript loads.
  */
-import { useActionState, useEffect, useState } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { demoLoginAction, loginAction, signupAction, type AuthFormState } from "@/app/actions/auth";
 import { Button } from "@/components/ui";
@@ -58,13 +58,14 @@ export function LoginForm() {
 
 export function SignupForm() {
   const [state, action] = useActionState(signupAction, undefined);
-  const [timezone, setTimezone] = useState("UTC");
-  // The browser knows the learner's timezone; streaks are counted in it.
-  useEffect(() => setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"), []);
+  // Streaks are counted in the learner's own timezone, which only the browser knows.
+  const submit = (form: FormData) => {
+    form.set("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    action(form);
+  };
   return (
-    <form action={action} className="space-y-4">
+    <form action={submit} className="space-y-4">
       <ErrorBanner state={state} />
-      <input type="hidden" name="timezone" value={timezone} />
       <label className="block">
         <span className="mb-1 block font-bold">Your name</span>
         <input name="name" autoComplete="given-name" required maxLength={40} defaultValue={state?.fields?.name} className={input} />

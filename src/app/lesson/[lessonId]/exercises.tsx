@@ -21,7 +21,10 @@ function Instruction({ children }: { children: React.ReactNode }) {
 
 function PromptBubble({ text, lang }: { text: string; lang: "tl" | "en" }) {
   return (
-    <p lang={lang === "tl" ? "tl" : "en"} className="inline-block rounded-3xl border-2 border-line bg-surface px-5 py-4 text-xl font-bold sm:text-2xl">
+    <p
+      lang={lang === "tl" ? "tl" : "en"}
+      className="inline-block rounded-3xl border-2 border-line bg-surface px-5 py-4 text-xl font-bold sm:text-2xl"
+    >
       {text}
     </p>
   );
@@ -66,7 +69,9 @@ function Options({
             onClick={() => onSelect(i)}
             lang={lang}
             className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-lg font-bold transition-[transform,box-shadow] active:translate-y-[2px] ${
-              active ? "border-lagoon-bright bg-lagoon-soft text-lagoon shadow-press-lagoon" : "border-line bg-surface shadow-press"
+              active
+                ? "border-lagoon-bright bg-lagoon-soft text-lagoon shadow-press-lagoon"
+                : "border-line bg-surface shadow-press"
             }`}
           >
             <span
@@ -93,7 +98,13 @@ export function SelectTranslation({ exercise, disabled, onChange }: Props<"selec
   const isSentence = exercise.prompt.trim().includes(" ") && /[.?!]$/.test(exercise.prompt.trim());
   return (
     <div className="space-y-6">
-      <Instruction>{isSentence ? "What does this sentence mean?" : exercise.promptLang === "tl" ? "What does this mean?" : `How do you say this in ${langName(target)}?`}</Instruction>
+      <Instruction>
+        {isSentence
+          ? "What does this sentence mean?"
+          : exercise.promptLang === "tl"
+            ? "What does this mean?"
+            : `How do you say this in ${langName(target)}?`}
+      </Instruction>
       <PromptBubble text={exercise.prompt} lang={exercise.promptLang} />
       <Options options={exercise.options} selected={selected} onSelect={select} disabled={disabled} lang={target} />
     </div>
@@ -113,7 +124,9 @@ export function FillBlank({ exercise, disabled, onChange }: Props<"fill_blank">)
       <div className="space-y-2">
         <p lang="tl" className="text-2xl font-bold leading-relaxed">
           {before}
-          <span className={`mx-1 inline-block min-w-24 border-b-4 px-2 text-center ${selected !== null ? "border-lagoon-bright text-lagoon" : "border-line text-transparent"}`}>
+          <span
+            className={`mx-1 inline-block min-w-24 border-b-4 px-2 text-center ${selected !== null ? "border-lagoon-bright text-lagoon" : "border-line text-transparent"}`}
+          >
             {selected !== null ? exercise.options[selected] : "____"}
           </span>
           {after}
@@ -135,7 +148,8 @@ export function WordBank({ exercise, disabled, onChange }: Props<"word_bank">) {
     onChange(next.length ? { tokens: next.map((p) => exercise.tiles[p]) } : null);
   };
   const target = exercise.promptLang === "tl" ? "en" : "tl";
-  const tile = "rounded-xl border-2 border-line bg-surface px-3 py-2 text-lg font-bold shadow-press active:translate-y-[2px] active:shadow-none";
+  const tile =
+    "rounded-xl border-2 border-line bg-surface px-3 py-2 text-lg font-bold shadow-press active:translate-y-[2px] active:shadow-none";
   return (
     <div className="space-y-6">
       <Instruction>Translate into {langName(target)}</Instruction>
@@ -143,7 +157,10 @@ export function WordBank({ exercise, disabled, onChange }: Props<"word_bank">) {
       <div
         aria-label="Your answer"
         className="flex min-h-[7.5rem] flex-wrap content-start gap-2 border-y-2 border-line py-3"
-        style={{ backgroundImage: "linear-gradient(transparent 3.6rem, var(--color-line) 3.6rem, var(--color-line) calc(3.6rem + 2px), transparent calc(3.6rem + 2px))" }}
+        style={{
+          backgroundImage:
+            "linear-gradient(transparent 3.6rem, var(--color-line) 3.6rem, var(--color-line) calc(3.6rem + 2px), transparent calc(3.6rem + 2px))",
+        }}
       >
         {placed.map((i) => (
           <button key={i} type="button" lang={target} disabled={disabled} onClick={() => toggle(i)} className={tile}>
@@ -203,25 +220,53 @@ export function TypeTranslation({ exercise, disabled, onChange }: Props<"type_tr
 }
 
 /** Tap a Tagalog word, then its meaning. Mistakes shake but cost nothing. */
-export function MatchPairs({ exercise, disabled, onSolved }: { exercise: Of<"match_pairs">; disabled: boolean; onSolved: () => void }) {
-  const rights = useMemo(() => shuffle(exercise.pairs.map((p) => p.en), rng(hash(exercise.id + ":r"))), [exercise]);
-  const lefts = useMemo(() => shuffle(exercise.pairs.map((p) => p.tl), rng(hash(exercise.id + ":l"))), [exercise]);
+export function MatchPairs({
+  exercise,
+  disabled,
+  onSolved,
+}: {
+  exercise: Of<"match_pairs">;
+  disabled: boolean;
+  onSolved: () => void;
+}) {
+  const rights = useMemo(
+    () =>
+      shuffle(
+        exercise.pairs.map((p) => p.en),
+        rng(hash(exercise.id + ":r")),
+      ),
+    [exercise],
+  );
+  const lefts = useMemo(
+    () =>
+      shuffle(
+        exercise.pairs.map((p) => p.tl),
+        rng(hash(exercise.id + ":l")),
+      ),
+    [exercise],
+  );
   const [left, setLeft] = useState<string | null>(null);
   const [right, setRight] = useState<string | null>(null);
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [wrong, setWrong] = useState<[string, string] | null>(null);
 
-  useEffect(() => {
-    if (!left || !right) return;
-    const ok = exercise.pairs.some((p) => p.tl === left && p.en === right);
-    if (ok) {
-      const next = new Set(matched).add(left);
-      setMatched(next);
-      if (next.size === exercise.pairs.length) onSolved();
-    } else setWrong([left, right]);
+  /** Select a word on one side; once both sides are chosen, check the pair right away. */
+  const pick = (side: "tl" | "en", value: string) => {
+    const tl = side === "tl" ? value : left;
+    const en = side === "en" ? value : right;
+    if (!tl || !en) {
+      if (side === "tl") setLeft(value);
+      else setRight(value);
+      return;
+    }
     setLeft(null);
     setRight(null);
-  }, [left, right, exercise.pairs, matched, onSolved]);
+    if (exercise.pairs.some((p) => p.tl === tl && p.en === en)) {
+      const next = new Set(matched).add(tl);
+      setMatched(next);
+      if (next.size === exercise.pairs.length) onSolved();
+    } else setWrong([tl, en]);
+  };
 
   useEffect(() => {
     if (!wrong) return;
@@ -253,7 +298,7 @@ export function MatchPairs({ exercise, disabled, onSolved }: { exercise: Of<"mat
               lang="tl"
               disabled={disabled || matched.has(tl)}
               aria-pressed={left === tl}
-              onClick={() => setLeft(tl)}
+              onClick={() => pick("tl", tl)}
               className={cell(left === tl, matched.has(tl), wrong?.[0] === tl)}
             >
               {tl}
@@ -267,7 +312,7 @@ export function MatchPairs({ exercise, disabled, onSolved }: { exercise: Of<"mat
               type="button"
               disabled={disabled || enDone(en)}
               aria-pressed={right === en}
-              onClick={() => setRight(en)}
+              onClick={() => pick("en", en)}
               className={cell(right === en, enDone(en), wrong?.[1] === en)}
             >
               {en}

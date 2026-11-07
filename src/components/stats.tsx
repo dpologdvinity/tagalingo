@@ -3,7 +3,7 @@
  * Learner stat widgets: streak, hearts (with a live refill countdown), XP and the daily-goal ring.
  */
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import type { LearnerStats } from "@/server/learner";
 import { BoltIcon, HeartIcon, SunIcon } from "./icons";
 
@@ -14,20 +14,23 @@ function formatCountdown(ms: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Ticks once per second; refreshes the page data when the next heart arrives. */
+/** A once-per-second clock as an external store (whole seconds, so snapshots are stable). */
+function subscribeToClock(onTick: () => void) {
+  const id = setInterval(onTick, 1000);
+  return () => clearInterval(id);
+}
+const clockSnapshot = () => Math.floor(Date.now() / 1000);
+const serverClockSnapshot = () => null;
+
+/** Live "m:ss" until the next heart; refreshes the page data when it arrives. */
 export function useHeartCountdown(nextHeartAt: string | null) {
   const router = useRouter();
-  const [now, setNow] = useState<number | null>(null);
+  const nowSec = useSyncExternalStore(subscribeToClock, clockSnapshot, serverClockSnapshot);
+  const remaining = nextHeartAt && nowSec !== null ? new Date(nextHeartAt).getTime() - nowSec * 1000 : null;
+  const arrived = remaining !== null && remaining <= 0;
   useEffect(() => {
-    if (!nextHeartAt) return;
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [nextHeartAt]);
-  const remaining = nextHeartAt && now !== null ? new Date(nextHeartAt).getTime() - now : null;
-  useEffect(() => {
-    if (remaining !== null && remaining <= 0) router.refresh();
-  }, [remaining, router]);
+    if (arrived) router.refresh();
+  }, [arrived, router]);
   return remaining === null ? null : formatCountdown(remaining);
 }
 

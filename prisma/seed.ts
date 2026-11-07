@@ -74,6 +74,7 @@ async function seedDemoLearner(now: Date, timezone: string) {
       hearts: 4,
       heartsUpdatedAt: new Date(now.getTime() - 12 * 60_000), // next heart in ~18 min
       avatarHue: 175,
+      createdAt: new Date(now.getTime() - 60 * DAY), // history below goes back 41 days
     },
   });
 
@@ -135,6 +136,7 @@ async function seedRivals(now: Date) {
         avatarHue: (i * 47) % 360,
         dailyGoalXp: [10, 20, 30, 50][i % 4],
         timezone: "Asia/Manila",
+        createdAt: new Date(now.getTime() - between(20, 400) * DAY),
       },
     });
     // Weekly XP between ~10 and ~420, skewed so a few people lead.

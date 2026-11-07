@@ -8,19 +8,42 @@ import { StubGenerator } from "../src/lib/content/generators/stub";
 const course = loadCourseFile(path.resolve("content/tagalog/course.yaml"));
 const only = process.argv.slice(2);
 (async () => {
-for (const u of course.units) for (const s of u.skills) {
-  if (only.length && !only.includes(s.slug)) continue;
-  for (let i = 0; i < s.lessons.length; i++) {
-    const { exercises } = await new StubGenerator().generate(lessonRequest(s, i));
-    console.log(`\n## ${s.slug} L${i+1}`);
-    for (const e of exercises) {
-      const p = e.payload as any; // eslint-disable-line @typescript-eslint/no-explicit-any -- debug printer
-      switch (e.type) {
-        case "select_translation": case "fill_blank": console.log(e.type.slice(0,6), p.prompt ?? p.sentence, "|", p.options.map((o: string, j: number) => j === p.answerIndex ? `*${o}*` : o).join(" / ")); break;
-        case "word_bank": console.log("wbank ", p.prompt, "|", p.answer.join(" "), "| alt:", (p.alternates||[]).map((a: string[]) => a.join(" ")).join(" ; "), "| x:", p.distractors.join(",")); break;
-        case "match_pairs": console.log("match ", p.pairs.map((x: any) => `${x.tl}=${x.en}`).join(", ")); break;
-        case "type_translation": console.log("type  ", p.prompt, "→", p.answers.join(" | ")); break;
+  for (const u of course.units)
+    for (const s of u.skills) {
+      if (only.length && !only.includes(s.slug)) continue;
+      for (let i = 0; i < s.lessons.length; i++) {
+        const { exercises } = await new StubGenerator().generate(lessonRequest(s, i));
+        console.log(`\n## ${s.slug} L${i + 1}`);
+        for (const e of exercises) {
+          const mark = (options: string[], answer: number) =>
+            options.map((o, j) => (j === answer ? `*${o}*` : o)).join(" / ");
+          switch (e.type) {
+            case "select_translation":
+              console.log("select", e.payload.prompt, "|", mark(e.payload.options, e.payload.answerIndex));
+              break;
+            case "fill_blank":
+              console.log("fill_b", e.payload.sentence, "|", mark(e.payload.options, e.payload.answerIndex));
+              break;
+            case "word_bank":
+              console.log(
+                "wbank ",
+                e.payload.prompt,
+                "|",
+                e.payload.answer.join(" "),
+                "| alt:",
+                (e.payload.alternates ?? []).map((a) => a.join(" ")).join(" ; "),
+                "| x:",
+                e.payload.distractors.join(","),
+              );
+              break;
+            case "match_pairs":
+              console.log("match ", e.payload.pairs.map((x) => `${x.tl}=${x.en}`).join(", "));
+              break;
+            case "type_translation":
+              console.log("type  ", e.payload.prompt, "→", e.payload.answers.join(" | "));
+              break;
+          }
+        }
       }
     }
-  }
-}})();
+})();

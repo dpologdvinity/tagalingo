@@ -10,12 +10,11 @@ import { ButtonLink } from "@/components/ui";
 
 /** Counts up to `to` once, unless the learner prefers reduced motion. */
 function useCountUp(to: number, ms = 900) {
-  const [value, setValue] = useState(0);
+  // Only ever rendered client-side (after a lesson ends), so reading matchMedia here is safe.
+  const [reduced] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [value, setValue] = useState(() => (reduced ? to : 0));
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setValue(to);
-      return;
-    }
+    if (reduced) return;
     const start = performance.now();
     let frame = 0;
     const tick = (t: number) => {
@@ -25,8 +24,8 @@ function useCountUp(to: number, ms = 900) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [to, ms]);
-  return value;
+  }, [to, ms, reduced]);
+  return reduced ? to : value;
 }
 
 export function LessonResults({ result, total }: { result: LessonResult; total: number }) {
