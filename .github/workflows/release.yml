@@ -1,0 +1,22 @@
+# Draft a GitHub release when a version tag (v*) is pushed. The release notes are generated from
+# commits since the previous tag; publish the draft by hand once you've checked it.
+# Deployment itself is handled by the hosting provider's Git integration (see README).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true

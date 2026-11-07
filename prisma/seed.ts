@@ -8,6 +8,9 @@
  *     other learners so the weekly leaderboard looks alive.
  *
  * Demo login: demo@tagalingo.app / tagalingo-demo
+ *
+ * SEED_DEMO_DATA=false  → course content only, no demo learners (for a real deployment).
+ * Seeding wipes the database, so it refuses to run when real accounts exist (SEED_FORCE=1 overrides).
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
@@ -209,16 +212,33 @@ async function seedRivals(now: Date) {
   }
 }
 
+/** Refuse to wipe a database that holds real learners, unless explicitly forced. */
+async function assertSafeToWipe() {
+  const real = await prisma.user.count({
+    where: {
+      NOT: [{ email: DEMO_EMAIL }, { email: { endsWith: "@example.com" } }, { email: { endsWith: "@example.test" } }],
+    },
+  });
+  if (real > 0 && process.env.SEED_FORCE !== "1") {
+    throw new Error(
+      `Refusing to seed: the database has ${real} real account(s) and seeding wipes everything. ` +
+        "Set SEED_FORCE=1 if you really mean it.",
+    );
+  }
+}
+
 async function main() {
   const now = new Date();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const withDemo = process.env.SEED_DEMO_DATA !== "false";
   const course = loadCourseFile(COURSE_FILE);
 
+  await assertSafeToWipe();
   await wipe();
   await syncCourseStructure(prisma, course);
 
-  const demo = await seedDemoLearner(now, timezone);
-  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR, demo.id);
+  const demo = withDemo ? await seedDemoLearner(now, timezone) : null;
+  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR, demo?.id);
 
   // Anything without reviewed content starts life as stub drafts in the Studio review queue.
   const stub = new StubGenerator();
@@ -231,11 +251,15 @@ async function main() {
     }
   }
 
-  await seedRivals(now);
+  if (withDemo) await seedRivals(now);
 
   const approved = await prisma.exercise.count({ where: { status: "APPROVED" } });
   console.log(`Seeded: ${approved} approved exercises (${reviewed.size} skills), ${drafts} drafts awaiting review.`);
-  console.log(`Demo login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+  if (withDemo) console.log(`Demo login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+  else
+    console.log(
+      "Content only (SEED_DEMO_DATA=false). Make yourself a reviewer: npm run user:make-reviewer -- --email you@example.org",
+    );
 }
 
 main()

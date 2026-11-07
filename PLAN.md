@@ -19,21 +19,26 @@ on a fresh machine with no third-party accounts.
 
 ## Brand
 
-| Token      | Value                 | Use                               |
-| ---------- | --------------------- | --------------------------------- |
-| Lagoon     | `#0B6E75` / `#13A3A9` | primary, buttons, correct answers |
-| Mango      | `#FFB627`             | XP, streak sun, highlights        |
-| Gumamela   | `#EF4E5A`             | hearts, wrong answers             |
-| Sampaguita | `#FFF8EC`             | page background                   |
-| Ink        | `#1E2742`             | text                              |
+| Token    | Value                 | Use                                     |
+| -------- | --------------------- | --------------------------------------- |
+| Seaglass | `#EEF5F4`             | page background (cool, not cream)       |
+| Lagoon   | `#0B6E75` / `#13A3A9` | primary, buttons, correct answers       |
+| Mango    | `#FFB627`             | XP, streak sun, completed stops         |
+| Gumamela | `#E5484D`             | hearts, wrong answers                   |
+| Ink      | `#17233B`             | text (deep navy rather than near-black) |
 
-Fonts: **Fredoka** for headings and **Figtree** for body text. Copy mixes in small bits of
-Tagalog: _Tara na!_ ("Let's go!"), _Magaling!_ ("Great job!"), and _Barkada League_ (barkada
-means friend group).
+Fonts: **Lilita One** (bold condensed, in the spirit of jeepney sign painting) for headings only
+and **Atkinson Hyperlegible** for everything else, chosen so learners can tell apart letters
+and diacritics in an unfamiliar language. The one bold visual idea is the skill path drawn as a
+jeepney route: each unit opens with a painted route placard and skills are stops along a
+winding road. Copy mixes in small bits of Tagalog: _Tara na!_ ("Let's go!"), _Magaling!_
+("Great job!"), and _Barkada League_ (barkada means friend group).
 
 ## Stack
 
 - **Next.js 16** with the App Router, TypeScript (strict) and Tailwind v4.
+- **Next.js 16 notes:** `proxy.ts` (formerly middleware) does a cheap session check, and
+  `cacheComponents` is off because every screen is per-learner and dynamic.
 - **Postgres 17** through **Prisma 7** (`prisma-client` generator plus the `@prisma/adapter-pg`
   driver adapter). Local dev uses `docker compose`.
 - **Auth.js v5** with an email/password Credentials provider, JWT sessions, and bcrypt hashes.
