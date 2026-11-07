@@ -17,7 +17,7 @@ import { gradeAnswer } from "@/lib/game/grading";
 import { liveHearts, loseHeart } from "@/lib/game/hearts";
 import { applyLessonToStreak, dayKey } from "@/lib/game/streak";
 import { xpForLesson, type XpAward } from "@/lib/game/xp";
-import type { User } from "@/generated/prisma/client";
+import type { Prisma, User } from "@/generated/prisma/client";
 import { canPlayLesson } from "./course";
 
 export class LessonError extends Error {
@@ -28,6 +28,15 @@ export class LessonError extends Error {
     super(message);
     this.name = "LessonError";
   }
+}
+
+/**
+ * Serialise game-state writes for one learner: lock their User row for the rest of the
+ * transaction. Without this, two concurrent wrong answers could both read 5 hearts and both
+ * write 4, or two simultaneous completions could both claim the first-time bonus.
+ */
+async function lockLearner(tx: Prisma.TransactionClient, userId: string) {
+  await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
 }
 
 export type LessonForPlay = {
@@ -88,6 +97,7 @@ export async function submitAnswer(
   now = new Date(),
 ): Promise<AnswerFeedback> {
   return db.$transaction(async (tx) => {
+    await lockLearner(tx, userId);
     const attempt = await tx.lessonAttempt.findFirst({ where: { id: attemptId, userId }, include: { user: true } });
     if (!attempt || attempt.status !== "IN_PROGRESS")
       throw new LessonError("not_in_progress", "This lesson attempt is over");
@@ -138,20 +148,30 @@ export type LessonResult = {
 
 export async function completeAttempt(userId: string, attemptId: string, now = new Date()): Promise<LessonResult> {
   return db.$transaction(async (tx) => {
+    await lockLearner(tx, userId);
     const attempt = await tx.lessonAttempt.findFirst({ where: { id: attemptId, userId }, include: { user: true } });
     if (!attempt || attempt.status !== "IN_PROGRESS")
       throw new LessonError("not_in_progress", "This lesson attempt is over");
     const user = attempt.user;
 
-    // Every approved exercise must have been answered correctly at least once in this attempt.
-    const [required, correct] = await Promise.all([
-      tx.exercise.findMany({ where: { lessonId: attempt.lessonId, status: "APPROVED" }, select: { id: true } }),
+    // Every exercise the learner was served must have been answered correctly at least once:
+    // approved and valid when the attempt started. Content approved mid-lesson isn't required.
+    const [candidates, correct] = await Promise.all([
+      tx.exercise.findMany({
+        where: {
+          lessonId: attempt.lessonId,
+          status: "APPROVED",
+          OR: [{ reviewedAt: { lte: attempt.startedAt } }, { reviewedAt: null, createdAt: { lte: attempt.startedAt } }],
+        },
+        select: { id: true, type: true, payload: true },
+      }),
       tx.attemptAnswer.findMany({
         where: { attemptId, correct: true },
         select: { exerciseId: true },
         distinct: ["exerciseId"],
       }),
     ]);
+    const required = candidates.filter((e) => safeParseExercise(e.type as ExerciseType, e.payload));
     const done = new Set(correct.map((c) => c.exerciseId));
     if (required.some((r) => !done.has(r.id)))
       throw new LessonError("incomplete", "Some exercises are not finished yet");

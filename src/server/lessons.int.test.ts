@@ -157,6 +157,56 @@ describe("lesson loop", () => {
   });
 });
 
+describe("concurrency and content changes", () => {
+  it("charges every heart when wrong answers arrive at the same time", async () => {
+    await db.user.update({ where: { id: user.id }, data: { hearts: 2, heartsUpdatedAt: new Date() } });
+    const u = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    const [first] = await firstLessons();
+    const a = await startAttempt(u, first.id);
+    const b = await startAttempt(u, first.id);
+    const target = (await lessonExercises(first.id)).find((e) => e.ex.type !== "match_pairs")!;
+    await Promise.all([
+      submitAnswer(u.id, a.attemptId, target.id, wrongAnswer(target.ex)),
+      submitAnswer(u.id, b.attemptId, target.id, wrongAnswer(target.ex)),
+    ]);
+    expect((await db.user.findUniqueOrThrow({ where: { id: user.id } })).hearts).toBe(0);
+  });
+
+  it("awards the first-time bonus once when two attempts finish at the same time", async () => {
+    const [first] = await firstLessons();
+    const attempts = [await startAttempt(user, first.id), await startAttempt(user, first.id)];
+    for (const { attemptId } of attempts)
+      for (const { id, ex } of await lessonExercises(first.id)) await submitAnswer(user.id, attemptId, id, correctAnswer(ex));
+    const results = await Promise.allSettled(attempts.map((a) => completeAttempt(user.id, a.attemptId)));
+    expect(results.map((r) => r.status)).toEqual(["fulfilled", "fulfilled"]);
+    // 20 (base + perfect + first time) + 15 (base + perfect)
+    expect((await db.user.findUniqueOrThrow({ where: { id: user.id } })).totalXp).toBe(35);
+  });
+
+  it("lets a learner finish even if an exercise is approved while they're mid-lesson", async () => {
+    const [first] = await firstLessons();
+    const { attemptId } = await startAttempt(user, first.id);
+    const original = await lessonExercises(first.id);
+    const added = await db.exercise.create({
+      data: {
+        lessonId: first.id,
+        order: 999,
+        type: "type_translation",
+        payload: { prompt: "salamat", promptLang: "tl", answers: ["thank you"] },
+        status: "APPROVED",
+        source: "HUMAN",
+        reviewedAt: new Date(Date.now() + 1000),
+      },
+    });
+    try {
+      for (const { id, ex } of original) await submitAnswer(user.id, attemptId, id, correctAnswer(ex));
+      await expect(completeAttempt(user.id, attemptId)).resolves.toMatchObject({ mistakes: 0 });
+    } finally {
+      await db.exercise.delete({ where: { id: added.id } });
+    }
+  });
+});
+
 describe("weekly leaderboard", () => {
   it("ranks learners by XP earned this week and includes the viewer", async () => {
     const [first] = await firstLessons();

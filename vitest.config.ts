@@ -2,7 +2,7 @@
  * Vitest config: unit tests for pure game logic, content validation and generators.
  * End-to-end tests live in /e2e and run with Playwright instead.
  */
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import path from "node:path";
 
 export default defineConfig({
@@ -11,6 +11,8 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.test.ts"],
+    // Integration tests need Postgres and have their own config (vitest.integration.config.ts).
+    exclude: [...configDefaults.exclude, "src/**/*.int.test.ts"],
     environment: "node",
     coverage: {
       provider: "v8",
