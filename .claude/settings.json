@@ -1,8 +1,0 @@
-{
-  "enabledPlugins": {
-    "frontend-design@anthropic-plugin-directory": true,
-    "lang-tutor@lang-tutor-marketplace": true,
-    "expo@anthropic-plugin-directory": true,
-    "prisma@anthropic-plugin-directory": true
-  }
-}
