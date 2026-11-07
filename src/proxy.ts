@@ -3,9 +3,16 @@
  * Uses the DB-free Auth.js config; pages re-check the session against the database.
  */
 import NextAuth from "next-auth";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { authConfig } from "./auth.config";
 
-export const { auth: proxy } = NextAuth(authConfig);
+const { auth } = NextAuth(authConfig);
+// `authorized` in authConfig decides; this wrapper only runs it.
+const gate = auth(() => undefined);
+
+export function proxy(request: NextRequest, event: NextFetchEvent) {
+  return gate(request, event as never);
+}
 
 export const config = {
   // Skip API routes, Next internals and static files.

@@ -24,7 +24,7 @@ course:
 units:
   - slug: unang-hakbang
     title: Unang Hakbang
-    subtitle: First steps — say hello, introduce people, order food
+    subtitle: Say hello, introduce people and order food.
     color: "#13A3A9"
     skills:
       - slug: pagbati
@@ -115,7 +115,7 @@ units:
 
   - slug: sa-bayan
     title: Sa Bayan
-    subtitle: Around town — count, find places, talk about time
+    subtitle: Count, find your way around town and talk about time.
     color: "#E07A1F"
     skills:
       - slug: mga-numero
@@ -185,7 +185,7 @@ units:
 
   - slug: sa-palengke
     title: Sa Palengke
-    subtitle: At the market — prices, colours and haggling
+    subtitle: Ask prices, pay at the market and name colours.
     color: "#C2417A"
     skills:
       - slug: pamimili

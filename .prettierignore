@@ -1,0 +1,7 @@
+src/generated/
+.next/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+content/tagalog/exercises/

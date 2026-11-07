@@ -21,9 +21,9 @@ import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
 import { weekStartUtc } from "../src/lib/game/league";
 import { addDays, dayKey } from "../src/lib/game/streak";
 import { hash, rng } from "../src/lib/random";
+import { DEMO_ACCOUNT } from "../src/lib/demo";
 
-export const DEMO_EMAIL = "demo@tagalingo.app";
-export const DEMO_PASSWORD = "tagalingo-demo";
+const { email: DEMO_EMAIL, password: DEMO_PASSWORD } = DEMO_ACCOUNT;
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }),
