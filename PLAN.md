@@ -152,3 +152,43 @@ The layout has a left sidebar on desktop and a bottom tab bar on mobile.
 - Multiple courses and localising the UI.
 - Offline/PWA support and native apps.
 - An admin UI for editing course structure; that's done in `course.yaml`.
+
+## Version 1.1: richer lessons (in progress)
+
+**Request:** match the kinds of lesson activities that apps like Ling and Rosetta Stone offer. Only
+the activity types are matched. All sentences, dialogues, tips and pictures are written from
+scratch for Tagalingo, and nothing is copied from those products.
+
+| Activity              | How Tagalingo does it                                                                                                                   |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Listening             | New `listen_select` exercise: hear a Tagalog phrase, pick its meaning. Speaker buttons on Tagalog text throughout.                      |
+| Picture matching      | New `select_picture` exercise: see a Tagalog word, pick the right picture (emoji, so no image licensing).                               |
+| Speaking              | New `speak` exercise: say a sentence, graded on the speech-recognition transcript. "Can't speak now" always works and costs nothing.    |
+| Dialogues / role play | New `dialogue` exercise: read a short conversation and choose the next line. Dialogues are hand-written per skill in `course.yaml`.     |
+| Grammar notes         | A tips page per skill (`tips` in `course.yaml`), linked from the path.                                                                  |
+| Pronunciation intro   | A "Sounds of Tagalog" guide page.                                                                                                       |
+| Flashcards            | A words page per skill with flip cards and audio.                                                                                       |
+| Review / milestone    | Practice sessions per skill or per unit, drawn from approved exercises. Practice earns XP, counts for the streak and wins back a heart. |
+| Chatbot               | "Chat with Tala": Claude behind a `ChatTutor` interface, with a scripted offline stub.                                                  |
+
+**Audio** goes through a `SpeechProvider` interface. With `GOOGLE_TTS_API_KEY` set it uses Google
+Cloud Text-to-Speech (fil-PH voices). Otherwise it falls back to the browser's built-in speech,
+and if the device has no Filipino voice, the text is shown instead. **Speech recognition** uses
+the browser's Web Speech API (Chrome and Edge support Filipino). Where it isn't available, the
+speaking exercise offers only "Can't speak now".
+
+**Data model changes:**
+
+- The `ExerciseType` enum gains `listen_select`, `select_picture`, `speak` and `dialogue`.
+- `LessonAttempt` gains `kind` (LESSON | PRACTICE), an optional `skillId`/`unitId` scope, and
+  `exerciseIds`, a snapshot of exactly what was served. Completion requires exactly that
+  snapshot, which also replaces the "approved before start" check.
+
+**Rules:**
+
+- `speak` and `match_pairs` never cost hearts.
+- Practice never costs hearts and works at 0 hearts.
+- Finishing a practice session gives 5 XP (+5 if perfect) and restores one heart.
+
+**Out of scope for 1.1:** finger tracing, which suits non-Latin scripts and isn't needed for
+Tagalog, and human-recorded audio.
