@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "expo@anthropic-plugin-directory": true,
+    "fe-rail@anthropic-plugin-directory": true,
+    "frontend-design@anthropic-plugin-directory": true,
+    "lang-tutor@lang-tutor-marketplace": true,
+    "playwright@anthropic-plugin-directory": true,
+    "prisma@anthropic-plugin-directory": true,
+    "supabase@anthropic-plugin-directory": true,
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "lang-tutor-marketplace": {
+      "source": { "source": "github", "repo": "hamsamilton/lang-tutor" }
+    }
+  }
+}

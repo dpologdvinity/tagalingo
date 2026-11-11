@@ -47,3 +47,10 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /coverage/
+
+# agent tooling: personal overrides and scratch output (see AGENTS.md)
+.claude/settings.local.json
+*.local.json
+.playwright-mcp/
+screenshots/
+e2e/.scratch/
