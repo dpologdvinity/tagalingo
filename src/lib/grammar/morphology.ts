@@ -211,9 +211,10 @@ const RULES: Record<Affix, (verb: VerbEntry) => FormTable> = {
       contemplated: [reduplicated],
     };
   },
-  // i- + -in-: ibinigay; vowel- and l/y-initial roots take ini- (iniabot, inilagay).
+  // i- + -in-: ibinigay; vowel-, h- and l/y-initial roots take ini- (iniabot, inihanda, inilagay),
+  // not the infix (ihinanda is non-standard).
   i: ({ root }) => {
-    const realis = (word: string) => `i${isVowel(word[0]) ? `ni${word}` : infixIn(word)}`;
+    const realis = (word: string) => `i${isVowel(word[0]) || word.startsWith("h") ? `ni${word}` : infixIn(word)}`;
     return {
       infinitive: [`i${root}`],
       completed: [realis(root)],

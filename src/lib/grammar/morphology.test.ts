@@ -144,13 +144,15 @@ const EDGE_CASES: [VerbEntry, Affix, FormTable][] = [
   [verb("tahi"), "mang", table("manahi", "nanahi", "nananahi", "mananahi")],
   // Consonants that keep their place after the nasal: l (man-), h (mang-).
   [verb("loko"), "mang", table("manloko", "nanloko", "nanloloko", "manloloko")],
-  [verb("huli", { glottal: true }), "mang", table("manghuli", "nanghuli", "nanghuhuli", "manghuhuli")],
+  [verb("huli"), "mang", table("manghuli", "nanghuli", "nanghuhuli", "manghuhuli")],
   // ipang- assimilates the nasal but keeps the root's first consonant.
   [verb("bili"), "ipang", table("ipambili", "ipinambili", "ipinambibili", "ipambibili")],
   [verb("sulat"), "ipang", table("ipansulat", "ipinansulat", "ipinansusulat", "ipansusulat")],
-  // i- with vowel- or l-initial roots: ini- + root.
+  // i- with vowel-, l- or h-initial roots: ini- + root.
   [verb("abot"), "i", table("iabot", "iniabot", "iniaabot", "iaabot")],
   [verb("lagay"), "i", table("ilagay", "inilagay", "inilalagay", "ilalagay")],
+  [verb("handa"), "i", table("ihanda", "inihanda", "inihahanda", "ihahanda")],
+  [verb("hatid"), "i", table("ihatid", "inihatid", "inihahatid", "ihahatid")],
   // maka- variants: formal CV reduplication of the root, colloquial reduplication of ka-.
   [
     luto,
