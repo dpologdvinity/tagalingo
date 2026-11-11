@@ -68,7 +68,7 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
 - **Chat:** `ChatTutor` (`src/lib/chat/tutor.ts`): `ClaudeTutor` (forced tool call → reply,
   translation, optional correction and hint) or the offline `StubTutor`. The conversation stays in
   the browser; the server action only sees the last 12 turns.
-- **Content:** `course.yaml` also holds emoji pictures, hand-written dialogues (with wrong
+- **Content:** `course.yaml` also holds emoji pictures (flashcard decoration only), hand-written dialogues (with wrong
   replies) and tips. They're synced into `Word.pic`, `Skill.dialogues` and `Skill.tips`.
 
 ## Time-based rules
@@ -88,7 +88,7 @@ content/tagalog/course.yaml ─► ExerciseGenerator ─► DRAFT rows ─► /s
 
 - `ExerciseGenerator` is the only interface to a paid service. `ClaudeGenerator` forces a tool
   call whose JSON schema is derived from the zod schemas, then re-validates each item;
-  `StubGenerator` builds the same five exercise types from the word list with ambiguity guards
+  `StubGenerator` builds every exercise type from the word list with ambiguity guards
   (no synonym distractors, different-POS fill-in-the-blank options, all synonyms accepted).
 - `selectGenerator()` picks Claude when `ANTHROPIC_API_KEY` is set, otherwise the stub.
 - Only `APPROVED` exercises are ever served. A lesson with none blocks the path ("in review").

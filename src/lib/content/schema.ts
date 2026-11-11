@@ -18,7 +18,6 @@ export const EXERCISE_TYPES = [
   "fill_blank",
   "type_translation",
   "listen_select",
-  "select_picture",
   "speak",
   "dialogue",
 ] as const;
@@ -95,23 +94,6 @@ const listenSelect = z
     path: ["answerIndex"],
   });
 
-/** See a Tagalog word, pick the matching picture (emoji). `labels` are the English names, for feedback. */
-const selectPicture = z
-  .object({
-    prompt: text,
-    pictures: z.array(text).min(2).max(4),
-    labels: z.array(text).min(2).max(4),
-    answerIndex: z.number().int().min(0),
-  })
-  .refine((p) => p.labels.length === p.pictures.length, {
-    message: "labels must have one entry per picture",
-    path: ["labels"],
-  })
-  .refine((p) => p.answerIndex < p.pictures.length, {
-    message: "answerIndex must point at one of the pictures",
-    path: ["answerIndex"],
-  });
-
 /** Say a Tagalog sentence aloud; graded on the speech-recognition transcript. */
 const speak = z.object({
   text: text,
@@ -142,7 +124,6 @@ export const payloadSchemas = {
   fill_blank: fillBlank,
   type_translation: typeTranslation,
   listen_select: listenSelect,
-  select_picture: selectPicture,
   speak,
   dialogue,
 } as const;
@@ -223,13 +204,6 @@ export function lintExercise(ex: ParsedExercise): string[] {
     case "type_translation": {
       const d = duplicates(ex.payload.answers);
       if (d.length) warnings.push(`Duplicate accepted answers: ${d.join(", ")}`);
-      break;
-    }
-    case "select_picture": {
-      const d = duplicates(ex.payload.pictures);
-      if (d.length) warnings.push(`Duplicate pictures: ${d.join(" ")}`);
-      if (duplicates(ex.payload.labels).length)
-        warnings.push("Duplicate picture labels: two pictures mean the same thing.");
       break;
     }
     case "speak": {

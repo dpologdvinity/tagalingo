@@ -19,7 +19,7 @@ const wordSchema = z.object({
   note: text.optional(),
   ex: z.tuple([text, text]),
   exAccept: z.array(text).default([]),
-  /** Optional emoji picture for picture-matching exercises (concrete words only). */
+  /** Optional emoji shown beside the word on flashcards and word lists (never quizzed on its own). */
   pic: text.optional(),
 });
 

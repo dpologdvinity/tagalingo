@@ -30,19 +30,6 @@ describe("StubGenerator", () => {
     }
   });
 
-  it("adds a picture exercise when a lesson word has a picture", async () => {
-    for (const req of allRequests) {
-      if (!req.words.some((w) => w.pic)) continue;
-      const pics = (await stub.generate(req)).exercises.filter((e) => e.type === "select_picture");
-      expect(pics.length, req.lesson.title).toBe(1);
-      const [ex] = pics;
-      if (ex.type !== "select_picture") continue;
-      expect(new Set(ex.payload.pictures).size).toBe(ex.payload.pictures.length);
-      const answerWord = req.allWords.find((w) => w.tl === ex.payload.prompt)!;
-      expect(ex.payload.pictures[ex.payload.answerIndex]).toBe(answerWord.pic);
-    }
-  });
-
   it("turns each lesson's dialogue into a pick-the-reply exercise with the authored wrong replies", async () => {
     for (const req of allRequests) {
       for (const d of req.dialogues) {
@@ -61,7 +48,6 @@ describe("StubGenerator", () => {
     for (const req of allRequests) {
       const targets: string[] = [];
       for (const ex of (await stub.generate(req)).exercises) {
-        if (ex.type === "select_picture") targets.push(ex.payload.prompt);
         if (ex.type === "listen_select") targets.push(ex.payload.audio);
         if (ex.type === "select_translation" && !ex.payload.prompt.includes(" ")) targets.push(ex.payload.prompt);
       }

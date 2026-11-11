@@ -25,10 +25,10 @@ the built-in content Studio before learners ever see it.
 
 ### Added in 1.1: richer lessons
 
-- **Nine exercise types:** the five above plus **listening** (hear it, pick the meaning),
-  **pictures** (pick the emoji that matches the word), **speaking** (graded by speech
-  recognition, with a no-penalty "Can't speak now") and **dialogues** (choose the next line of
-  a conversation).
+- **Eight exercise types:** the five above plus **listening** (hear it, pick the meaning),
+  **speaking** (graded by speech recognition, with a no-penalty "Can't speak now") and
+  **dialogues** (choose the next line of a conversation). There is no picture exercise: emoji
+  can be read more than one way, so they only decorate flashcards, next to the meaning.
 - **Audio everywhere:** speaker buttons on Tagalog text. Google Cloud TTS is used if
   `GOOGLE_TTS_API_KEY` is set; otherwise the browser's own Filipino voice, or the text is shown.
 - **Practice:** review any finished skill, or a whole unit. It works with 0 hearts, never costs
@@ -132,7 +132,7 @@ and pull request to `master`. Pushing a `v*` tag drafts a GitHub release.
 
 ## Content status
 
-The shipped exercises for Units 1–3 (249 of them), plus the dialogues, tips and pronunciation
+The shipped exercises for Units 1–3 (227 of them), plus the dialogues, tips and pronunciation
 guide, were written or generated during the build and reviewed by Claude only. **They still need
 a review by a native Tagalog speaker.** Unit 4 (Sa Palengke) is left as drafts on purpose so the
 Studio review queue has real work in it. All lesson content is original to Tagalingo.

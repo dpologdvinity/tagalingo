@@ -19,7 +19,6 @@ import {
   FillBlank,
   ListenSelect,
   MatchPairs,
-  SelectPicture,
   SelectTranslation,
   Speak,
   TypeTranslation,
@@ -213,9 +212,6 @@ export function LessonPlayer({
             )}
             {current.type === "listen_select" && (
               <ListenSelect exercise={current} disabled={locked} onChange={setAnswer} />
-            )}
-            {current.type === "select_picture" && (
-              <SelectPicture exercise={current} disabled={locked} onChange={setAnswer} />
             )}
             {current.type === "speak" && (
               <Speak exercise={current} disabled={locked} onChange={setAnswer} onSubmit={(a) => void submit(a)} />

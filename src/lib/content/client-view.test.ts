@@ -80,17 +80,6 @@ describe("toClientExercise: v1.1 types", () => {
     );
     expect(listen).toEqual({ id: "l", type: "listen_select", audio: "Salamat.", options: ["Thanks.", "Bye."] });
 
-    const pic = toClientExercise(
-      "p",
-      parseExercise("select_picture", {
-        prompt: "isda",
-        pictures: ["🐟", "🍚"],
-        labels: ["fish", "rice"],
-        answerIndex: 0,
-      }),
-    );
-    expect(pic).toEqual({ id: "p", type: "select_picture", prompt: "isda", pictures: ["🐟", "🍚"] });
-
     const dialogue = toClientExercise(
       "d",
       parseExercise("dialogue", {

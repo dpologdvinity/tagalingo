@@ -156,20 +156,20 @@ The layout has a left sidebar on desktop and a bottom tab bar on mobile.
 ## Version 1.1: richer lessons (done)
 
 **Request:** match the kinds of lesson activities that apps like Ling and Rosetta Stone offer. Only
-the activity types are matched. All sentences, dialogues, tips and pictures are written from
+the activity types are matched. All sentences, dialogues and tips are written from
 scratch for Tagalingo, and nothing is copied from those products.
 
-| Activity              | How Tagalingo does it                                                                                                                   |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Listening             | New `listen_select` exercise: hear a Tagalog phrase, pick its meaning. Speaker buttons on Tagalog text throughout.                      |
-| Picture matching      | New `select_picture` exercise: see a Tagalog word, pick the right picture (emoji, so no image licensing).                               |
-| Speaking              | New `speak` exercise: say a sentence, graded on the speech-recognition transcript. "Can't speak now" always works and costs nothing.    |
-| Dialogues / role play | New `dialogue` exercise: read a short conversation and choose the next line. Dialogues are hand-written per skill in `course.yaml`.     |
-| Grammar notes         | A tips page per skill (`tips` in `course.yaml`), linked from the path.                                                                  |
-| Pronunciation intro   | A "Sounds of Tagalog" guide page.                                                                                                       |
-| Flashcards            | A words page per skill with flip cards and audio.                                                                                       |
-| Review / milestone    | Practice sessions per skill or per unit, drawn from approved exercises. Practice earns XP, counts for the streak and wins back a heart. |
-| Chatbot               | "Chat with Tala": Claude behind a `ChatTutor` interface, with a scripted offline stub.                                                  |
+| Activity              | How Tagalingo does it                                                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Listening             | New `listen_select` exercise: hear a Tagalog phrase, pick its meaning. Speaker buttons on Tagalog text throughout.                        |
+| Picture matching      | Dropped after 1.1 shipped: emoji are open to interpretation (🌙 "good evening" or "night"?). Emoji stay on flashcards beside the meaning. |
+| Speaking              | New `speak` exercise: say a sentence, graded on the speech-recognition transcript. "Can't speak now" always works and costs nothing.      |
+| Dialogues / role play | New `dialogue` exercise: read a short conversation and choose the next line. Dialogues are hand-written per skill in `course.yaml`.       |
+| Grammar notes         | A tips page per skill (`tips` in `course.yaml`), linked from the path.                                                                    |
+| Pronunciation intro   | A "Sounds of Tagalog" guide page.                                                                                                         |
+| Flashcards            | A words page per skill with flip cards and audio.                                                                                         |
+| Review / milestone    | Practice sessions per skill or per unit, drawn from approved exercises. Practice earns XP, counts for the streak and wins back a heart.   |
+| Chatbot               | "Chat with Tala": Claude behind a `ChatTutor` interface, with a scripted offline stub.                                                    |
 
 **Audio** goes through a `SpeechProvider` interface. With `GOOGLE_TTS_API_KEY` set it uses Google
 Cloud Text-to-Speech (fil-PH voices). Otherwise it falls back to the browser's built-in speech,
@@ -179,7 +179,8 @@ speaking exercise offers only "Can't speak now".
 
 **Data model changes:**
 
-- The `ExerciseType` enum gains `listen_select`, `select_picture`, `speak` and `dialogue`.
+- The `ExerciseType` enum gains `listen_select`, `speak` and `dialogue` (`select_picture` was
+  added and later removed by the `drop_picture_exercises` migration).
 - `LessonAttempt` gains `kind` (LESSON | PRACTICE), an optional `skillId`/`unitId` scope, and
   `exerciseIds`, a snapshot of exactly what was served. Completion requires exactly that
   snapshot, which also replaces the "approved before start" check.

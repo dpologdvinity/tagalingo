@@ -103,10 +103,6 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
         correct: choiceOf(answer) === ex.payload.answerIndex,
         correctAnswer: `${ex.payload.audio} (${ex.payload.options[ex.payload.answerIndex]})`,
       };
-    case "select_picture": {
-      const i = ex.payload.answerIndex;
-      return { correct: choiceOf(answer) === i, correctAnswer: `${ex.payload.pictures[i]} ${ex.payload.labels[i]}` };
-    }
     case "dialogue":
       return {
         correct: choiceOf(answer) === ex.payload.answerIndex,

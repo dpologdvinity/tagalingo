@@ -47,9 +47,8 @@ export async function answerCurrent(page: Page, { wrong = false } = {}) {
     case "select_translation":
     case "fill_blank":
     case "listen_select":
-    case "select_picture":
     case "dialogue": {
-      const options = (p.options ?? p.pictures) as string[];
+      const options = p.options as string[];
       const idx = wrong ? (Number(p.answerIndex) + 1) % options.length : Number(p.answerIndex);
       await page.getByRole("radio").nth(idx).click();
       break;

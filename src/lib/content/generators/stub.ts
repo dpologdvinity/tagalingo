@@ -4,7 +4,7 @@
  * It needs no network or API key, so the whole content pipeline (generate → review → approve)
  * works on a fresh machine. Quality comes from the hand-written word list: every exercise is
  * assembled from a word's gloss, accepted synonyms and example sentence, following a fixed
- * recipe that mixes all five exercise types.
+ * recipe that mixes every exercise type.
  *
  * Ambiguity guards (the most common way auto-generated exercises go wrong):
  *  - Two words whose meanings overlap (kami / tayo both mean "we") are never used as each
@@ -73,7 +73,7 @@ class LessonBuilder {
   private readonly usedSentences = new Set<string>();
   /** Distractor tiles already shown in this lesson (lower-cased). */
   private readonly usedTiles = new Set<string>();
-  /** Words already used as the target of a recognition exercise (pick / picture / listen). */
+  /** Words already used as the target of a recognition exercise (pick / listen). */
   private readonly targets = new Set<string>();
 
   /** Reserve `w` as a recognition target; false if this lesson already quizzed it that way. */
@@ -264,23 +264,6 @@ class LessonBuilder {
     return { type: "listen_select", payload: { audio: w.tl, options, answerIndex: options.indexOf(w.en) } };
   }
 
-  /** See the Tagalog word, pick its picture. */
-  picture(w: CourseWord): Draft | null {
-    if (!w.pic || this.targets.has(w.tl)) return null;
-    const others = this.distractors(w, 3, (d) => !!d.pic && d.pic !== w.pic);
-    if (others.length < 2 || !this.claimTarget(w)) return null;
-    const cards = shuffle([w, ...others], this.rand);
-    return {
-      type: "select_picture",
-      payload: {
-        prompt: w.tl,
-        pictures: cards.map((c) => c.pic!),
-        labels: cards.map((c) => c.en),
-        answerIndex: cards.indexOf(w),
-      },
-    };
-  }
-
   /** Say the word's example sentence aloud. */
   speak(w: CourseWord): Draft | null {
     if (tiles(w.ex[0]).length > 8 || !this.claimSentence(w)) return null;
@@ -321,16 +304,16 @@ class LessonBuilder {
 }
 
 type Make = (b: LessonBuilder, w: CourseWord) => Draft | null;
-/** A recipe step: try `make` on each lesson word (starting at `word`); if none fits, try `fallback`. */
-type Slot = { make: Make; word: number; fallback?: Make };
+/** A recipe step: try `make` on each lesson word, starting at `word`, until one fits. */
+type Slot = { make: Make; word: number };
 
 /**
- * The lesson recipe. Recognition first (picture, pick, listen), then building and producing
+ * The lesson recipe. Recognition first (pick, listen), then building and producing
  * (tiles, dialogue, typing, speaking). A match-pairs round is dropped in after step three.
  */
 const RECIPE: Slot[] = [
-  // Pictures first: the gentlest way into a new word.
-  { make: (b, w) => b.picture(w), word: 0, fallback: (b, w) => b.mcEnToTl(w) },
+  // No picture exercises: emoji are too open to interpretation to have one right answer.
+  { make: (b, w) => b.mcEnToTl(w), word: 0 },
   { make: (b, w) => b.mcTlToEn(w), word: 0 },
   { make: (b, w) => b.listenWord(w), word: 2 },
   { make: (b, w) => b.fillBlank(w), word: 2 },
@@ -362,7 +345,7 @@ export class StubGenerator implements ExerciseGenerator {
       return null;
     };
     RECIPE.forEach((slot, i) => {
-      const d = firstFit(slot.make, slot.word) ?? (slot.fallback ? firstFit(slot.fallback, slot.word) : null);
+      const d = firstFit(slot.make, slot.word);
       if (d) drafts.push(d);
       // Drop a match-pairs round in after the first three exercises.
       if (i === 2) {

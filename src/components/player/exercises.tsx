@@ -358,56 +358,6 @@ export function ListenSelect({ exercise, disabled, onChange }: Props<"listen_sel
   );
 }
 
-/** See a Tagalog word and pick its picture. */
-export function SelectPicture({ exercise, disabled, onChange }: Props<"select_picture">) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const select = (i: number) => {
-    setSelected(i);
-    onChange({ choice: i });
-  };
-  const count = exercise.pictures.length;
-  useEffect(() => {
-    if (disabled) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      const n = Number(e.key);
-      if (n >= 1 && n <= count) {
-        setSelected(n - 1);
-        onChange({ choice: n - 1 });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [disabled, count, onChange]);
-  return (
-    <div className="space-y-6">
-      <Instruction>Which picture shows this?</Instruction>
-      <PromptBubble text={exercise.prompt} lang="tl" />
-      <div role="radiogroup" aria-label="Pictures" className="grid grid-cols-2 gap-3">
-        {exercise.pictures.map((pic, i) => (
-          <button
-            key={`${pic}-${i}`}
-            type="button"
-            role="radio"
-            aria-checked={selected === i}
-            disabled={disabled}
-            onClick={() => select(i)}
-            className={`flex aspect-[4/3] items-center justify-center rounded-3xl border-2 text-6xl transition-[transform,box-shadow] active:translate-y-[2px] sm:text-7xl ${
-              selected === i
-                ? "border-lagoon-bright bg-lagoon-soft shadow-press-lagoon"
-                : "border-line bg-surface shadow-press"
-            }`}
-          >
-            {/* Screen readers announce the emoji's name, the same information sighted learners get. */}
-            <span className="sr-only">Picture {i + 1}: </span>
-            <span>{pic}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /** Say a sentence aloud; graded on the transcript. "Can't speak now" skips without penalty. */
 export function Speak({
   exercise,

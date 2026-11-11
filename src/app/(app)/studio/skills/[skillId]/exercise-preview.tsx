@@ -11,7 +11,6 @@ const TYPE_LABEL: Record<ParsedExercise["type"], string> = {
   match_pairs: "Match pairs",
   type_translation: "Type the translation",
   listen_select: "Listen and pick",
-  select_picture: "Pick the picture",
   speak: "Say it aloud",
   dialogue: "Dialogue reply",
 };
@@ -113,19 +112,6 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           <ul className="grid gap-1.5 sm:grid-cols-2">
             {ex.payload.options.map((o, i) => (
               <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
-            ))}
-          </ul>
-        </div>
-      );
-    case "select_picture":
-      return (
-        <div className="space-y-2">
-          <p className="text-lg font-bold" lang="tl">
-            {ex.payload.prompt}
-          </p>
-          <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {ex.payload.pictures.map((p, i) => (
-              <Choice key={i} text={`${p} ${ex.payload.labels[i]}`} correct={i === ex.payload.answerIndex} />
             ))}
           </ul>
         </div>

@@ -89,15 +89,15 @@ describe("v1.1 exercise types", () => {
     ).toThrow();
   });
 
-  it("requires one label per picture", () => {
+  it("rejects picture exercises: emoji pictures are too ambiguous to grade fairly", () => {
     expect(() =>
-      parseExercise("select_picture", {
+      parseExercise("select_picture" as never, {
         prompt: "isda",
         pictures: ["🐟", "🍚", "☕"],
-        labels: ["fish", "rice"],
+        labels: ["fish", "rice", "coffee"],
         answerIndex: 0,
       }),
-    ).toThrow(/labels/);
+    ).toThrow();
   });
 
   it("accepts a speaking exercise", () => {
@@ -115,14 +115,7 @@ describe("v1.1 exercise types", () => {
     expect(() => parseExercise("dialogue", { ...ok, lines: [] })).toThrow();
   });
 
-  it("warns about duplicate pictures and long speaking prompts", () => {
-    const pics = parseExercise("select_picture", {
-      prompt: "isda",
-      pictures: ["🐟", "🐟", "☕"],
-      labels: ["fish", "fish", "coffee"],
-      answerIndex: 0,
-    });
-    expect(lintExercise(pics).join(" ")).toMatch(/duplicate/i);
+  it("warns about long speaking prompts", () => {
     const long = parseExercise("speak", {
       text: "Pupunta ako sa palengke bukas ng umaga kasama si Nanay at si Lola",
       translation: "x",

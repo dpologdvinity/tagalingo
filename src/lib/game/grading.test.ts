@@ -106,14 +106,6 @@ describe("gradeAnswer: v1.1 types", () => {
       correct: false,
       correctAnswer: "Gutom na ako. (I'm hungry.)",
     });
-
-    const pic = parseExercise("select_picture", {
-      prompt: "isda",
-      pictures: ["🍚", "🐟", "☕"],
-      labels: ["rice", "fish", "coffee"],
-      answerIndex: 1,
-    });
-    expect(gradeAnswer(pic, { choice: 0 })).toMatchObject({ correct: false, correctAnswer: "🐟 fish" });
   });
 
   const speak = parseExercise("speak", { text: "Magandang umaga po.", translation: "Good morning." });

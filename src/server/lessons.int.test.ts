@@ -12,7 +12,6 @@ function correctAnswer(ex: ParsedExercise): unknown {
     case "select_translation":
     case "fill_blank":
     case "listen_select":
-    case "select_picture":
     case "dialogue":
       return { choice: ex.payload.answerIndex };
     case "speak":

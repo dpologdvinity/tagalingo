@@ -112,7 +112,7 @@ model Word {
   notes        String?
   exampleTl    String?
   exampleEn    String?
-  /// Optional emoji picture (picture exercises, flashcards).
+  /// Optional emoji shown on flashcards and word lists.
   pic          String?
 
   @@unique([skillId, tagalog])
@@ -125,7 +125,6 @@ enum ExerciseType {
   fill_blank
   type_translation
   listen_select
-  select_picture
   speak
   dialogue
 }
