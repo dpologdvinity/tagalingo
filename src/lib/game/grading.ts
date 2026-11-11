@@ -5,6 +5,10 @@
  * is graded as wrong rather than throwing, so a tampered request can't crash a lesson.
  */
 import type { ParsedExercise } from "@/lib/content/schema";
+import { normalizeAnswer } from "@/lib/normalize";
+
+// Re-exported so existing `@/lib/game/grading` imports keep working.
+export { normalizeAnswer };
 
 export type GradeResult = {
   correct: boolean;
@@ -15,22 +19,6 @@ export type GradeResult = {
   /** True when a speaking exercise was skipped ("can't speak now"): counts as done, no penalty. */
   skipped?: boolean;
 };
-
-/**
- * Canonical form used for comparisons: lower-case, accents removed (Tagalog sometimes marks
- * stress, e.g. "pô"), hyphens dropped ("mag-aral" == "magaral"), punctuation stripped and
- * whitespace collapsed.
- */
-export function normalizeAnswer(input: string): string {
-  return input
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("en")
-    .replace(/[-‐‑–—]/g, "")
-    .replace(/[^\p{L}\p{N}\s']/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 /** Classic edit distance (insert/delete/substitute), O(n·m) with a single row. */
 export function levenshtein(a: string, b: string): number {
