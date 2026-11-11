@@ -5,7 +5,7 @@
 #            Playwright on desktop + mobile against `next start`
 #
 # No repository secrets are required: the database is a throwaway service container and
-# AUTH_SECRET is generated per run. See docs/agents/STEPS-FOR-OWNER.md for deploy secrets.
+# AUTH_SECRET is generated per run. Deploy settings are covered under "Deploying" in README.md.
 name: CI
 
 on:
