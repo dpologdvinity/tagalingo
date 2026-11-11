@@ -6,27 +6,6 @@
       "title": "Where is it?",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "office",
-              "hospital",
-              "church",
-              "school"
-            ],
-            "prompt": "paaralan",
-            "pictures": [
-              "🏢",
-              "🏥",
-              "⛪",
-              "🏫"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "nasaan",
@@ -210,27 +189,6 @@
       "order": 2,
       "title": "Near and far",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "church",
-              "hospital",
-              "store",
-              "school"
-            ],
-            "prompt": "ospital",
-            "pictures": [
-              "⛪",
-              "🏥",
-              "🏪",
-              "🏫"
-            ],
-            "answerIndex": 1
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

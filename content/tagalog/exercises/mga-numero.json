@@ -6,27 +6,6 @@
       "title": "One to five",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "ten",
-              "one",
-              "eight",
-              "six"
-            ],
-            "prompt": "isa",
-            "pictures": [
-              "🔟",
-              "1️⃣",
-              "8️⃣",
-              "6️⃣"
-            ],
-            "answerIndex": 1
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "dalawa",
@@ -207,27 +186,6 @@
       "order": 2,
       "title": "Six to ten",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "nine",
-              "three",
-              "ten",
-              "six"
-            ],
-            "prompt": "anim",
-            "pictures": [
-              "9️⃣",
-              "3️⃣",
-              "🔟",
-              "6️⃣"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

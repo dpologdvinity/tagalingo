@@ -6,27 +6,6 @@
       "title": "Mom and Dad",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "family",
-              "grandma",
-              "house",
-              "child"
-            ],
-            "prompt": "bahay",
-            "pictures": [
-              "👨‍👩‍👧",
-              "👵",
-              "🏠",
-              "👶"
-            ],
-            "answerIndex": 2
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "nanay",
@@ -177,27 +156,6 @@
       "order": 2,
       "title": "Ate, Kuya, Lola",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "grandma",
-              "family",
-              "child",
-              "house"
-            ],
-            "prompt": "lola",
-            "pictures": [
-              "👵",
-              "👨‍👩‍👧",
-              "👶",
-              "🏠"
-            ],
-            "answerIndex": 0
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

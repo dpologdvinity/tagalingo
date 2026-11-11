@@ -6,27 +6,6 @@
       "title": "Room by room",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "light",
-              "door",
-              "window",
-              "kitchen"
-            ],
-            "prompt": "kusina",
-            "pictures": [
-              "💡",
-              "🚪",
-              "🪟",
-              "🍳"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "kuwarto",
@@ -209,27 +188,6 @@
       "order": 2,
       "title": "Open the window",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "door",
-              "window",
-              "kitchen",
-              "chair"
-            ],
-            "prompt": "upuan",
-            "pictures": [
-              "🚪",
-              "🪟",
-              "🍳",
-              "🪑"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

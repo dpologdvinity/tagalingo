@@ -6,27 +6,6 @@
       "title": "Rice and water",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "fish",
-              "fruit",
-              "rice",
-              "bread"
-            ],
-            "prompt": "kanin",
-            "pictures": [
-              "🐟",
-              "🍎",
-              "🍚",
-              "🍞"
-            ],
-            "answerIndex": 2
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "tubig",
@@ -196,27 +175,6 @@
       "order": 2,
       "title": "Let's eat!",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "bread",
-              "coffee",
-              "rice",
-              "fruit"
-            ],
-            "prompt": "tinapay",
-            "pictures": [
-              "🍞",
-              "☕",
-              "🍚",
-              "🍎"
-            ],
-            "answerIndex": 0
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

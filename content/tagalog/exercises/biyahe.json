@@ -6,27 +6,6 @@
       "title": "Para po!",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "traffic",
-              "bus",
-              "car",
-              "airplane"
-            ],
-            "prompt": "trapik",
-            "pictures": [
-              "🚦",
-              "🚌",
-              "🚗",
-              "✈️"
-            ],
-            "answerIndex": 0
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "jeep",
@@ -234,27 +213,6 @@
       "order": 2,
       "title": "Left, right, straight",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "traffic",
-              "bus",
-              "airplane",
-              "car"
-            ],
-            "prompt": "kotse",
-            "pictures": [
-              "🚦",
-              "🚌",
-              "✈️",
-              "🚗"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {

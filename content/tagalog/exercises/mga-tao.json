@@ -6,27 +6,6 @@
       "title": "Me, you, them",
       "exercises": [
         {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "man",
-              "teacher",
-              "woman",
-              "friend"
-            ],
-            "prompt": "kaibigan",
-            "pictures": [
-              "👨",
-              "🧑‍🏫",
-              "👩",
-              "🤝"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
-        {
           "type": "select_translation",
           "payload": {
             "prompt": "ako",
@@ -195,27 +174,6 @@
       "order": 2,
       "title": "Who's who",
       "exercises": [
-        {
-          "type": "select_picture",
-          "payload": {
-            "labels": [
-              "friend",
-              "man",
-              "student",
-              "teacher"
-            ],
-            "prompt": "guro",
-            "pictures": [
-              "🤝",
-              "👨",
-              "🧑‍🎓",
-              "🧑‍🏫"
-            ],
-            "answerIndex": 3
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
-        },
         {
           "type": "select_translation",
           "payload": {
