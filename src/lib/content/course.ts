@@ -4,10 +4,16 @@
  * The YAML defines structure (units → skills → lessons) and the word list each skill teaches.
  * It deliberately contains no exercises: those are generated from the words, reviewed by a
  * human in /studio, and exported to content/<lang>/exercises/*.json.
+ *
+ * It also holds the grammar: top-level `grammar` patterns (cards plus drill ingredients), per-skill
+ * `verbs` for the morphology engine, and per-lesson `teaches`/`uses` pattern ids.
  */
 import fs from "node:fs";
 import YAML from "yaml";
 import { z } from "zod";
+import type { VerbTableData } from "../grammar/analyse";
+import type { VerbEntry } from "../grammar/types";
+import { patternSchema, verbEntrySchema, type CoursePattern } from "./grammar-schema";
 
 const text = z.string().trim().min(1);
 
@@ -50,11 +56,24 @@ const skillSchema = z
     title: text,
     emoji: text,
     description: text,
-    lessons: z.array(z.object({ title: text, words: z.array(text).min(1) })).min(1),
+    lessons: z
+      .array(
+        z.object({
+          title: text,
+          words: z.array(text).min(1),
+          /** Ids of grammar patterns this lesson introduces (each pattern is taught exactly once). */
+          teaches: z.array(text).default([]),
+          /** Ids of earlier patterns this lesson practises again. */
+          uses: z.array(text).default([]),
+        }),
+      )
+      .min(1),
     words: z.array(wordSchema).min(4),
     /** Short grammar and culture notes shown on the skill's tips page. */
     tips: z.array(text).default([]),
     dialogues: z.array(dialogueSchema).default([]),
+    /** Verbs the morphology engine conjugates for this skill's lessons (and every later skill's). */
+    verbs: z.array(verbEntrySchema).default([]),
   })
   .superRefine((skill, ctx) => {
     const known = new Set(skill.words.map((w) => w.tl));
@@ -96,20 +115,73 @@ const skillSchema = z
     });
   });
 
-const courseSchema = z.object({
-  course: z.object({ slug: text, title: text, fromLang: text, toLang: text }),
-  units: z
-    .array(
-      z.object({
-        slug: z.string().regex(/^[a-z0-9-]+$/),
-        title: text,
-        subtitle: text,
-        color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-        skills: z.array(skillSchema).min(1),
-      }),
-    )
-    .min(1),
-});
+const courseSchema = z
+  .object({
+    course: z.object({ slug: text, title: text, fromLang: text, toLang: text }),
+    units: z
+      .array(
+        z.object({
+          slug: z.string().regex(/^[a-z0-9-]+$/),
+          title: text,
+          subtitle: text,
+          color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+          skills: z.array(skillSchema).min(1),
+        }),
+      )
+      .min(1),
+    /** Grammar patterns in course order. */
+    grammar: z.array(patternSchema).default([]),
+  })
+  .superRefine((course, ctx) => {
+    const fail = (path: (string | number)[], message: string) => ctx.addIssue({ code: "custom", path, message });
+    const ids = new Set<string>();
+    course.grammar.forEach((p, pi) => {
+      if (ids.has(p.id)) fail(["grammar", pi, "id"], `duplicate pattern id "${p.id}"`);
+      ids.add(p.id);
+    });
+
+    // Walk lessons in course order; a pattern's "teach position" is the course-wide index of its lesson.
+    const taughtAt = new Map<string, number>();
+    let position = 0;
+    course.units.forEach((unit, ui) =>
+      unit.skills.forEach((skill, si) =>
+        skill.lessons.forEach((lesson, li) => {
+          const path = ["units", ui, "skills", si, "lessons", li];
+          lesson.teaches.forEach((id) => {
+            if (!ids.has(id)) fail([...path, "teaches"], `Lesson "${lesson.title}" teaches unknown pattern "${id}"`);
+            else if (taughtAt.has(id)) fail([...path, "teaches"], `Pattern "${id}" is taught by more than one lesson`);
+            else taughtAt.set(id, position);
+          });
+          position++;
+        }),
+      ),
+    );
+
+    course.grammar.forEach((p, pi) => {
+      if (!taughtAt.has(p.id)) fail(["grammar", pi], `Pattern "${p.id}" is not taught by any lesson`);
+      p.requires.forEach((id) => {
+        if (!ids.has(id)) fail(["grammar", pi, "requires"], `Pattern "${p.id}" requires unknown pattern "${id}"`);
+        else if ((taughtAt.get(id) ?? -1) > (taughtAt.get(p.id) ?? Infinity))
+          fail(["grammar", pi, "requires"], `Pattern "${p.id}" requires "${id}", which is taught later`);
+      });
+    });
+
+    // `uses` is checked after all teach positions are known, so a forward reference is caught.
+    position = 0;
+    course.units.forEach((unit, ui) =>
+      unit.skills.forEach((skill, si) =>
+        skill.lessons.forEach((lesson, li) => {
+          const path = ["units", ui, "skills", si, "lessons", li, "uses"];
+          lesson.uses.forEach((id) => {
+            if (!ids.has(id)) fail(path, `Lesson "${lesson.title}" uses unknown pattern "${id}"`);
+            else if ((taughtAt.get(id) ?? -1) > position)
+              fail(path, `Lesson "${lesson.title}" uses "${id}", which is taught later`);
+          });
+          position++;
+        }),
+      ),
+    );
+  });
 
 export type CourseWord = z.infer<typeof wordSchema>;
 export type CourseSkill = z.infer<typeof skillSchema>;
@@ -141,14 +213,51 @@ export type GenerationRequest = {
   allWords: CourseWord[];
   /** Hand-written dialogues for this lesson. */
   dialogues: CourseDialogue[];
+  grammar: {
+    /** Patterns this lesson introduces. */
+    teaches: CoursePattern[];
+    /** Earlier patterns this lesson practises again. */
+    uses: CoursePattern[];
+    /** Verbs of this skill and every earlier skill. */
+    verbs: VerbEntry[];
+    /** Lower-cased tokens of every course word taught up to and including this lesson. */
+    knownWords: string[];
+    /** Approved verb tables; `lessonRequest` leaves this empty and callers with a database fill it. */
+    verbTables: VerbTableData[];
+  };
 };
 
-export function lessonRequest(skill: CourseSkill, lessonIndex: number): GenerationRequest {
+/** Lower-cased word tokens of a (possibly multi-word) entry, trimmed of surrounding punctuation. */
+function tokens(tl: string): string[] {
+  return tl
+    .toLocaleLowerCase("en")
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""))
+    .filter((t) => t !== "");
+}
+
+export function lessonRequest(course: CourseDefinition, skill: CourseSkill, lessonIndex: number): GenerationRequest {
   const byTl = new Map(skill.words.map((w) => [w.tl, w]));
   const pick = (tls: string[]) => tls.map((t) => byTl.get(t)).filter((w): w is CourseWord => !!w);
   const lesson = skill.lessons[lessonIndex];
   if (!lesson) throw new Error(`Skill ${skill.slug} has no lesson #${lessonIndex}`);
   const earlier = skill.lessons.slice(0, lessonIndex).flatMap((l) => l.words);
+
+  const skills = course.units.flatMap((u) => u.skills);
+  const skillAt = skills.findIndex((s) => s.slug === skill.slug);
+  if (skillAt < 0) throw new Error(`Skill ${skill.slug} is not in the course`);
+  const earlierSkills = skills.slice(0, skillAt);
+  const patterns = (ids: string[]) =>
+    ids.map((id) => {
+      const found = course.grammar.find((p) => p.id === id);
+      if (!found) throw new Error(`Lesson "${lesson.title}" refers to unknown pattern "${id}"`);
+      return found;
+    });
+  const known = [
+    ...earlierSkills.flatMap((s) => s.words.map((w) => w.tl)),
+    ...skill.lessons.slice(0, lessonIndex + 1).flatMap((l) => l.words),
+  ].flatMap(tokens);
+
   return {
     skill: { slug: skill.slug, title: skill.title, description: skill.description },
     lesson: { title: lesson.title, index: lessonIndex },
@@ -156,5 +265,12 @@ export function lessonRequest(skill: CourseSkill, lessonIndex: number): Generati
     reviewWords: pick(earlier.filter((w) => !lesson.words.includes(w))),
     allWords: skill.words,
     dialogues: skill.dialogues.filter((d) => d.lesson === lessonIndex + 1),
+    grammar: {
+      teaches: patterns(lesson.teaches),
+      uses: patterns(lesson.uses),
+      verbs: [...earlierSkills, skill].flatMap((s) => s.verbs),
+      knownWords: [...new Set(known)],
+      verbTables: [],
+    },
   };
 }

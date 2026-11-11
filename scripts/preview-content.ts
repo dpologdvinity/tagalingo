@@ -12,7 +12,7 @@ const only = process.argv.slice(2);
     for (const s of u.skills) {
       if (only.length && !only.includes(s.slug)) continue;
       for (let i = 0; i < s.lessons.length; i++) {
-        const { exercises } = await new StubGenerator().generate(lessonRequest(s, i));
+        const { exercises } = await new StubGenerator().generate(lessonRequest(course, s, i));
         console.log(`\n## ${s.slug} L${i + 1}`);
         for (const e of exercises) {
           const mark = (options: string[], answer: number) =>

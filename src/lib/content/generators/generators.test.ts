@@ -7,7 +7,9 @@ import { ClaudeGenerator, type MessagesClient } from "./claude";
 import { selectGenerator } from "./index";
 
 const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
-const allRequests = course.units.flatMap((u) => u.skills.flatMap((s) => s.lessons.map((_, i) => lessonRequest(s, i))));
+const allRequests = course.units.flatMap((u) =>
+  u.skills.flatMap((s) => s.lessons.map((_, i) => lessonRequest(course, s, i))),
+);
 
 describe("StubGenerator", () => {
   const stub = new StubGenerator();

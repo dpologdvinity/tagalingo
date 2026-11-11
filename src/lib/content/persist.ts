@@ -97,7 +97,7 @@ export async function generateDraftsForLesson(
 
   let result;
   try {
-    result = await generator.generate(lessonRequest(skillDef, target.lessonOrder - 1));
+    result = await generator.generate(lessonRequest(def, skillDef, target.lessonOrder - 1));
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     await prisma.generationRun.create({
