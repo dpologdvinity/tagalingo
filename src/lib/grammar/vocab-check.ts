@@ -17,7 +17,9 @@ export const FUNCTION_WORDS: ReadonlySet<string> = new Set(
   (
     "ang ng sa si ni kay mga ay ko mo ka ba na pa po opo naman lang at may wala hindi huwag din rin daw raw nga " +
     "ito iyan iyon dito diyan doon ako ikaw siya kami tayo kayo sila akin iyo kanya amin atin inyo kanila " +
-    "niya namin natin ninyo nila kita taga"
+    "niya namin natin ninyo nila kita taga " +
+    // Contraction fragments left after splitting at the apostrophe: ba't, sa'yo, 'yan, 'yon, 'di, 'wag.
+    "t yo yan yon di wag"
   ).split(" "),
 );
 
@@ -26,38 +28,64 @@ const trimEdges = (s: string) => s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, 
 
 const isCapitalised = (s: string) => /^\p{Lu}/u.test(s);
 
+/** Closing quotes that may follow a sentence-final mark: `."` `.”` `.’` `.'`. */
+const CLOSING_QUOTES = `"\u201D\u2019'`;
+/** Quotes that open quoted speech. A bare apostrophe is not listed: it also starts contractions ('yan). */
+const OPENING_QUOTE = /^["\u201C\u2018]/u;
+/** A capitalised abbreviation or initial such as "Gng.", "Bb.", "G.", "Dr.", "A."; it does not end a sentence. */
+const ABBREVIATION = /^\p{Lu}\p{L}{0,2}\.$/u;
+const SENTENCE_END = new RegExp(`[.!?\u2026][${CLOSING_QUOTES}]*$`, "u");
+
+/** True when the raw whitespace-delimited token closes a sentence (and is not an abbreviation). */
+function endsSentence(raw: string): boolean {
+  const bare = raw.replace(new RegExp(`[${CLOSING_QUOTES}]+$`, "u"), "");
+  return SENTENCE_END.test(raw) && !ABBREVIATION.test(bare.replace(/^["\u201C\u2018(]+/u, ""));
+}
+
 /**
  * Words of `sentence` that are neither known, function words, names nor forms of an approved verb
  * table, lower-cased, in order of first appearance. Tokens are whitespace-separated and trimmed of
- * edge punctuation; a capitalised token is a name unless it opens a sentence. `taga-X` is checked
- * as `taga` plus `X`; other hyphenated tokens (mag-aral, nag-aaral) are checked whole.
+ * edge punctuation. A capitalised token is a name unless it is sentence-initial: the first token,
+ * one after a sentence end (not after an abbreviation like "Gng."), after an opening quote or after
+ * a colon. A word may carry the -ng / -g linker (isdang, ulang) and contractions split on
+ * apostrophes (ba't, sa'yo). `taga-X` is checked as `taga` plus `X`; other hyphenated tokens
+ * (mag-aral, nag-aaral) are checked whole.
  */
 export function unknownWords(sentence: string, known: ReadonlySet<string>, tables: readonly VerbTableData[]): string[] {
-  const isKnown = (word: string) => known.has(word) || FUNCTION_WORDS.has(word) || analyse(word, tables).length > 0;
+  const isBase = (word: string) => known.has(word) || FUNCTION_WORDS.has(word) || analyse(word, tables).length > 0;
+  // The linker -ng follows a vowel and -g follows n (ulan -> ulang); the base word must be known.
+  const isKnown = (word: string) => {
+    if (isBase(word)) return true;
+    if (!word.endsWith("ng")) return false;
+    // After a vowel the linker is -ng (isda -> isdang); after n it is -g (ulan -> ulang).
+    const afterVowel = word.slice(0, -2);
+    return (/[aeiou]$/u.test(afterVowel) && isBase(afterVowel)) || isBase(word.slice(0, -1));
+  };
   const unknown: string[] = [];
   const report = (word: string) => {
     if (!unknown.includes(word)) unknown.push(word);
   };
+  /** Checks one lower-cased word, splitting contractions at apostrophes. */
+  const check = (word: string) => {
+    for (const part of word.split(/['\u2019]/u).filter((p) => p !== "")) if (!isKnown(part)) report(part);
+  };
 
-  // Each sentence restarts "sentence-initial", so a name after a full stop is still told apart
-  // from an ordinary capitalised first word.
-  for (const part of sentence.split(/(?<=[.!?…])\s+/u)) {
-    part.split(/\s+/).forEach((raw, position) => {
-      const token = trimEdges(raw);
-      // The blank, bare punctuation and numbers carry no vocabulary.
-      if (!/\p{L}/u.test(token)) return;
-      if (position > 0 && isCapitalised(token)) return; // a name
+  let initial = true;
+  for (const raw of sentence.split(/\s+/)) {
+    const startsSentence = initial || OPENING_QUOTE.test(raw);
+    initial = endsSentence(raw) || /:$/.test(raw);
+    const token = trimEdges(raw);
+    // The blank, bare punctuation and numbers carry no vocabulary.
+    if (!/\p{L}/u.test(token)) continue;
+    if (!startsSentence && isCapitalised(token)) continue; // a name
 
-      const taga = /^taga-(.+)$/iu.exec(token);
-      if (taga) {
-        // "taga-Maynila": the origin prefix and the place are separate words; a capitalised place is a name.
-        if (!isCapitalised(taga[1]) && !isKnown(taga[1].toLocaleLowerCase("en")))
-          report(taga[1].toLocaleLowerCase("en"));
-        return;
-      }
-      const word = token.toLocaleLowerCase("en");
-      if (!isKnown(word)) report(word);
-    });
+    const taga = /^taga-(.+)$/iu.exec(token);
+    if (taga) {
+      // "taga-Maynila": the origin prefix and the place are separate words; a capitalised place is a name.
+      if (!isCapitalised(taga[1])) check(taga[1].toLocaleLowerCase("en"));
+      continue;
+    }
+    check(token.toLocaleLowerCase("en"));
   }
   return unknown;
 }

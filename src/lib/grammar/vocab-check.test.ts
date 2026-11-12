@@ -58,6 +58,42 @@ describe("unknownWords", () => {
     expect(unknownWords("... ___!", known, tables)).toEqual([]);
   });
 
+  it("does not restart a sentence after an abbreviation", () => {
+    expect(unknownWords("Si Gng. Reyes ay kumain.", known, tables)).toEqual([]);
+    expect(unknownWords("Si Bb. Cruz at si G. Reyes ay kumain.", known, tables)).toEqual([]);
+    expect(unknownWords("Si A. Reyes ay kumain.", known, tables)).toEqual([]);
+    // A real sentence end that is a short lower-case word still restarts the sentence.
+    expect(unknownWords("Kumain ka na. Reyes ay kumain.", known, tables)).toEqual(["reyes"]);
+  });
+
+  it("treats the word after an opening quote or a colon as sentence-initial, and closing quotes end a sentence", () => {
+    const withSabi = new Set(["isda", "sabi"]);
+    expect(unknownWords('Sabi niya: "Kumusta po."', withSabi, tables)).toEqual(["kumusta"]);
+    expect(unknownWords("Sabi niya: Kumusta po.", withSabi, tables)).toEqual(["kumusta"]);
+    expect(unknownWords("Kumain ako ng isda: Ana ay kumain.", withSabi, tables)).toEqual(["ana"]);
+    expect(unknownWords('Sabi ni Ana, "Kumain ako."', withSabi, tables)).toEqual([]);
+    expect(unknownWords('"Kumain ako." Ana ay kumain.', withSabi, tables)).toEqual(["ana"]);
+    expect(unknownWords("\u201CKumain ako.\u201D Ana ay kumain.", withSabi, tables)).toEqual(["ana"]);
+  });
+
+  it("accepts linker -ng/-g forms of a known word", () => {
+    expect(unknownWords("isdang kumain", known, tables)).toEqual([]);
+    expect(unknownWords("magandang isda", new Set(["maganda", "isda"]), tables)).toEqual([]);
+    expect(unknownWords("ulang", new Set(["ulan"]), tables)).toEqual([]);
+    // The base must be known, and must end in a vowel (-ng) or n (-g).
+    expect(unknownWords("pusang", known, tables)).toEqual(["pusang"]);
+    expect(unknownWords("isdag", known, tables)).toEqual(["isdag"]);
+    // Linker forms of approved verb forms count too.
+    expect(unknownWords("kumaing", known, tables)).toEqual([]);
+  });
+
+  it("splits contractions on apostrophes", () => {
+    expect(unknownWords("Kumain ba't isda?", known, tables)).toEqual([]);
+    expect(unknownWords("Kumain sa'yo ang isda.", known, tables)).toEqual([]);
+    expect(unknownWords("'Yan ay isda. 'Yon ay 'di isda. 'Wag kumain.", known, tables)).toEqual([]);
+    expect(unknownWords("Kumain ba'ng gatas?", known, tables)).toEqual(["gatas"]);
+  });
+
   it("exposes the function-word list", () => {
     for (const w of ["ang", "ng", "sa", "ako", "kita", "taga"]) expect(FUNCTION_WORDS.has(w)).toBe(true);
   });
