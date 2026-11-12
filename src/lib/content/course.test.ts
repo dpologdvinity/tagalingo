@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import path from "node:path";
-import { loadCourseFile, lessonRequest, parseCourse } from "./course";
+import { loadApprovedVerbs } from "../grammar/verbs-file";
+import { grammarVocabIssues } from "../grammar/vocab-check";
+import { knownWordsUpTo, loadCourseFile, lessonRequest, parseCourse } from "./course";
 
 const minimal = {
   course: { slug: "tl-en", title: "T", fromLang: "en", toLang: "tl" },
@@ -54,6 +56,11 @@ describe("the shipped Tagalog course", () => {
     const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
     expect(course.units.length).toBeGreaterThanOrEqual(3);
     for (const unit of course.units) for (const skill of unit.skills) expect(skill.lessons.length).toBeGreaterThan(0);
+  });
+
+  it("shipped grammar content uses only known words", () => {
+    const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
+    expect(grammarVocabIssues(course, loadApprovedVerbs())).toEqual([]);
   });
 });
 
@@ -280,6 +287,36 @@ describe("lessonRequest", () => {
     expect(first.grammar.verbs.map((v) => v.root)).toEqual(["kain"]);
     expect(first.grammar.knownWords).toEqual(["salamat", "oo"]);
     expect(first.grammar.teaches).toEqual([]);
+  });
+
+  it("builds known words from lesson words only, up to and including the given lesson", () => {
+    const course = fixture();
+    const [s1, s2] = course.units[0].skills;
+    expect(knownWordsUpTo(course, "s1", 0)).toEqual(new Set(["salamat", "oo"]));
+    const known = knownWordsUpTo(course, "s2", 1);
+    expect(known).toEqual(
+      new Set(["salamat", "oo", "hindi", "ano", "ang", "pangalan", "mo", "kumusta", "po", "magandang", "umaga"]),
+    );
+    // "sige" is in skill 2's word list but in no lesson, so it is not known yet.
+    expect(s2.words.map((w) => w.tl)).toContain("sige");
+    expect(known.has("sige")).toBe(false);
+    expect(s1.words.map((w) => w.tl)).toContain("Salamat");
+    expect(() => knownWordsUpTo(course, "nope", 0)).toThrow(/skill/i);
+  });
+
+  it("does not treat an earlier skill's unused word-list entry as known", () => {
+    const c = fixture();
+    const extra = {
+      tl: "bahay",
+      en: "house",
+      pos: "noun" as const,
+      accept: [],
+      exAccept: [],
+      ex: ["Bahay.", "House."] as [string, string],
+    };
+    c.units[0].skills[0].words.push(extra);
+    expect(knownWordsUpTo(c, "s2", 0).has("bahay")).toBe(false);
+    expect(lessonRequest(c, c.units[0].skills[1], 0).grammar.knownWords).not.toContain("bahay");
   });
 
   it("still describes the lesson as before", () => {

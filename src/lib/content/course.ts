@@ -220,7 +220,7 @@ export type GenerationRequest = {
     uses: CoursePattern[];
     /** Verbs of this skill and every earlier skill. */
     verbs: VerbEntry[];
-    /** Lower-cased tokens of every course word taught up to and including this lesson. */
+    /** Lower-cased tokens of every lesson word taught up to and including this lesson (`knownWordsUpTo`). */
     knownWords: string[];
     /** Approved verb tables; `lessonRequest` leaves this empty and callers with a database fill it. */
     verbTables: VerbTableData[];
@@ -234,6 +234,22 @@ function tokens(tl: string): string[] {
     .split(/\s+/)
     .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""))
     .filter((t) => t !== "");
+}
+
+/**
+ * The one definition of "known words": every word of every lesson of every earlier skill (course
+ * order) plus this skill's lessons up to and including `lessonIndex`, as lower-cased tokens. A word
+ * that sits in a skill's word list but in no lesson is not taught yet, so it is not known.
+ */
+export function knownWordsUpTo(course: CourseDefinition, skillSlug: string, lessonIndex: number): Set<string> {
+  const skills = course.units.flatMap((u) => u.skills);
+  const skillAt = skills.findIndex((s) => s.slug === skillSlug);
+  if (skillAt < 0) throw new Error(`Skill ${skillSlug} is not in the course`);
+  const lessons = [
+    ...skills.slice(0, skillAt).flatMap((s) => s.lessons),
+    ...skills[skillAt].lessons.slice(0, lessonIndex + 1),
+  ];
+  return new Set(lessons.flatMap((l) => l.words).flatMap(tokens));
 }
 
 export function lessonRequest(course: CourseDefinition, skill: CourseSkill, lessonIndex: number): GenerationRequest {
@@ -253,11 +269,6 @@ export function lessonRequest(course: CourseDefinition, skill: CourseSkill, less
       if (!found) throw new Error(`Lesson "${lesson.title}" refers to unknown pattern "${id}"`);
       return found;
     });
-  const known = [
-    ...earlierSkills.flatMap((s) => s.words.map((w) => w.tl)),
-    ...skill.lessons.slice(0, lessonIndex + 1).flatMap((l) => l.words),
-  ].flatMap(tokens);
-
   return {
     skill: { slug: skill.slug, title: skill.title, description: skill.description },
     lesson: { title: lesson.title, index: lessonIndex },
@@ -269,7 +280,7 @@ export function lessonRequest(course: CourseDefinition, skill: CourseSkill, less
       teaches: patterns(lesson.teaches),
       uses: patterns(lesson.uses),
       verbs: [...earlierSkills, skill].flatMap((s) => s.verbs),
-      knownWords: [...new Set(known)],
+      knownWords: [...knownWordsUpTo(course, skill.slug, lessonIndex)],
       verbTables: [],
     },
   };
