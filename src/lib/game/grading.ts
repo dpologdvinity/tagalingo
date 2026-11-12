@@ -5,6 +5,8 @@
  * is graded as wrong rather than throwing, so a tampered request can't crash a lesson.
  */
 import type { ParsedExercise } from "@/lib/content/schema";
+import { analyse, type VerbTableData } from "@/lib/grammar/analyse";
+import { FORM_LABEL, VERB_FORMS, type VerbForm } from "@/lib/grammar/types";
 import { normalizeAnswer } from "@/lib/normalize";
 
 // Re-exported so existing `@/lib/game/grading` imports keep working.
@@ -18,6 +20,18 @@ export type GradeResult = {
   typo?: boolean;
   /** True when a speaking exercise was skipped ("can't speak now"): counts as done, no penalty. */
   skipped?: boolean;
+  /** Why a wrong answer is wrong (wrong verb form, known mistake, per-option note or hint). */
+  explanation?: string;
+  /** Paradigm only: the hidden cells the learner filled wrongly, in table order. */
+  wrongCells?: VerbForm[];
+};
+
+/** Extra data the server loads to explain mistakes; all optional so grading stays pure and testable. */
+export type GradeContext = {
+  /** Reviewed verb tables, used to recognise a correctly spelled but wrong form of the same verb. */
+  verbTables?: readonly VerbTableData[];
+  /** Course-wide common mistakes as [answer, why] pairs, used when the exercise lists none. */
+  patternMistakes?: readonly [string, string][];
 };
 
 /** Classic edit distance (insert/delete/substitute), O(n·m) with a single row. */
@@ -63,7 +77,55 @@ function textMatches(answer: unknown, accepted: string[]): boolean {
   return given !== "" && accepted.some((a) => normalizeAnswer(a) === given);
 }
 
-export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
+/** The learner's free-form answer as one string: tapped tokens joined, or typed text; null if neither. */
+function givenText(answer: unknown): string | null {
+  if (!isRecord(answer)) return null;
+  if (Array.isArray(answer.tokens) && answer.tokens.every((t) => typeof t === "string")) {
+    return (answer.tokens as string[]).join(" ");
+  }
+  return typeof answer.text === "string" ? answer.text : null;
+}
+
+/**
+ * Explains a wrong answer. Precedence: wrong form of the same verb, then a known mistake (the
+ * exercise's own list before the course-wide one), then the per-option `why`, then the find_root hint.
+ */
+function explain(ex: ParsedExercise, answer: unknown, ctx: GradeContext): string | undefined {
+  const text = givenText(answer);
+  if (ex.type === "conjugate" && text !== null) {
+    const { root, affix, form: target, answers } = ex.payload;
+    const wrong = analyse(text, ctx.verbTables ?? []).filter(
+      (a) => a.root === root && a.affix === affix && a.form !== target,
+    );
+    const hit = VERB_FORMS.map((f) => wrong.find((a) => a.form === f)).find((a) => a !== undefined);
+    if (hit) {
+      return `That's the ${FORM_LABEL[hit.form].en} form (${hit.canonical}). The ${FORM_LABEL[target].en} is ${answers[0]}.`;
+    }
+  }
+  if (text !== null && normalizeAnswer(text) !== "") {
+    const given = normalizeAnswer(text);
+    const own = "mistakes" in ex.payload ? (ex.payload.mistakes ?? []).map((m) => [m.answer, m.why] as const) : [];
+    const known = own.find(([a]) => normalizeAnswer(a) === given);
+    const hit = known ?? (ctx.patternMistakes ?? []).find(([a]) => normalizeAnswer(a) === given);
+    if (hit) return hit[1];
+  }
+  if ("why" in ex.payload && ex.payload.why) {
+    const choice = choiceOf(answer);
+    const why = choice === null ? null : ex.payload.why[choice];
+    if (why) return why;
+  }
+  return ex.type === "find_root" ? ex.payload.hint : undefined;
+}
+
+/** Grades `answer` and, when wrong, attaches an explanation. Never throws on malformed answers. */
+export function gradeAnswer(ex: ParsedExercise, answer: unknown, ctx: GradeContext = {}): GradeResult {
+  const result = gradeCore(ex, answer);
+  if (result.correct) return result;
+  const explanation = explain(ex, answer, ctx);
+  return explanation === undefined ? result : { ...result, explanation };
+}
+
+function gradeCore(ex: ParsedExercise, answer: unknown): GradeResult {
   switch (ex.type) {
     case "select_translation": {
       const correctAnswer = ex.payload.options[ex.payload.answerIndex];
@@ -130,27 +192,24 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
       }
       return { correct: false, correctAnswer };
     }
-    // Exact normalised match only; Task 6 refines these (near-miss handling, mistake explanations).
+    // Morphology is strict: no typo tolerance, but normalisation still ignores case, accents and hyphens.
     case "conjugate": {
       const correctAnswer = ex.payload.answers[0]!;
       return { correct: textMatches(answer, ex.payload.answers), correctAnswer };
     }
-    case "find_root":
-      return {
-        correct:
-          ex.payload.mode === "choice"
-            ? isRecord(answer) && ex.payload.options?.[choiceOf(answer) ?? -1] === ex.payload.root
-            : textMatches(answer, [ex.payload.root]),
-        correctAnswer: ex.payload.root,
-      };
+    case "find_root": {
+      const { mode, options, root } = ex.payload;
+      // Options may differ from the root by case/spacing (the schema allows it), so compare normalised.
+      const chosen = mode === "choice" ? options?.[choiceOf(answer) ?? -1] : undefined;
+      const correct =
+        mode === "choice"
+          ? chosen !== undefined && normalizeAnswer(chosen) === normalizeAnswer(root)
+          : textMatches(answer, [root]);
+      return { correct, correctAnswer: root };
+    }
     case "transform": {
       const correctAnswer = ex.payload.answers[0]!.join(" ");
-      const given =
-        isRecord(answer) && Array.isArray(answer.tokens) && answer.tokens.every((t) => typeof t === "string")
-          ? (answer.tokens as string[]).join(" ")
-          : isRecord(answer) && typeof answer.text === "string"
-            ? answer.text
-            : null;
+      const given = givenText(answer);
       if (given === null) return { correct: false, correctAnswer };
       return {
         correct: ex.payload.answers.some((a) => normalizeAnswer(a.join(" ")) === normalizeAnswer(given)),
@@ -158,18 +217,16 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
       };
     }
     case "paradigm": {
-      const hidden = ex.payload.cells.filter((c) => c.hidden).map((c) => c.value);
-      const values =
-        isRecord(answer) && Array.isArray(answer.values) && answer.values.every((t) => typeof t === "string")
-          ? (answer.values as string[])
-          : null;
-      return {
-        correct:
-          values !== null &&
-          values.length === hidden.length &&
-          hidden.every((h, i) => normalizeAnswer(h) === normalizeAnswer(values[i]!)),
-        correctAnswer: hidden.join(", "),
-      };
+      const hidden = ex.payload.cells.filter((c) => c.hidden);
+      const given = isRecord(answer) && isRecord(answer.cells) ? answer.cells : {};
+      const wrongCells = hidden
+        .filter(
+          (c) =>
+            typeof given[c.form] !== "string" || normalizeAnswer(given[c.form] as string) !== normalizeAnswer(c.value),
+        )
+        .map((c) => c.form);
+      const correctAnswer = hidden.map((c) => c.value).join(", ");
+      return wrongCells.length === 0 ? { correct: true, correctAnswer } : { correct: false, correctAnswer, wrongCells };
     }
   }
 }

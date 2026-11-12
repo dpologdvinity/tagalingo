@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseExercise } from "@/lib/content/schema";
 import { gradeAnswer, levenshtein, normalizeAnswer } from "./grading";
+import type { VerbTableData } from "@/lib/grammar/analyse";
 
 describe("normalizeAnswer", () => {
   it("lowercases, strips punctuation, accents and hyphens, and collapses spaces", () => {
@@ -146,5 +147,156 @@ describe("gradeAnswer: speech edge cases", () => {
     expect(gradeAnswer(ex, { transcript: "oo" }).correct).toBe(true);
     expect(gradeAnswer(ex, { transcript: "o" }).correct).toBe(false);
     expect(gradeAnswer(ex, { transcript: "" }).correct).toBe(false);
+  });
+});
+
+describe("gradeAnswer: grammar drills", () => {
+  const kain: VerbTableData = {
+    root: "kain",
+    affix: "um",
+    en: "eat",
+    forms: {
+      infinitive: ["kumain"],
+      completed: ["kumain"],
+      incompleted: ["kumakain"],
+      contemplated: ["kakain"],
+      recent: ["kakakain"],
+    },
+  };
+  const conj = (answers: string[], extra: object = {}) =>
+    parseExercise("conjugate", {
+      sentence: "___ ako bukas.",
+      translation: "I will eat tomorrow.",
+      root: "kain",
+      affix: "um",
+      form: "contemplated",
+      answers,
+      ...extra,
+    });
+
+  it("conjugate is strict", () => {
+    const ex = conj(["kakain"]);
+    expect(gradeAnswer(ex, { text: "kakain" }).correct).toBe(true);
+    expect(gradeAnswer(ex, { text: "kakan" })).toMatchObject({ correct: false, correctAnswer: "kakain" });
+    expect(gradeAnswer(ex, { text: "kakan" }).typo).toBeUndefined();
+  });
+
+  it("strict morphology still normalises case and hyphens", () => {
+    const ex = conj(["mag-aaral"]);
+    expect(gradeAnswer(ex, { text: "Mag-aaral" }).correct).toBe(true);
+    expect(gradeAnswer(ex, { text: "magaaral" }).correct).toBe(true);
+    expect(gradeAnswer(conj(["kumain"]), { text: "kakain" }).correct).toBe(false);
+  });
+
+  it("conjugate names the wrong form", () => {
+    const result = gradeAnswer(conj(["kakain"]), { text: "kumakain" }, { verbTables: [kain] });
+    expect(result.explanation).toBe("That's the present form (kumakain). The future is kakain.");
+  });
+
+  it("wrong-form explanation picks the first non-target form when several match", () => {
+    const result = gradeAnswer(conj(["kakain"]), { text: "kumain" }, { verbTables: [kain] });
+    expect(result.explanation).toBe("That's the infinitive / command form (kumain). The future is kakain.");
+  });
+
+  it("wrong-form explanation ignores other verbs and affixes", () => {
+    const other: VerbTableData = { ...kain, affix: "in" };
+    expect(gradeAnswer(conj(["kakain"]), { text: "kumakain" }, { verbTables: [other] }).explanation).toBeUndefined();
+    expect(gradeAnswer(conj(["kakain"]), { text: "kakan" }, { verbTables: [kain] }).explanation).toBeUndefined();
+  });
+
+  it("known mistakes explain", () => {
+    const ex = parseExercise("type_translation", {
+      prompt: "I eat.",
+      promptLang: "en",
+      answers: ["Kumakain ako."],
+      mistakes: [{ answer: "Kain ako.", why: "Use the -um- form." }],
+    });
+    expect(gradeAnswer(ex, { text: "kain ako" }).explanation).toBe("Use the -um- form.");
+    const plain = parseExercise("type_translation", { prompt: "I eat.", promptLang: "en", answers: ["Kumakain ako."] });
+    const ctx = { patternMistakes: [["Kain ako.", "Pattern why."]] as [string, string][] };
+    expect(gradeAnswer(plain, { text: "Kain ako." }, ctx).explanation).toBe("Pattern why.");
+    expect(gradeAnswer(plain, { text: "Kain ako." }).explanation).toBeUndefined();
+  });
+
+  it("exercise mistakes beat pattern mistakes, and wrong form beats both", () => {
+    const ex = conj(["kakain"], { mistakes: [{ answer: "kumakain", why: "Exercise why." }] });
+    const ctx = { verbTables: [kain], patternMistakes: [["kumakain", "Pattern why."]] as [string, string][] };
+    expect(gradeAnswer(ex, { text: "kumakain" }, ctx).explanation).toMatch(/^That's the present form/);
+    expect(gradeAnswer(ex, { text: "kumakain" }, { patternMistakes: ctx.patternMistakes }).explanation).toBe(
+      "Exercise why.",
+    );
+  });
+
+  it("per-option why", () => {
+    const ex = parseExercise("fill_blank", {
+      sentence: "___ ako.",
+      translation: "I eat.",
+      options: ["Kakain", "Kumakain"],
+      answerIndex: 0,
+      why: [null, "That is the present form."],
+    });
+    expect(gradeAnswer(ex, { choice: 1 }).explanation).toBe("That is the present form.");
+    expect(gradeAnswer(ex, { choice: 0 }).explanation).toBeUndefined();
+  });
+
+  it("paradigm lists wrong cells", () => {
+    const ex = parseExercise("paradigm", {
+      root: "kain",
+      affix: "um",
+      en: "eat",
+      cells: [
+        { form: "infinitive", value: "kumain", hidden: false },
+        { form: "incompleted", value: "kumakain", hidden: true },
+        { form: "contemplated", value: "kakain", hidden: true },
+      ],
+      distractors: [],
+    });
+    expect(gradeAnswer(ex, { cells: { incompleted: "kumakain", contemplated: "kumain" } })).toMatchObject({
+      correct: false,
+      wrongCells: ["contemplated"],
+    });
+    const ok = gradeAnswer(ex, { cells: { incompleted: "Kumakain", contemplated: "kakain" } });
+    expect(ok.correct).toBe(true);
+    expect(ok.wrongCells).toBeUndefined();
+    expect(gradeAnswer(ex, { cells: {} }).wrongCells).toEqual(["incompleted", "contemplated"]);
+    expect(gradeAnswer(ex, "junk")).toMatchObject({ correct: false });
+  });
+
+  it("transform accepts any listed sequence", () => {
+    const base = {
+      source: "Kumain ako.",
+      sourceEn: "I ate.",
+      instruction: "Make it future",
+      answers: [
+        ["Kakain", "ako"],
+        ["Ako", "ay", "kakain"],
+      ],
+    };
+    const build = parseExercise("transform", { ...base, mode: "build", distractors: ["kain"] });
+    expect(gradeAnswer(build, { tokens: ["Ako", "ay", "kakain"] }).correct).toBe(true);
+    expect(gradeAnswer(build, { tokens: ["kakain", "ako"] }).correct).toBe(true);
+    expect(gradeAnswer(build, { tokens: ["ako", "kakain"] }).correct).toBe(false);
+    const typed = parseExercise("transform", { ...base, mode: "type" });
+    expect(gradeAnswer(typed, { text: "ako ay kakain." }).correct).toBe(true);
+    expect(gradeAnswer(typed, { text: "ako kakain" }).correct).toBe(false);
+  });
+
+  it("find_root explains with the hint on a wrong answer", () => {
+    const choice = parseExercise("find_root", {
+      word: "kumakain",
+      mode: "choice",
+      options: ["Kain", "kakain"],
+      root: "kain",
+      hint: "Drop the -um- and the repeated syllable.",
+    });
+    // Option text may differ from root by case; grading compares normalised.
+    expect(gradeAnswer(choice, { choice: 0 }).correct).toBe(true);
+    expect(gradeAnswer(choice, { choice: 1 })).toMatchObject({
+      correct: false,
+      explanation: "Drop the -um- and the repeated syllable.",
+    });
+    const typed = parseExercise("find_root", { word: "kumakain", mode: "type", root: "kain", hint: "Hint." });
+    expect(gradeAnswer(typed, { text: "KAIN" })).toMatchObject({ correct: true });
+    expect(gradeAnswer(typed, { text: "kakain" })).toMatchObject({ correct: false, explanation: "Hint." });
   });
 });
