@@ -10,6 +10,9 @@
  * also valid answers, …) that are shown to reviewers but do not block saving.
  */
 import { z } from "zod";
+import { AFFIXES, VERB_FORMS, type Affix } from "@/lib/grammar/types";
+
+const fold = (s: string) => s.trim().toLocaleLowerCase();
 
 export const EXERCISE_TYPES = [
   "select_translation",
@@ -20,11 +23,32 @@ export const EXERCISE_TYPES = [
   "listen_select",
   "speak",
   "dialogue",
+  "conjugate",
+  "find_root",
+  "transform",
+  "paradigm",
 ] as const;
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 
 const text = z.string().trim().min(1);
 const lang = z.enum(["tl", "en"]);
+
+/**
+ * Optional per-option explanation shown after a wrong pick. Same length as `options`, with null at
+ * the correct option. Server-only: never sent to the client.
+ */
+const why = z.array(z.string().trim().min(1).nullable()).optional();
+
+/** Optional explanations for specific wrong typed/built answers. Server-only. */
+const mistakes = z.array(z.object({ answer: text, why: text })).optional();
+
+type WhyCheck = { options: string[]; answerIndex: number; why?: (string | null)[] | undefined };
+/** `why` must line up with `options` and be null at the correct option. */
+const whyAligned = {
+  check: (p: WhyCheck) =>
+    !p.why || (p.why.length === p.options.length && p.why.every((w, i) => (i === p.answerIndex ? w === null : true))),
+  params: { message: "why must match options in length and be null at answerIndex", path: ["why"] },
+};
 
 /** Pick the correct translation of `prompt` among `options`. */
 const selectTranslation = z
@@ -34,11 +58,13 @@ const selectTranslation = z
     options: z.array(text).min(2).max(4),
     answerIndex: z.number().int().min(0),
     hint: text.optional(),
+    why,
   })
   .refine((p) => p.answerIndex < p.options.length, {
     message: "answerIndex must point at one of the options",
     path: ["answerIndex"],
-  });
+  })
+  .refine(whyAligned.check, whyAligned.params);
 
 /** Build the translation of `prompt` by tapping tiles: answer tokens + distractors, shuffled. */
 const wordBank = z.object({
@@ -48,6 +74,7 @@ const wordBank = z.object({
   /** Other token sequences that are also correct (e.g. different word order). */
   alternates: z.array(z.array(text).min(1)).optional(),
   distractors: z.array(text).max(6),
+  mistakes,
 });
 
 /** Match each Tagalog word to its English meaning. */
@@ -65,6 +92,7 @@ const fillBlank = z
     translation: text,
     options: z.array(text).min(2).max(4),
     answerIndex: z.number().int().min(0),
+    why,
   })
   .refine((p) => p.sentence.split("___").length === 2, {
     message: "sentence must contain exactly one ___ blank",
@@ -73,13 +101,15 @@ const fillBlank = z
   .refine((p) => p.answerIndex < p.options.length, {
     message: "answerIndex must point at one of the options",
     path: ["answerIndex"],
-  });
+  })
+  .refine(whyAligned.check, whyAligned.params);
 
 /** Type the translation of `prompt`; any entry in `answers` is accepted. */
 const typeTranslation = z.object({
   prompt: text,
   promptLang: lang,
   answers: z.array(text).min(1),
+  mistakes,
 });
 
 /** Hear a Tagalog phrase (text-to-speech), then pick its meaning. */
@@ -88,11 +118,13 @@ const listenSelect = z
     audio: text,
     options: z.array(text).min(2).max(4),
     answerIndex: z.number().int().min(0),
+    why,
   })
   .refine((p) => p.answerIndex < p.options.length, {
     message: "answerIndex must point at one of the options",
     path: ["answerIndex"],
-  });
+  })
+  .refine(whyAligned.check, whyAligned.params);
 
 /** Say a Tagalog sentence aloud; graded on the speech-recognition transcript. */
 const speak = z.object({
@@ -111,10 +143,78 @@ const dialogue = z
     answerIndex: z.number().int().min(0),
     /** English meaning of the correct reply, shown in feedback. */
     replyEn: text,
+    why,
   })
   .refine((p) => p.answerIndex < p.options.length, {
     message: "answerIndex must point at one of the options",
     path: ["answerIndex"],
+  })
+  .refine(whyAligned.check, whyAligned.params);
+
+const affix = z.custom<Affix>((v) => typeof v === "string" && (AFFIXES as readonly string[]).includes(v), {
+  message: "Unknown verb affix",
+});
+const verbForm = z.enum(VERB_FORMS);
+
+/** Type the inflected form of `root` that completes a sentence containing exactly one `___`. */
+const conjugate = z
+  .object({
+    sentence: text,
+    translation: text,
+    root: text,
+    affix,
+    form: verbForm,
+    answers: z.array(text).min(1),
+    mistakes,
+  })
+  .refine((p) => p.sentence.split("___").length === 2, {
+    message: "sentence must contain exactly one ___ blank",
+    path: ["sentence"],
+  });
+
+/** Given an inflected `word`, identify its root, by choosing among `options` or typing it. */
+const findRoot = z
+  .object({
+    word: text,
+    translation: text.optional(),
+    mode: z.enum(["choice", "type"]),
+    options: z.array(text).min(2).max(4).optional(),
+    root: text,
+    hint: text,
+  })
+  .refine((p) => (p.mode === "choice") === (p.options !== undefined), {
+    message: "options are required for choice mode and not allowed for type mode",
+    path: ["options"],
+  })
+  .refine((p) => !p.options || p.options.some((o) => fold(o) === fold(p.root)), {
+    message: "options must include the root",
+    path: ["options"],
+  });
+
+/** Rewrite `source` per `instruction` (e.g. change the aspect), by building or typing the result. */
+const transform = z.object({
+  source: text,
+  sourceEn: text,
+  instruction: text,
+  mode: z.enum(["build", "type"]),
+  /** Accepted token sequences. */
+  answers: z.array(z.array(text).min(1)).min(1),
+  distractors: z.array(text).default([]),
+  mistakes,
+});
+
+/** Fill in the hidden cells of a verb's form table by tapping tiles. */
+const paradigm = z
+  .object({
+    root: text,
+    affix,
+    en: text,
+    cells: z.array(z.object({ form: verbForm, value: text, hidden: z.boolean() })).min(2),
+    distractors: z.array(text),
+  })
+  .refine((p) => p.cells.some((c) => c.hidden), {
+    message: "at least one cell must be hidden",
+    path: ["cells"],
   });
 
 export const payloadSchemas = {
@@ -126,6 +226,10 @@ export const payloadSchemas = {
   listen_select: listenSelect,
   speak,
   dialogue,
+  conjugate,
+  find_root: findRoot,
+  transform,
+  paradigm,
 } as const;
 
 export type PayloadFor<T extends ExerciseType> = z.infer<(typeof payloadSchemas)[T]>;
@@ -167,8 +271,6 @@ export function safeParseExercise(type: ExerciseType, payload: unknown): ParsedE
   }
 }
 
-const fold = (s: string) => s.trim().toLocaleLowerCase();
-
 function duplicates(values: string[]): string[] {
   const seen = new Set<string>();
   const dupes = new Set<string>();
@@ -204,6 +306,24 @@ export function lintExercise(ex: ParsedExercise): string[] {
     case "type_translation": {
       const d = duplicates(ex.payload.answers);
       if (d.length) warnings.push(`Duplicate accepted answers: ${d.join(", ")}`);
+      break;
+    }
+    case "conjugate": {
+      const answer = fold(ex.payload.answers[0]!);
+      if (fold(ex.payload.sentence).includes(answer) || fold(ex.payload.translation).includes(answer))
+        warnings.push("The answer appears in the sentence or translation.");
+      break;
+    }
+    case "transform": {
+      const source = fold(ex.payload.source);
+      if (ex.payload.answers.some((a) => fold(a.join(" ")) === source))
+        warnings.push("The source already equals an accepted answer.");
+      break;
+    }
+    case "paradigm": {
+      const tiles = [...ex.payload.cells.filter((c) => c.hidden).map((c) => c.value), ...ex.payload.distractors];
+      const d = duplicates(tiles);
+      if (d.length) warnings.push(`Duplicate tiles: ${d.join(", ")}`);
       break;
     }
     case "speak": {

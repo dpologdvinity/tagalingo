@@ -56,6 +56,13 @@ function choiceOf(answer: unknown): number | null {
   return isRecord(answer) && Number.isInteger(answer.choice) ? (answer.choice as number) : null;
 }
 
+/** True when `answer` is `{ text }` and its normalised text equals one of `accepted`. */
+function textMatches(answer: unknown, accepted: string[]): boolean {
+  if (!isRecord(answer) || typeof answer.text !== "string") return false;
+  const given = normalizeAnswer(answer.text);
+  return given !== "" && accepted.some((a) => normalizeAnswer(a) === given);
+}
+
 export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
   switch (ex.type) {
     case "select_translation": {
@@ -122,6 +129,47 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
         return { correct: true, typo: true, correctAnswer: ex.payload.answers[accepted.indexOf(nearMiss)] };
       }
       return { correct: false, correctAnswer };
+    }
+    // Exact normalised match only; Task 6 refines these (near-miss handling, mistake explanations).
+    case "conjugate": {
+      const correctAnswer = ex.payload.answers[0]!;
+      return { correct: textMatches(answer, ex.payload.answers), correctAnswer };
+    }
+    case "find_root":
+      return {
+        correct:
+          ex.payload.mode === "choice"
+            ? isRecord(answer) && ex.payload.options?.[choiceOf(answer) ?? -1] === ex.payload.root
+            : textMatches(answer, [ex.payload.root]),
+        correctAnswer: ex.payload.root,
+      };
+    case "transform": {
+      const correctAnswer = ex.payload.answers[0]!.join(" ");
+      const given =
+        isRecord(answer) && Array.isArray(answer.tokens) && answer.tokens.every((t) => typeof t === "string")
+          ? (answer.tokens as string[]).join(" ")
+          : isRecord(answer) && typeof answer.text === "string"
+            ? answer.text
+            : null;
+      if (given === null) return { correct: false, correctAnswer };
+      return {
+        correct: ex.payload.answers.some((a) => normalizeAnswer(a.join(" ")) === normalizeAnswer(given)),
+        correctAnswer,
+      };
+    }
+    case "paradigm": {
+      const hidden = ex.payload.cells.filter((c) => c.hidden).map((c) => c.value);
+      const values =
+        isRecord(answer) && Array.isArray(answer.values) && answer.values.every((t) => typeof t === "string")
+          ? (answer.values as string[])
+          : null;
+      return {
+        correct:
+          values !== null &&
+          values.length === hidden.length &&
+          hidden.every((h, i) => normalizeAnswer(h) === normalizeAnswer(values[i]!)),
+        correctAnswer: hidden.join(", "),
+      };
     }
   }
 }

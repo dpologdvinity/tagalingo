@@ -13,6 +13,10 @@ const TYPE_LABEL: Record<ParsedExercise["type"], string> = {
   listen_select: "Listen and pick",
   speak: "Say it aloud",
   dialogue: "Dialogue reply",
+  conjugate: "Conjugate",
+  find_root: "Find the root",
+  transform: "Transform",
+  paradigm: "Complete the table",
 };
 
 export function typeLabel(t: ParsedExercise["type"]) {
@@ -144,5 +148,11 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           <p className="text-sm text-ink-soft">Reply means: {ex.payload.replyEn}</p>
         </div>
       );
+    // Placeholder until the dedicated grammar previews land.
+    case "conjugate":
+    case "find_root":
+    case "transform":
+    case "paradigm":
+      return <p className="text-ink-soft">Preview not yet supported for this exercise type.</p>;
   }
 }

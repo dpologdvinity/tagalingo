@@ -127,6 +127,10 @@ enum ExerciseType {
   listen_select
   speak
   dialogue
+  conjugate
+  find_root
+  transform
+  paradigm
 }
 
 enum ExerciseStatus {
