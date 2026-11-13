@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tokenize, wordKeys } from "./tokenize";
+import { lookupFor, tokenize, wordKeys } from "./tokenize";
 
 describe("tokenize", () => {
   it("splits words from punctuation and spacing and loses nothing", () => {
@@ -34,5 +34,18 @@ describe("tokenize", () => {
 describe("wordKeys", () => {
   it("lists each normalised word once, in order of first appearance", () => {
     expect(wordKeys(tokenize("Kumain ako. kumain AKO, mag-aral!"))).toEqual(["kumain", "ako", "magaral"]);
+  });
+});
+
+describe("lookupFor", () => {
+  it("finds a word by its normalised form", () => {
+    expect(lookupFor({ kumain: [1] }, "Kumain")).toEqual([1]);
+    expect(lookupFor({ kumain: [1] }, "ako")).toBeUndefined();
+  });
+
+  it("ignores names every object inherits", () => {
+    expect(lookupFor({}, "constructor")).toBeUndefined();
+    expect(lookupFor({}, "toString")).toBeUndefined();
+    expect(lookupFor({}, "__proto__")).toBeUndefined();
   });
 });

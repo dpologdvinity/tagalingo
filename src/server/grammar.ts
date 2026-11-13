@@ -13,6 +13,7 @@ import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
 import { patternCardSchema, type PatternCard } from "@/lib/content/grammar-schema";
 import { effectiveStrength, strengthLabel, type StrengthLabel } from "@/lib/game/strength";
 import { analyse, type Analysis, type VerbTableData } from "@/lib/grammar/analyse";
+import { LOOKUP_MAX_WORDS } from "@/lib/grammar/tokenize";
 import { normalizeAnswer } from "@/lib/normalize";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -33,9 +34,6 @@ export type GrammarOverviewItem = {
   skillId: string;
   skillTitle: string;
 };
-
-/** `lookupWords` takes at most this many words per call. */
-export const LOOKUP_MAX_WORDS = 60;
 
 /** Patterns whose drills `weakestPatterns` considers need at least this many answers. */
 const WEAK_MIN_ATTEMPTS = 3;

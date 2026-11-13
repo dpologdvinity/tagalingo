@@ -5,7 +5,8 @@
  * "nothing found" rather than an error.
  */
 import { z } from "zod";
-import { LOOKUP_MAX_WORDS, lookupWords, type VerbLookup } from "@/server/grammar";
+import { LOOKUP_MAX_WORDS } from "@/lib/grammar/tokenize";
+import { lookupWords, type VerbLookup } from "@/server/grammar";
 import { getCurrentUser } from "@/server/session";
 
 const wordsSchema = z.array(z.string().max(80)).max(LOOKUP_MAX_WORDS);
