@@ -12,6 +12,9 @@ test.describe("studio grammar review", () => {
     await page.goto("/studio");
     await page.getByRole("link", { name: "Verb tables" }).click();
     await expect(page.getByRole("heading", { name: "Verb tables", level: 1 })).toBeVisible();
+    // Other drafts may exist; "All" keeps the card on screen after it is approved.
+    await page.getByRole("link", { name: /^All \(/ }).click();
+    await page.waitForURL("**/studio/verbs?status=all");
 
     const card = page.getByRole("region", { name: "kain, mag" });
     await expect(card.getByRole("heading", { name: "kain · mag" })).toBeVisible();
@@ -19,6 +22,7 @@ test.describe("studio grammar review", () => {
     await expect(card.getByLabel("past")).toHaveValue("nagkain");
 
     // One form per row: the card never needs more width than the phone has.
+    await page.setViewportSize({ width: 390, height: 844 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
 

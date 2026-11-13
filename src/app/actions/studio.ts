@@ -125,14 +125,23 @@ export async function saveExerciseAction(exerciseId: string, payloadJson: string
   }
 }
 
-/** Run a reviewer-only write, turning a refusal or an unexpected failure into a `StudioResult`. */
-async function asReviewer(
-  write: (user: Awaited<ReturnType<typeof reviewer>>) => Promise<StudioResult>,
-  paths: string[],
+/**
+ * Run a reviewer-only write. The role is checked first, so a learner is refused whatever they send;
+ * then `input` (the action's arguments, which a client can make anything) is validated against
+ * `schema`. A refusal, bad input or unexpected failure comes back as a `StudioResult`, never as raw
+ * error text from a TypeError. `write` returns the extra paths to revalidate (besides /studio).
+ */
+async function asReviewer<S extends z.ZodType>(
+  schema: S,
+  input: unknown,
+  write: (user: Awaited<ReturnType<typeof reviewer>>, args: z.infer<S>) => Promise<StudioResult & { paths?: string[] }>,
   failure: string,
 ): Promise<StudioResult> {
   try {
-    const result = await write(await reviewer());
+    const user = await reviewer();
+    const args = schema.safeParse(input);
+    if (!args.success) return { ok: false, message: "That request was not valid." };
+    const { paths = [], ...result } = await write(user, args.data);
     if (result.ok) for (const p of ["/studio", ...paths]) revalidatePath(p);
     return result;
   } catch (e) {
@@ -140,34 +149,57 @@ async function asReviewer(
   }
 }
 
-export async function saveVerbTableAction(id: string, formsJson: string): Promise<StudioResult> {
+const id = z.string().min(1);
+
+export async function saveVerbTableAction(tableId: string, formsJson: string): Promise<StudioResult> {
   return asReviewer(
-    (user) => saveVerbTable(loadCourseFile(COURSE_FILE), user.id, id, formsJson),
-    ["/studio/verbs"],
+    z.tuple([id, z.string()]),
+    [tableId, formsJson],
+    async (user, [tid, json]) => ({
+      ...(await saveVerbTable(loadCourseFile(COURSE_FILE), user.id, tid, json)),
+      paths: ["/studio/verbs"],
+    }),
     "Save failed.",
   );
 }
 
-export async function reviewVerbTableAction(id: string, status: string, note?: string): Promise<StudioResult> {
-  return asReviewer((user) => reviewVerbTable(user.id, id, status, note), ["/studio/verbs"], "Update failed.");
+export async function reviewVerbTableAction(tableId: string, status: string, note?: string): Promise<StudioResult> {
+  return asReviewer(
+    z.tuple([id, z.string(), z.string().optional()]),
+    [tableId, status, note],
+    async (user, [tid, st, n]) => ({ ...(await reviewVerbTable(user.id, tid, st, n)), paths: ["/studio/verbs"] }),
+    "Update failed.",
+  );
 }
 
 export async function flagCardAction(patternSlug: string, note: string): Promise<StudioResult> {
-  return asReviewer((user) => flagCard(user.id, patternSlug, note), ["/studio/grammar"], "Couldn’t flag the card.");
+  return asReviewer(
+    z.tuple([id, z.string()]),
+    [patternSlug, note],
+    async (user, [slug, n]) => ({ ...(await flagCard(user.id, slug, n)), paths: ["/studio/grammar"] }),
+    "Couldn’t flag the card.",
+  );
 }
 
 export async function resolveFlagAction(flagId: string): Promise<StudioResult> {
-  return asReviewer(() => resolveFlag(flagId), ["/studio/grammar"], "Couldn’t resolve the flag.");
+  return asReviewer(
+    z.tuple([id]),
+    [flagId],
+    async (_user, [fid]) => ({ ...(await resolveFlag(fid)), paths: ["/studio/grammar"] }),
+    "Couldn’t resolve the flag.",
+  );
 }
 
 export async function setExercisePatternsAction(exerciseId: string, slugs: string[]): Promise<StudioResult> {
   return asReviewer(
-    async () => {
-      const result = await setExercisePatterns(exerciseId, slugs);
-      if (result.ok) revalidatePath(await skillPathFor(exerciseId));
-      return result;
+    z.tuple([id, z.array(z.string())]),
+    [exerciseId, slugs],
+    async (_user, [eid, wanted]) => {
+      // Looked up before the write, so a failure here can never report a save that went through.
+      const skillPath = await skillPathFor(eid).catch(() => null);
+      const result = await setExercisePatterns(eid, wanted);
+      return { ...result, paths: ["/studio/grammar", ...(skillPath ? [skillPath] : [])] };
     },
-    ["/studio/grammar"],
     "Couldn’t save the patterns.",
   );
 }

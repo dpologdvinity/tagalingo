@@ -52,7 +52,7 @@ export default async function GrammarReviewPage() {
         {open.length === 0 ? (
           <p className="mt-2 text-ink-soft">Nothing is flagged.</p>
         ) : (
-          <ul className="mt-2 divide-y divide-line">
+          <ul className="mt-2 divide-y divide-line [&>li:last-child]:pb-0">
             {open.map(({ flag, title }) => (
               <FlagItem key={flag.id} flag={flag} title={title} />
             ))}
@@ -66,49 +66,54 @@ export default async function GrammarReviewPage() {
         </p>
       )}
 
-      {patterns.map((p) => {
-        const flags = p.flags.filter((f) => !f.resolvedAt);
-        const resolved = p.flags.filter((f) => f.resolvedAt);
-        return (
-          <section
-            key={p.slug}
-            aria-label={p.title}
-            className="space-y-4 rounded-3xl border-2 border-line bg-surface p-5"
-          >
-            <p className="text-sm text-ink-soft">
-              {p.skillTitle} · {p.taggedExercises} drill{p.taggedExercises === 1 ? "" : "s"} tagged
-            </p>
-            {p.card ? (
-              <GrammarCardView card={{ slug: p.slug, title: p.title, card: p.card, isNew: false }} headingLevel={3} />
-            ) : (
-              <>
-                <h3 className="font-display text-3xl">{p.title}</h3>
-                <p role="alert" className="rounded-2xl bg-mango-soft px-4 py-3 text-sm">
-                  ⚠️ The stored card is not valid: {p.cardError}
-                </p>
-              </>
-            )}
-            <FlagForm patternSlug={p.slug} patternTitle={p.title} />
-            {flags.length > 0 && (
-              <ul className="divide-y divide-line rounded-2xl bg-mango-soft px-4">
-                {flags.map((f) => (
-                  <FlagItem key={f.id} flag={f} />
-                ))}
-              </ul>
-            )}
-            {resolved.length > 0 && (
-              <details>
-                <summary className="cursor-pointer font-bold">Resolved ({resolved.length})</summary>
-                <ul className="divide-y divide-line">
-                  {resolved.map((f) => (
+      <section aria-labelledby="cards" className="space-y-4">
+        <h2 id="cards" className="font-display text-2xl">
+          Cards ({patterns.length})
+        </h2>
+        {patterns.map((p) => {
+          const flags = p.flags.filter((f) => !f.resolvedAt);
+          const resolved = p.flags.filter((f) => f.resolvedAt);
+          return (
+            <section
+              key={p.slug}
+              aria-label={p.title}
+              className="space-y-4 rounded-3xl border-2 border-line bg-surface p-5"
+            >
+              <p className="text-sm text-ink-soft">
+                {p.skillTitle} · {p.taggedExercises} drill{p.taggedExercises === 1 ? "" : "s"} tagged
+              </p>
+              {p.card ? (
+                <GrammarCardView card={{ slug: p.slug, title: p.title, card: p.card, isNew: false }} headingLevel={3} />
+              ) : (
+                <>
+                  <h3 className="font-display text-3xl">{p.title}</h3>
+                  <p role="alert" className="rounded-2xl bg-mango-soft px-4 py-3 text-sm">
+                    ⚠️ The stored card is not valid: {p.cardError}
+                  </p>
+                </>
+              )}
+              <FlagForm patternSlug={p.slug} patternTitle={p.title} />
+              {flags.length > 0 && (
+                <ul className="divide-y divide-line rounded-2xl bg-mango-soft px-4">
+                  {flags.map((f) => (
                     <FlagItem key={f.id} flag={f} />
                   ))}
                 </ul>
-              </details>
-            )}
-          </section>
-        );
-      })}
+              )}
+              {resolved.length > 0 && (
+                <details>
+                  <summary className="cursor-pointer font-bold">Resolved ({resolved.length})</summary>
+                  <ul className="divide-y divide-line">
+                    {resolved.map((f) => (
+                      <FlagItem key={f.id} flag={f} />
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </section>
+          );
+        })}
+      </section>
     </div>
   );
 }

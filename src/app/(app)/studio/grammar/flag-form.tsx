@@ -13,7 +13,8 @@ export function FlagForm({ patternSlug, patternTitle }: { patternSlug: string; p
   const submit = () =>
     start(async () => {
       const r = await flagCardAction(patternSlug, note);
-      setResult(r);
+      // Success shows up in the flag lists, so only a failure needs a message.
+      setResult(r.ok ? null : r);
       if (r.ok) setNote("");
     });
 
@@ -52,10 +53,10 @@ export function ResolveButton({ flagId }: { flagId: string }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
       <Button
-        variant="ghost"
+        variant="secondary"
         disabled={pending}
         onClick={() => start(async () => setResult(await resolveFlagAction(flagId)))}
-        className="px-3 py-1 text-sm"
+        className="px-4 py-2 text-sm"
       >
         Resolve
       </Button>

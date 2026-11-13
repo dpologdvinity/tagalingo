@@ -268,8 +268,40 @@ describe("setExercisePatterns", () => {
 });
 
 describe("actions", () => {
+  const denied = { ok: false, message: "Only reviewers can change course content." };
+
+  /** Calls all five new actions with valid arguments for the fixture rows. */
+  async function callAll(patternSlug: string, tableId: string, flagId: string, exerciseId: string) {
+    const a = await import("@/app/actions/studio");
+    return [
+      await a.saveVerbTableAction(tableId, JSON.stringify(ruleForms)),
+      await a.reviewVerbTableAction(tableId, "APPROVED"),
+      await a.flagCardAction(patternSlug, "hello"),
+      await a.resolveFlagAction(flagId),
+      await a.setExercisePatternsAction(exerciseId, [patternSlug]),
+    ];
+  }
+
+  async function fixtures() {
+    const p = await pattern("actions");
+    const t = await table();
+    const flag = await db.cardFlag.create({ data: { patternId: p.id, userId: reviewer.id, note: "existing" } });
+    const exercise = await db.exercise.findFirstOrThrow({
+      orderBy: [{ lessonId: "asc" }, { order: "asc" }, { id: "asc" }],
+    });
+    return { p, t, flag, exercise };
+  }
+
+  /** Nothing the actions can write was written. */
+  async function expectUntouched({ p, t, flag, exercise }: Awaited<ReturnType<typeof fixtures>>) {
+    expect(await db.cardFlag.count({ where: { patternId: p.id } })).toBe(1);
+    expect((await db.cardFlag.findUniqueOrThrow({ where: { id: flag.id } })).resolvedAt).toBeNull();
+    const row = await db.verbTable.findUniqueOrThrow({ where: { id: t.id } });
+    expect(row).toMatchObject({ status: "DRAFT", reviewedById: null });
+    expect(await db.exercisePattern.count({ where: { exerciseId: exercise.id, patternId: p.id } })).toBe(0);
+  }
+
   it("refuse a signed-in learner who is not a reviewer", async () => {
-    const { flagCardAction, reviewVerbTableAction, saveVerbTableAction } = await import("@/app/actions/studio");
     const learner = await db.user.create({
       data: {
         id: `${P}user-${n++}`,
@@ -278,15 +310,37 @@ describe("actions", () => {
         passwordHash: "x",
       },
     });
+    const f = await fixtures();
     session.user = learner;
-    const p = await pattern("learner");
-    const t = await table();
+    const results = await callAll(f.p.slug, f.t.id, f.flag.id, f.exercise.id);
+    expect(results).toEqual(Array(5).fill(denied));
+    await expectUntouched(f);
+  });
 
-    const denied = { ok: false, message: "Only reviewers can change course content." };
-    expect(await flagCardAction(p.slug, "hello")).toEqual(denied);
-    expect(await reviewVerbTableAction(t.id, "APPROVED")).toEqual(denied);
-    expect(await saveVerbTableAction(t.id, JSON.stringify(ruleForms))).toEqual(denied);
-    expect(await db.cardFlag.count({ where: { patternId: p.id } })).toBe(0);
-    expect((await db.verbTable.findUniqueOrThrow({ where: { id: t.id } })).status).toBe("DRAFT");
+  it("refuse a visitor who is signed out", async () => {
+    const f = await fixtures();
+    session.user = null;
+    const results = await callAll(f.p.slug, f.t.id, f.flag.id, f.exercise.id);
+    expect(results).toEqual(Array(5).fill(denied));
+    await expectUntouched(f);
+  });
+
+  it("answer malformed arguments with a clean message instead of a TypeError", async () => {
+    const a = await import("@/app/actions/studio");
+    const invalid = { ok: false, message: "That request was not valid." };
+    const bad = (v: unknown) => v as never;
+    expect(await a.setExercisePatternsAction("x", bad("not-an-array"))).toEqual(invalid);
+    expect(await a.setExercisePatternsAction("x", bad([1]))).toEqual(invalid);
+    expect(await a.flagCardAction("slug", bad(undefined))).toEqual(invalid);
+    expect(await a.resolveFlagAction(bad(42))).toEqual(invalid);
+    expect(await a.reviewVerbTableAction("x", "APPROVED", bad({}))).toEqual(invalid);
+    expect(await a.saveVerbTableAction(bad(null), "{}")).toEqual(invalid);
+  });
+
+  it("run for a reviewer", async () => {
+    const f = await fixtures();
+    const results = await callAll(f.p.slug, f.t.id, f.flag.id, f.exercise.id);
+    expect(results.map((r) => r.ok)).toEqual([false, true, true, true, true]); // the stray root is not in course.yaml
+    expect(results[0].message).toContain("tstudio");
   });
 });
