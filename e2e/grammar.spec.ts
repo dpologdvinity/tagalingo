@@ -117,7 +117,7 @@ test.describe("grammar browsing and word lookup", () => {
     const sheet = page.getByRole("dialog");
     await expect(sheet.getByRole("heading", { name: "makilala" })).toBeVisible();
     await expect(sheet.getByText(/infinitive of kilala/)).toBeVisible();
-    await expect(sheet.getByRole("rowheader", { name: /kilala/ })).toBeVisible();
+    await expect(sheet.getByRole("table", { name: /kilala/ })).toBeVisible();
     for (const form of ["nakilala", "nakikilala", "makikilala", "kakikilala"])
       await expect(sheet.getByRole("cell", { name: form })).toBeVisible();
     await sheet.getByRole("button", { name: "Close" }).click();
@@ -126,6 +126,10 @@ test.describe("grammar browsing and word lookup", () => {
 
   test("the skill page shows the pattern and its verb table", async ({ page }) => {
     const email = await signUpFreshLearner(page);
+    // Verb tables answer the skill's drills, so they stay hidden until the lesson is finished.
+    await page.goto(`/skills/${FIXTURE.skillSlug}`);
+    await expect(page.getByRole("region", { name: "kain verb table" })).toHaveCount(0);
+
     await finishGrammarLesson(email);
     await page.goto(`/skills/${FIXTURE.skillSlug}`);
 

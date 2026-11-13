@@ -12,9 +12,8 @@ import { lookupWordsAction } from "@/app/actions/grammar";
 import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui";
 import type { VerbTableData } from "@/lib/grammar/analyse";
-import { tokenize, wordKeys } from "@/lib/grammar/tokenize";
+import { LOOKUP_MAX_WORDS, lookupFor, tokenize, wordKeys } from "@/lib/grammar/tokenize";
 import { FORM_LABEL, VERB_FORMS, type VerbForm } from "@/lib/grammar/types";
-import { normalizeAnswer } from "@/lib/normalize";
 import type { VerbLookup } from "@/server/grammar";
 
 /** The words after the first are accepted variants: "nakapagluluto / nakakapagluto". */
@@ -23,46 +22,40 @@ function cellText(cell: string[]): string {
 }
 
 /**
- * One verb table: the root and its English in the first column, then a column per form (the
- * Tagalog grammar name in a smaller second line). `highlight` picks out the cells a word matched.
- * Like the grammar card it wraps text and shrinks padding on narrow screens instead of scrolling
- * the page; a speaker button sits under each form on a phone and beside it from `sm` up.
+ * One verb table, a row per form: the form's name (the Tagalog grammar term in a smaller second
+ * line) beside the word with a speaker button, under a caption with the root and its English.
+ * `highlight` picks out the cells a word matched. Forms run long ("magkakakain"), so the table is
+ * two columns and never needs more room than a phone has; a table with a column per form did not
+ * fit the narrow skill page, let alone 390px.
  */
 export function VerbTableView({ table, highlight = [] }: { table: VerbTableData; highlight?: readonly VerbForm[] }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border-2 border-line">
-      <table className="w-full border-collapse text-left text-xs sm:text-lg">
-        <thead>
-          <tr className="bg-seaglass text-xs text-ink-soft sm:text-sm">
-            <th scope="col" className="px-1.5 py-2 font-bold sm:px-4">
-              Root
-            </th>
-            {VERB_FORMS.map((form) => (
-              <th key={form} scope="col" className="px-1.5 py-2 font-bold sm:px-4">
-                {FORM_LABEL[form].en}
-                <span lang="tl" className="block text-[0.7rem] font-normal sm:text-xs">
-                  {FORM_LABEL[form].tl}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
+    <div className="overflow-hidden rounded-2xl border-2 border-line">
+      <table className="w-full border-collapse text-left">
+        <caption className="bg-mango-soft px-3 py-2 text-left sm:px-4">
+          <span lang="tl" className="text-lg font-bold text-ink sm:text-xl">
+            {table.root}
+          </span>{" "}
+          <span className="text-ink-soft">{table.en}</span>
+        </caption>
         <tbody>
-          <tr className="border-t-2 border-line">
-            <th scope="row" className="bg-mango-soft px-1.5 py-2.5 font-bold text-ink [overflow-wrap:anywhere] sm:px-4">
-              <span lang="tl">{table.root}</span>
-              <span className="block text-[0.7rem] font-normal text-ink-soft sm:text-sm">{table.en}</span>
-            </th>
-            {VERB_FORMS.map((form) => {
-              const cell = table.forms[form] ?? [];
-              return (
-                <td
-                  key={form}
-                  className={`px-1.5 py-2.5 align-top sm:px-4 ${highlight.includes(form) ? "bg-lagoon-soft" : ""}`}
+          {VERB_FORMS.map((form) => {
+            const cell = table.forms[form] ?? [];
+            return (
+              <tr key={form} className="border-t-2 border-line">
+                <th
+                  scope="row"
+                  className="w-2/5 bg-seaglass px-3 py-2 text-left text-sm font-bold text-ink-soft sm:px-4"
                 >
+                  {FORM_LABEL[form].en}
+                  <span lang="tl" className="block text-xs font-normal">
+                    {FORM_LABEL[form].tl}
+                  </span>
+                </th>
+                <td className={`px-3 py-2 sm:px-4 ${highlight.includes(form) ? "bg-lagoon-soft" : ""}`}>
                   {cell.length ? (
-                    <span className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
-                      <span lang="tl" className="font-bold [overflow-wrap:anywhere]">
+                    <span className="flex items-center justify-between gap-2">
+                      <span lang="tl" className="text-lg font-bold">
                         {cellText(cell)}
                       </span>
                       <SpeakButton text={cell[0]} size="sm" />
@@ -74,9 +67,9 @@ export function VerbTableView({ table, highlight = [] }: { table: VerbTableData;
                     </span>
                   )}
                 </td>
-              );
-            })}
-          </tr>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -110,7 +103,7 @@ export function VerbSheet({ word, lookups, onClose }: { word: string; lookups: V
               <span lang="tl" className="font-bold text-ink">
                 {table.root}
               </span>{" "}
-              · {table.affix.replace("_", " ")} · {table.en}
+              · {table.affix.replaceAll("_", " ")} · {table.en}
             </p>
             <p className="font-bold text-lagoon">
               {analyses.map((a) => formName(a.form)).join(" and ")} of <span lang="tl">{table.root}</span>
@@ -126,9 +119,6 @@ export function VerbSheet({ word, lookups, onClose }: { word: string; lookups: V
   );
 }
 
-/** Most distinct words one lookup asks for; the server refuses more (a chat reply is far shorter). */
-const MAX_LOOKUP_WORDS = 60;
-
 /**
  * Tagalog text with its known verb forms underlined and tappable. Punctuation and spacing come out
  * as written; words that are not in an approved verb table stay plain text.
@@ -139,7 +129,7 @@ export function TagalogText({ text }: { text: string }) {
   const [open, setOpen] = useState<{ word: string; lookups: VerbLookup[] } | null>(null);
 
   useEffect(() => {
-    const keys = wordKeys(tokens).slice(0, MAX_LOOKUP_WORDS);
+    const keys = wordKeys(tokens).slice(0, LOOKUP_MAX_WORDS);
     if (!keys.length) return;
     let current = true;
     lookupWordsAction(keys)
@@ -153,7 +143,7 @@ export function TagalogText({ text }: { text: string }) {
   return (
     <span>
       {tokens.map((token, i) => {
-        const lookups = token.word ? found[normalizeAnswer(token.text)] : undefined;
+        const lookups = token.word ? lookupFor(found, token.text) : undefined;
         return lookups ? (
           <button
             key={i}
