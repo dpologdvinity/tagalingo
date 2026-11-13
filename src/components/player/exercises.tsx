@@ -8,8 +8,8 @@ import { hash, rng, shuffle } from "@/lib/random";
 import { useRecognitionSupported, useSpeechRecognition } from "@/lib/speech/client";
 import { SpeakButton } from "@/components/speak-button";
 
-type Of<T extends ClientExercise["type"]> = Extract<ClientExercise, { type: T }>;
-type Props<T extends ClientExercise["type"]> = {
+export type Of<T extends ClientExercise["type"]> = Extract<ClientExercise, { type: T }>;
+export type Props<T extends ClientExercise["type"]> = {
   exercise: Of<T>;
   disabled: boolean;
   onChange: (answer: unknown | null) => void;
@@ -17,11 +17,11 @@ type Props<T extends ClientExercise["type"]> = {
 
 const langName = (l: "tl" | "en") => (l === "tl" ? "Tagalog" : "English");
 
-function Instruction({ children }: { children: React.ReactNode }) {
+export function Instruction({ children }: { children: React.ReactNode }) {
   return <h2 className="font-display text-2xl text-ink sm:text-3xl">{children}</h2>;
 }
 
-function PromptBubble({ text, lang }: { text: string; lang: "tl" | "en" }) {
+export function PromptBubble({ text, lang }: { text: string; lang: "tl" | "en" }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {lang === "tl" && <SpeakButton text={text} />}
@@ -36,7 +36,7 @@ function PromptBubble({ text, lang }: { text: string; lang: "tl" | "en" }) {
 }
 
 /** Numbered options; keys 1–4 select. */
-function Options({
+export function Options({
   options,
   selected,
   onSelect,

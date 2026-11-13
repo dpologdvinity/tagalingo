@@ -1,9 +1,10 @@
 "use client";
 /**
- * The player for lessons and practice sessions: one exercise at a time, Check → feedback
- * sheet → Continue. Wrong answers go to the back of the queue, so a session ends once every
- * exercise has been answered correctly. The server picks the exercises, grades every answer
- * and owns hearts and XP.
+ * The player for lessons and practice sessions: one step at a time. An exercise step is Check →
+ * feedback sheet → Continue; a grammar card step introduces a new pattern before its first drill
+ * and is dismissed with "Got it". Wrong answers go to the back of the queue, so a session ends once
+ * every exercise has been answered correctly (cards are never re-queued). The server picks the
+ * exercises, grades every answer and owns hearts and XP.
  */
 import type { Route } from "next";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { answerAction, completeLessonAction, startLessonAction, startPracticeAction } from "@/app/actions/lesson";
 import type { ClientExercise } from "@/lib/content/client-view";
+import type { LessonCard } from "@/server/grammar";
 import type { AnswerFeedback, LessonResult, PracticeScope } from "@/server/lessons";
 import { CheckIcon, CloseIcon, HeartIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
@@ -24,6 +26,9 @@ import {
   TypeTranslation,
   WordBank,
 } from "./exercises";
+import { GrammarCardView, PatternChip } from "./grammar-card";
+import { Conjugate, FindRoot, Paradigm, Transform } from "./grammar-exercises";
+import { buildSteps, chipCards, type ExercisePatterns, type Step } from "./steps";
 import { LessonResults, OutOfHearts } from "./lesson-screens";
 
 type Phase = "starting" | "answering" | "checking" | "feedback" | "finishing" | "done" | "out_of_hearts" | "error";
@@ -47,8 +52,12 @@ export function LessonPlayer({
   const [error, setError] = useState<string | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [exercises, setExercises] = useState<ClientExercise[]>([]);
-  const [queue, setQueue] = useState<number[]>([]);
-  const [solved, setSolved] = useState(0);
+  const [cards, setCards] = useState<LessonCard[]>([]);
+  const [exercisePatterns, setExercisePatterns] = useState<ExercisePatterns>({});
+  const [queue, setQueue] = useState<Step[]>([]);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const [shown, setShown] = useState<ReadonlySet<string>>(new Set()); // cards dismissed this session
+  const [solved, setSolved] = useState(0); // steps done: correct exercises plus dismissed cards
   const [answer, setAnswer] = useState<unknown | null>(null);
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
   const [hearts, setHearts] = useState(initialHearts);
@@ -57,7 +66,8 @@ export function LessonPlayer({
   const [round, setRound] = useState(0); // remounts the exercise when it comes back around
   const quitRef = useRef<HTMLDialogElement>(null);
 
-  const current: ClientExercise | undefined = exercises[queue[0]];
+  const step: Step | undefined = queue[0];
+  const current: ClientExercise | undefined = step?.kind === "exercise" ? step.exercise : undefined;
   const practice = session.kind === "practice";
 
   // Start exactly one attempt per mount (StrictMode runs effects twice in development).
@@ -69,8 +79,12 @@ export function LessonPlayer({
     start.then((r) => {
       if (r.ok) {
         setAttemptId(r.data.attemptId);
+        const steps = buildSteps(r.data.exercises, r.data.cards, r.data.exercisePatterns);
         setExercises(r.data.exercises);
-        setQueue(r.data.exercises.map((_, i) => i));
+        setCards(r.data.cards);
+        setExercisePatterns(r.data.exercisePatterns);
+        setQueue(steps);
+        setTotalSteps(steps.length);
         setPhase("answering");
       } else if (r.code === "no_hearts") setPhase("out_of_hearts");
       else {
@@ -100,6 +114,15 @@ export function LessonPlayer({
 
   const onMatchSolved = useCallback(() => void submit({ completed: true }), [submit]);
 
+  /** Leave the card on screen: it counts as done and never comes back. */
+  const dismissCard = useCallback(() => {
+    if (step?.kind !== "card") return;
+    setShown((s) => new Set(s).add(step.card.slug));
+    setQueue(queue.slice(1));
+    setSolved((n) => n + 1);
+    setRound((n) => n + 1);
+  }, [step, queue]);
+
   const advance = useCallback(async () => {
     if (!feedback || !attemptId) return;
     if (feedback.outOfHearts) {
@@ -107,7 +130,7 @@ export function LessonPlayer({
       return;
     }
     const [head, ...rest] = queue;
-    const nextQueue = feedback.correct ? rest : [...rest, head];
+    const nextQueue = feedback.correct ? rest : [...rest, head!];
     const nextSolved = feedback.correct ? solved + 1 : solved;
     setQueue(nextQueue);
     setSolved(nextSolved);
@@ -130,11 +153,14 @@ export function LessonPlayer({
     }
   }, [feedback, attemptId, queue, solved, router]);
 
-  // Enter checks or continues.
+  // Enter checks or continues (or dismisses a card), except while a dialog (quit, grammar help) is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Enter" || e.repeat) return;
-      if (phase === "answering" && answer !== null && current?.type !== "match_pairs") {
+      if (e.key !== "Enter" || e.repeat || document.querySelector("dialog[open]")) return;
+      if (phase === "answering" && step?.kind === "card") {
+        e.preventDefault();
+        dismissCard();
+      } else if (phase === "answering" && answer !== null && current?.type !== "match_pairs") {
         e.preventDefault();
         void submit(answer);
       } else if (phase === "feedback") {
@@ -144,12 +170,12 @@ export function LessonPlayer({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, answer, current, submit, advance]);
+  }, [phase, answer, step, current, submit, advance, dismissCard]);
 
   if (phase === "out_of_hearts") return <OutOfHearts nextHeartAt={nextHeartAt} practiceHref={practiceHref} />;
   if (phase === "done" && result) return <LessonResults result={result} total={exercises.length} />;
 
-  const progress = exercises.length ? Math.round((solved / exercises.length) * 100) : 0;
+  const progress = totalSteps ? Math.round((solved / totalSteps) * 100) : 0;
   const locked = phase !== "answering";
 
   return (
@@ -185,7 +211,7 @@ export function LessonPlayer({
         </span>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-48 pt-8 sm:pt-12">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-56 pt-8 sm:pt-12">
         {phase === "starting" && (
           <p className="text-ink-soft">{practice ? "Picking exercises to practise…" : "Getting your lesson ready…"}</p>
         )}
@@ -197,8 +223,18 @@ export function LessonPlayer({
             </Link>
           </div>
         )}
+        {step?.kind === "card" && phase !== "starting" && phase !== "error" && (
+          <div key={`${step.card.slug}-${round}`}>
+            <GrammarCardView card={step.card} onDone={dismissCard} />
+          </div>
+        )}
         {current && phase !== "starting" && phase !== "error" && (
           <div key={`${current.id}-${round}`} data-exercise-id={current.id}>
+            <div className="mb-4 flex gap-2 empty:hidden">
+              {chipCards(current.id, cards, exercisePatterns, shown).map((c) => (
+                <PatternChip key={c.slug} card={c} />
+              ))}
+            </div>
             {current.type === "select_translation" && (
               <SelectTranslation exercise={current} disabled={locked} onChange={setAnswer} />
             )}
@@ -217,18 +253,31 @@ export function LessonPlayer({
               <Speak exercise={current} disabled={locked} onChange={setAnswer} onSubmit={(a) => void submit(a)} />
             )}
             {current.type === "dialogue" && <Dialogue exercise={current} disabled={locked} onChange={setAnswer} />}
+            {current.type === "conjugate" && <Conjugate exercise={current} disabled={locked} onChange={setAnswer} />}
+            {current.type === "find_root" && <FindRoot exercise={current} disabled={locked} onChange={setAnswer} />}
+            {current.type === "transform" && <Transform exercise={current} disabled={locked} onChange={setAnswer} />}
+            {current.type === "paradigm" && (
+              <Paradigm
+                exercise={current}
+                disabled={locked}
+                onChange={setAnswer}
+                wrongCells={phase === "feedback" ? (feedback?.wrongCells ?? null) : null}
+              />
+            )}
           </div>
         )}
       </main>
 
-      <Footer
-        phase={phase}
-        feedback={feedback}
-        canCheck={answer !== null && current?.type !== "match_pairs"}
-        onCheck={() => void submit(answer)}
-        onContinue={() => void advance()}
-        isMatch={current?.type === "match_pairs"}
-      />
+      {step?.kind !== "card" && (
+        <Footer
+          phase={phase}
+          feedback={feedback}
+          canCheck={answer !== null && current?.type !== "match_pairs"}
+          onCheck={() => void submit(answer)}
+          onContinue={() => void advance()}
+          isMatch={current?.type === "match_pairs"}
+        />
+      )}
 
       <dialog ref={quitRef} className="m-auto max-w-sm rounded-3xl border-2 border-line p-6 backdrop:bg-ink/40">
         <h2 className="font-display text-2xl">{practice ? "Stop practising?" : "Quit this lesson?"}</h2>
@@ -294,6 +343,7 @@ function Footer({
                   {feedback.correctAnswer}
                 </p>
               )}
+              {!good && feedback.explanation && <p className="mt-1 text-ink">{feedback.explanation}</p>}
               {!good && feedback.outOfHearts && (
                 <p className="mt-1 font-bold text-gumamela">That was your last heart.</p>
               )}
