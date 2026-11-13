@@ -36,9 +36,12 @@ export async function logInAsDemo(page: Page) {
 
 type ExerciseRow = { id: string; type: string; payload: Record<string, unknown> };
 
-/** Answer whatever exercise is on screen. `wrong` deliberately answers incorrectly (not for match pairs). */
+/** Answer whatever exercise is on screen (dismissing a grammar card first). `wrong` deliberately answers incorrectly (not for match pairs). */
 export async function answerCurrent(page: Page, { wrong = false } = {}) {
   const host = page.locator("[data-exercise-id]");
+  const gotIt = page.getByRole("button", { name: "Got it — let's try" });
+  await expect(host.or(gotIt)).toBeVisible();
+  if (await gotIt.isVisible()) await gotIt.click();
   await expect(host).toBeVisible();
   const id = await host.getAttribute("data-exercise-id");
   const [ex] = await query<ExerciseRow>(`select id, type, payload from "Exercise" where id = $1`, [id]);
@@ -60,6 +63,39 @@ export async function answerCurrent(page: Page, { wrong = false } = {}) {
       const bank = page.getByLabel("Word bank");
       const tokens = wrong ? [(p.distractors as string[])[0] ?? "x"] : (p.answer as string[]);
       for (const t of tokens) await bank.getByRole("button", { name: t, exact: true }).first().click();
+      break;
+    }
+    case "conjugate":
+      await page.getByRole("textbox", { name: "Your answer" }).fill(wrong ? "mali" : (p.answers as string[])[0]);
+      break;
+    case "find_root":
+      if (p.mode === "choice") {
+        const options = p.options as string[];
+        const idx = options.indexOf(p.root as string);
+        await page
+          .getByRole("radio")
+          .nth(wrong ? (idx + 1) % options.length : idx)
+          .click();
+      } else await page.getByRole("textbox", { name: "The root" }).fill(wrong ? "mali" : (p.root as string));
+      break;
+    case "transform":
+      if (p.mode === "type") {
+        await page
+          .getByRole("textbox", { name: "Your answer" })
+          .fill(wrong ? "mali" : (p.answers as string[][])[0].join(" "));
+      } else {
+        const bank = page.getByLabel("Word bank");
+        const tokens = wrong ? [(p.distractors as string[])[0] ?? "x"] : (p.answers as string[][])[0];
+        for (const t of tokens) await bank.getByRole("button", { name: t, exact: true }).first().click();
+      }
+      break;
+    case "paradigm": {
+      // Tiles fill the hidden cells in table order; a wrong answer puts a distractor in the first one.
+      const cells = p.cells as { value: string; hidden: boolean }[];
+      const values = cells.filter((c) => c.hidden).map((c) => c.value);
+      if (wrong) values[0] = (p.distractors as string[])[0] ?? values[1] ?? values[0];
+      const bank = page.getByLabel("Word bank");
+      for (const v of values) await bank.getByRole("button", { name: v, exact: true }).first().click();
       break;
     }
     case "speak":
