@@ -135,4 +135,50 @@ describe("grammar on the path and the skill page", () => {
     expect(elsewhere!.patterns[0]).toMatchObject({ unlocked: false, card: null });
     expect(elsewhere!.verbTables).toEqual([]);
   });
+
+  it("withholds a verb's table until a finished lesson of the skill drills it", async () => {
+    const first = await firstLesson();
+    const later = await db.lesson.findFirstOrThrow({
+      where: { skillId: first.skillId, id: { not: first.id } },
+      orderBy: { order: "asc" },
+    });
+    const early = `${SLUG}early`;
+    const late = `${SLUG}late`;
+    await db.verbTable.createMany({
+      data: [early, late].map((root) => ({
+        courseId,
+        root,
+        affix: "um" as const,
+        en: root,
+        forms: forms(root),
+        status: "APPROVED" as const,
+      })),
+    });
+    for (const [lessonId, root] of [
+      [first.id, early],
+      [later.id, late],
+    ])
+      await db.exercise.create({
+        data: {
+          id: `${SLUG}ex-${root}`,
+          lessonId,
+          order: 900,
+          type: "conjugate",
+          payload: { root },
+          status: "APPROVED",
+          source: "HUMAN",
+        },
+      });
+
+    // The tables are the answers to the drills, so nothing shows before the learner has played them.
+    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables).toEqual([]);
+
+    await db.lessonProgress.create({ data: { userId: user.id, lessonId: first.id } });
+    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables.map((t) => t.root)).toEqual([early]);
+
+    await db.lessonProgress.create({ data: { userId: user.id, lessonId: later.id } });
+    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables.map((t) => t.root).sort()).toEqual(
+      [early, late].sort(),
+    );
+  });
 });

@@ -159,7 +159,7 @@ export type SkillPageData = {
   totalLessons: number;
   /** Grammar patterns the skill's lessons teach; the card is withheld until the learner unlocks it. */
   patterns: { slug: string; title: string; card: PatternCard | null; unlocked: boolean; label: StrengthLabel }[];
-  /** Approved tables for the verbs the skill drills (roots of its conjugate, paradigm and find_root exercises). */
+  /** Approved tables for the verbs drilled in the skill's finished lessons (roots of their conjugate, paradigm and find_root exercises). */
   verbTables: VerbTableData[];
 };
 
@@ -167,12 +167,14 @@ export type SkillPageData = {
 const VERB_EXERCISE_TYPES = ["conjugate", "paradigm", "find_root"] as const;
 
 /**
- * Approved verb tables for the roots drilled by the skill's approved verb exercises. The schema has no
- * skill-to-verb relation, so the exercises define which verbs a skill is about.
+ * Approved verb tables for the roots drilled by approved verb exercises in the given (finished)
+ * lessons. The schema has no skill-to-verb relation, so the exercises define which verbs a skill is
+ * about. A table is the answer to those drills, so only finished lessons contribute.
  */
-async function skillVerbTables(courseId: string, skillId: string): Promise<VerbTableData[]> {
+async function verbTablesDrilledIn(courseId: string, lessonIds: string[]): Promise<VerbTableData[]> {
+  if (!lessonIds.length) return [];
   const exercises = await db.exercise.findMany({
-    where: { lesson: { skillId }, type: { in: [...VERB_EXERCISE_TYPES] }, status: "APPROVED" },
+    where: { lessonId: { in: lessonIds }, type: { in: [...VERB_EXERCISE_TYPES] }, status: "APPROVED" },
     select: { payload: true },
   });
   const roots = new Set<string>();
@@ -198,7 +200,10 @@ export async function getSkillPage(userId: string, slug: string): Promise<SkillP
   if (!view) return null;
   const [overview, verbTables] = await Promise.all([
     getGrammarOverview(userId, new Date()),
-    skillVerbTables(skill.unit.courseId, skill.id),
+    verbTablesDrilledIn(
+      skill.unit.courseId,
+      view.lessons.filter((l) => l.state === "complete").map((l) => l.id),
+    ),
   ]);
   return {
     id: skill.id,
