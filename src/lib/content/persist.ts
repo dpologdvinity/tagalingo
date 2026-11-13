@@ -15,7 +15,7 @@ import path from "node:path";
 import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { lessonRequest, type CourseDefinition } from "./course";
-import { syncGrammar } from "./grammar-persist";
+import { loadApprovedVerbTables, syncGrammar } from "./grammar-persist";
 import type { ExerciseGenerator } from "./generators/types";
 import { EXERCISE_TYPES, parseExercise } from "./schema";
 
@@ -82,7 +82,10 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
 
 /**
  * Generate DRAFT exercises for one lesson and append them after its existing exercises.
- * Returns the GenerationRun id and how many drafts were created.
+ * The course's APPROVED verb tables are handed to the generator for grammar drills, and every
+ * draft that drills a grammar pattern is tagged with it (`ExercisePattern`). Returns the
+ * GenerationRun id, how many drafts were created and how many generated items were rejected
+ * (vocabulary and grammar alike; the reasons are kept on the GenerationRun).
  */
 export async function generateDraftsForLesson(
   prisma: PrismaClient,
@@ -93,14 +96,15 @@ export async function generateDraftsForLesson(
 ) {
   const skillDef = def.units.flatMap((u) => u.skills).find((s) => s.slug === target.skillSlug);
   if (!skillDef) throw new Error(`Skill "${target.skillSlug}" is not in course.yaml`);
-  const skill = await prisma.skill.findUniqueOrThrow({ where: { slug: target.skillSlug } });
+  const skill = await prisma.skill.findUniqueOrThrow({ where: { slug: target.skillSlug }, include: { unit: true } });
   const lesson = await prisma.lesson.findUniqueOrThrow({
     where: { skillId_order: { skillId: skill.id, order: target.lessonOrder } },
   });
 
   let result;
   try {
-    result = await generator.generate(lessonRequest(def, skillDef, target.lessonOrder - 1));
+    const tables = await loadApprovedVerbTables(prisma, skill.unit.courseId);
+    result = await generator.generate(lessonRequest(def, skillDef, target.lessonOrder - 1), tables);
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     await prisma.generationRun.create({
@@ -108,6 +112,13 @@ export async function generateDraftsForLesson(
     });
     throw e;
   }
+
+  // Resolve every tag before writing anything, so an unknown slug can't leave half a lesson behind.
+  const patternIds = new Map(
+    (await prisma.grammarPattern.findMany({ where: { courseId: skill.unit.courseId } })).map((p) => [p.slug, p.id]),
+  );
+  for (const slug of result.exercises.flatMap((e) => e.patterns))
+    if (!patternIds.has(slug)) throw new Error(`Generated exercise is tagged with unknown pattern "${slug}"`);
 
   const last = await prisma.exercise.aggregate({ where: { lessonId: lesson.id }, _max: { order: true } });
   const start = (last._max.order ?? 0) + 1;
@@ -123,7 +134,7 @@ export async function generateDraftsForLesson(
         : null,
     },
   });
-  await prisma.exercise.createMany({
+  const created = await prisma.exercise.createManyAndReturn({
     data: result.exercises.map((ex, i) => ({
       lessonId: lesson.id,
       order: start + i,
@@ -133,6 +144,12 @@ export async function generateDraftsForLesson(
       source: generator.provider === "claude" ? ("CLAUDE" as const) : ("STUB" as const),
       generationRunId: run.id,
     })),
+    select: { id: true, order: true },
+  });
+  await prisma.exercisePattern.createMany({
+    data: created.flatMap(({ id, order }) =>
+      result.exercises[order - start].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
+    ),
   });
   return { runId: run.id, created: result.exercises.length, rejected: result.rejected.length };
 }

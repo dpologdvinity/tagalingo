@@ -13,10 +13,22 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 import { conjugate, type FormTable, type VerbEntry } from "@/lib/grammar/morphology";
 import { loadCourseFile, type CourseDefinition } from "./course";
-import { draftVerbTables, exportVerbTables, importVerbTables, syncGrammar } from "./grammar-persist";
+import {
+  draftVerbTables,
+  exportVerbTables,
+  importVerbTables,
+  loadApprovedVerbTables,
+  syncGrammar,
+} from "./grammar-persist";
 import type { CoursePattern } from "./grammar-schema";
 import { COURSE_FILE, CONTENT_DIR } from "./paths";
-import { exportApprovedExercises, importApprovedExercises, syncCourseStructure } from "./persist";
+import { StubGenerator } from "./generators/stub";
+import {
+  exportApprovedExercises,
+  generateDraftsForLesson,
+  importApprovedExercises,
+  syncCourseStructure,
+} from "./persist";
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -323,5 +335,65 @@ describe("verb tables", () => {
       await syncCourseStructure(prisma, def);
       await expect(importVerbTables(prisma, def, tmp)).resolves.toBe(0);
     });
+  });
+});
+
+describe("generateDraftsForLesson with grammar", () => {
+  const generatedRunIds: string[] = [];
+
+  afterEach(async () => {
+    // Drafts and runs created here must not leak into other test files (tags go with the exercises).
+    await prisma.exercise.deleteMany({ where: { generationRunId: { in: generatedRunIds } } });
+    await prisma.generationRun.deleteMany({ where: { id: { in: generatedRunIds } } });
+    generatedRunIds.length = 0;
+  });
+
+  /** The shipped course whose first lesson teaches um-verbs, with a kain/um frame to drill it. */
+  function grammarCourse(): CourseDefinition {
+    const def = courseWithPatterns();
+    def.units[0].skills[0].verbs = [verb("kain", ["um"])];
+    def.grammar[0].drills = { frames: [["___ ako.", "I ate.", "um", "completed"]], transforms: [], choices: [] };
+    return def;
+  }
+
+  it("loads only the course's approved tables", async () => {
+    const def = grammarCourse();
+    await syncCourseStructure(prisma, def);
+    await draftVerbTables(prisma, def);
+    expect(await loadApprovedVerbTables(prisma, await courseId(def))).toEqual([]);
+
+    await prisma.verbTable.updateMany({ data: { status: "APPROVED" } });
+    expect(await loadApprovedVerbTables(prisma, await courseId(def))).toEqual([
+      { root: "kain", affix: "um", en: "to kain", forms: conjugate(def.units[0].skills[0].verbs[0], "um") },
+    ]);
+  });
+
+  it("tags the grammar drills it writes and builds them only from approved tables", async () => {
+    const def = grammarCourse();
+    await syncCourseStructure(prisma, def);
+    await draftVerbTables(prisma, def);
+    const target = { skillSlug: def.units[0].skills[0].slug, lessonOrder: 1 };
+    const tagsOf = (runId: string) =>
+      prisma.exercisePattern.findMany({
+        where: { exercise: { generationRunId: runId } },
+        include: { pattern: true, exercise: true },
+      });
+
+    // A DRAFT table is not reviewed yet: the lesson gets vocabulary drills only.
+    const vocabulary = await generateDraftsForLesson(prisma, new StubGenerator(), def, target);
+    generatedRunIds.push(vocabulary.runId);
+    expect(await tagsOf(vocabulary.runId)).toEqual([]);
+
+    await prisma.verbTable.updateMany({ data: { status: "APPROVED" } });
+    const withGrammar = await generateDraftsForLesson(prisma, new StubGenerator(), def, target);
+    generatedRunIds.push(withGrammar.runId);
+    const tags = await tagsOf(withGrammar.runId);
+    // The frame's conjugation, plus the paradigm every um- pattern gets; both tagged and still drafts.
+    expect(tags.map((t) => [t.pattern.slug, t.exercise.type, t.exercise.status]).sort()).toEqual([
+      ["um-verbs", "conjugate", "DRAFT"],
+      ["um-verbs", "paradigm", "DRAFT"],
+    ]);
+    expect(withGrammar.created).toBe(vocabulary.created + 2);
+    expect(withGrammar.rejected).toBe(0);
   });
 });

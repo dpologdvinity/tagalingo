@@ -21,29 +21,28 @@ const spelling = z.string().trim().min(1);
 /** A cell lists the canonical spelling first, then accepted variants. */
 const cell = z.array(spelling).min(1);
 
-/** Schema of `grammar/verbs.json`; the single definition shared by the reader and the DB export. */
-export const verbFileSchema = z.object({
-  verbs: z.array(
-    z.object({
-      root: spelling,
-      affix: z.enum(AFFIXES as unknown as readonly [Affix, ...Affix[]]),
-      en: spelling,
-      forms: z.object({
-        infinitive: cell,
-        completed: cell,
-        incompleted: cell,
-        contemplated: cell,
-        /** Only um-, mag- and ma- verbs have a recently-completed form. */
-        recent: cell.optional(),
-      }),
-      /** Forms that intentionally differ from the engine's rule output; any other difference is a mistake. */
-      irregular: z.array(z.enum(VERB_FORMS)),
-      reviewNote: z.string(),
-    }),
-  ),
+/** One row of `grammar/verbs.json`; also used to validate a table read back from the database. */
+export const verbFileEntrySchema = z.object({
+  root: spelling,
+  affix: z.enum(AFFIXES as unknown as readonly [Affix, ...Affix[]]),
+  en: spelling,
+  forms: z.object({
+    infinitive: cell,
+    completed: cell,
+    incompleted: cell,
+    contemplated: cell,
+    /** Only um-, mag- and ma- verbs have a recently-completed form. */
+    recent: cell.optional(),
+  }),
+  /** Forms that intentionally differ from the engine's rule output; any other difference is a mistake. */
+  irregular: z.array(z.enum(VERB_FORMS)),
+  reviewNote: z.string(),
 });
 
-export type VerbFileEntry = z.infer<typeof verbFileSchema>["verbs"][number];
+/** Schema of `grammar/verbs.json`; the single definition shared by the reader and the DB export. */
+export const verbFileSchema = z.object({ verbs: z.array(verbFileEntrySchema) });
+
+export type VerbFileEntry = z.infer<typeof verbFileEntrySchema>;
 
 /** Where the approved verb tables live inside a content directory. */
 export const verbsFilePath = (contentDir: string) => path.join(contentDir, "grammar", "verbs.json");

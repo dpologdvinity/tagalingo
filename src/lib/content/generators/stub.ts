@@ -13,9 +13,11 @@
  *    so only one option is grammatical.
  *  - Typed English→Tagalog answers accept every Tagalog word in the skill with that meaning.
  */
+import type { VerbTableData } from "@/lib/grammar/analyse";
 import type { CourseWord, GenerationRequest } from "../course";
-import { parseExercise, type ExerciseType, type ParsedExercise } from "../schema";
-import type { ExerciseGenerator, GenerationResult } from "./types";
+import { parseExercise, type ExerciseType } from "../schema";
+import { buildGrammarDrills } from "./grammar-drills";
+import type { ExerciseGenerator, GenerationResult, TaggedExercise } from "./types";
 import { hash, rng, shuffle } from "@/lib/random";
 
 const lower = (s: string) => s.toLocaleLowerCase();
@@ -327,11 +329,20 @@ const RECIPE: Slot[] = [
   { make: (b, w) => b.typeToTl(w), word: 2 },
 ];
 
+/** Grammar drills are inserted after this many exercises of the recipe. */
+const GRAMMAR_AFTER = 4;
+
 export class StubGenerator implements ExerciseGenerator {
   readonly provider = "stub" as const;
   readonly model = "stub-templates-v2";
 
-  async generate(req: GenerationRequest): Promise<GenerationResult> {
+  /**
+   * Vocabulary drills from the recipe, then (when the lesson teaches or uses grammar patterns) grammar
+   * drills built from `tables`, the course's approved verb tables. Grammar drills use their own random
+   * stream and are spliced in after the first four exercises, so a lesson without patterns comes out
+   * exactly as it did before grammar existed (plus an empty `patterns` list on each exercise).
+   */
+  async generate(req: GenerationRequest, tables: readonly VerbTableData[] = []): Promise<GenerationResult> {
     const b = new LessonBuilder(req);
     const drafts: Draft[] = [];
     const words = req.words;
@@ -354,7 +365,7 @@ export class StubGenerator implements ExerciseGenerator {
       }
     });
 
-    const exercises: ParsedExercise[] = [];
+    const exercises: TaggedExercise[] = [];
     const rejected: GenerationResult["rejected"] = [];
     const seen = new Set<string>();
     for (const d of drafts) {
@@ -362,11 +373,14 @@ export class StubGenerator implements ExerciseGenerator {
       if (seen.has(key)) continue; // a slot fell through to an exercise we already have
       seen.add(key);
       try {
-        exercises.push(parseExercise(d.type, d.payload));
+        exercises.push({ ...parseExercise(d.type, d.payload), patterns: [] });
       } catch (e) {
         rejected.push({ raw: d, reason: e instanceof Error ? e.message : String(e) });
       }
     }
-    return { exercises, rejected };
+    const grammar = buildGrammarDrills(req, tables, rng(hash(`${req.skill.slug}#${req.lesson.index}#grammar`)));
+    // Recognition first (the recipe's opening exercises), grammar practice next, the rest after.
+    exercises.splice(Math.min(GRAMMAR_AFTER, exercises.length), 0, ...grammar.drills);
+    return { exercises, rejected: [...rejected, ...grammar.rejected] };
   }
 }

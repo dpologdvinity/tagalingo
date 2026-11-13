@@ -12,10 +12,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { PrismaClient } from "@/generated/prisma/client";
-import { diffFromRule } from "@/lib/grammar/analyse";
+import { diffFromRule, type VerbTableData } from "@/lib/grammar/analyse";
 import { conjugate } from "@/lib/grammar/morphology";
 import { AFFIXES, type FormTable, type VerbEntry } from "@/lib/grammar/types";
-import { readVerbFile, verbFileSchema, verbsFilePath, type VerbFileEntry } from "@/lib/grammar/verbs-file";
+import {
+  readVerbFile,
+  verbFileEntrySchema,
+  verbFileSchema,
+  verbsFilePath,
+  type VerbFileEntry,
+} from "@/lib/grammar/verbs-file";
 import type { CourseDefinition } from "./course";
 
 /**
@@ -99,6 +105,18 @@ export async function draftVerbTables(
     }
   }
   return { created, unchanged, skipped };
+}
+
+/**
+ * The course's APPROVED verb tables as the analyser and the generators see them, sorted by root then
+ * affix. Rows are parsed with the same schema as `verbs.json`, so a hand-edited row that is not a
+ * valid table fails loudly here instead of producing drills from garbage.
+ */
+export async function loadApprovedVerbTables(prisma: PrismaClient, courseId: string): Promise<VerbTableData[]> {
+  const rows = await prisma.verbTable.findMany({ where: { courseId, status: "APPROVED" } });
+  return rows
+    .map(({ root, affix, en, forms }) => ({ root, affix, en, forms: verbFileEntrySchema.shape.forms.parse(forms) }))
+    .sort((a, b) => (a.root < b.root ? -1 : a.root > b.root ? 1 : AFFIXES.indexOf(a.affix) - AFFIXES.indexOf(b.affix)));
 }
 
 /**

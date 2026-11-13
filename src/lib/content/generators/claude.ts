@@ -10,8 +10,8 @@
  */
 import { z } from "zod";
 import type { CourseWord, GenerationRequest } from "../course";
-import { EXERCISE_TYPES, parseExercise, payloadSchemas, type ExerciseType, type ParsedExercise } from "../schema";
-import type { ExerciseGenerator, GenerationResult } from "./types";
+import { EXERCISE_TYPES, parseExercise, payloadSchemas, type ExerciseType } from "../schema";
+import type { ExerciseGenerator, GenerationResult, TaggedExercise } from "./types";
 
 export type ToolInputSchema = { type: "object"; [key: string]: unknown };
 
@@ -133,12 +133,13 @@ export class ClaudeGenerator implements ExerciseGenerator {
 
     const input = call.input as { exercises?: unknown };
     const items = Array.isArray(input?.exercises) ? input.exercises : [];
-    const exercises: ParsedExercise[] = [];
+    const exercises: TaggedExercise[] = [];
     const rejected: GenerationResult["rejected"] = [];
     for (const raw of items) {
       try {
         const item = raw as { type?: unknown; payload?: unknown };
-        exercises.push(parseExercise(item.type as ExerciseType, item.payload));
+        // Claude drafts vocabulary drills only, so none of its exercises carry a grammar-pattern tag.
+        exercises.push({ ...parseExercise(item.type as ExerciseType, item.payload), patterns: [] });
       } catch (e) {
         rejected.push({ raw, reason: e instanceof Error ? e.message : String(e) });
       }

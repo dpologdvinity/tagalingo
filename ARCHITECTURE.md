@@ -90,6 +90,12 @@ content/tagalog/course.yaml ─► ExerciseGenerator ─► DRAFT rows ─► /s
   call whose JSON schema is derived from the zod schemas, then re-validates each item;
   `StubGenerator` builds every exercise type from the word list with ambiguity guards
   (no synonym distractors, different-POS fill-in-the-blank options, all synonyms accepted).
+- For lessons that teach or use grammar patterns, `generateDraftsForLesson` passes the course's
+  `APPROVED` verb tables to `StubGenerator`, which adds up to five grammar drills
+  (`generators/grammar-drills.ts`) built from the patterns' drill ingredients and those tables.
+  Each drill is tagged with its pattern (`ExercisePattern`) and must pass `checkDrill`: forms from
+  an approved table, only words the lesson has taught, no answer in a hint. Failures are reported
+  as `rejected`, never saved.
 - `selectGenerator()` picks Claude when `ANTHROPIC_API_KEY` is set, otherwise the stub.
 - Only `APPROVED` exercises are ever served. A lesson with none blocks the path ("in review").
 
