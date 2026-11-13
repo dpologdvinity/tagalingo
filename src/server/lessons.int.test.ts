@@ -349,7 +349,15 @@ describe("grammar patterns", () => {
         order,
         title: `Pattern ${name}`,
         lessonId,
-        card: { rule: `Rule ${name}`, examples: [["a", "b"]], notes: [], mistakes: [["kumain na", "Drop na."]] },
+        card: {
+          rule: `Rule ${name}`,
+          examples: [
+            ["a", "b"],
+            ["c", "d"],
+          ],
+          notes: [],
+          mistakes: [["kumain na", "Drop na."]],
+        },
       },
     });
     await db.exercisePattern.createMany({ data: exerciseIds.map((exerciseId) => ({ exerciseId, patternId: p.id })) });
@@ -412,6 +420,40 @@ describe("grammar patterns", () => {
       skipped: true,
     });
     expect(await progressOf(p.id)).toBeNull();
+  });
+
+  it("counts the first real answer after a speak skip", async () => {
+    const [first] = await firstLessons();
+    const speak = (await lessonExercises(first.id)).find((e) => e.ex.type === "speak")!;
+    const p = await pattern("a", first.id, [speak.id]);
+    const { attemptId } = await startAttempt(user, first.id);
+    await submitAnswer(user.id, attemptId, speak.id, { skipped: true });
+    expect(await progressOf(p.id)).toBeNull();
+    await submitAnswer(user.id, attemptId, speak.id, correctAnswer(speak.ex));
+    await submitAnswer(user.id, attemptId, speak.id, correctAnswer(speak.ex));
+    expect(await progressOf(p.id)).toMatchObject({ attempts: 1, correct: 1 });
+  });
+
+  it("decays stored strength before folding in a new answer", async () => {
+    const [first] = await firstLessons();
+    const target = (await lessonExercises(first.id)).find((e) => e.ex.type !== "match_pairs" && e.ex.type !== "speak")!;
+    const p = await pattern("a", first.id, [target.id]);
+    const now = new Date();
+    await db.patternProgress.create({
+      data: {
+        userId: user.id,
+        patternId: p.id,
+        attempts: 3,
+        correct: 3,
+        strength: 0.8,
+        lastPracticedAt: new Date(now.getTime() - 21 * 86_400_000), // one half-life: effective 0.4
+      },
+    });
+    const { attemptId } = await startAttempt(user, first.id, now);
+    await submitAnswer(user.id, attemptId, target.id, correctAnswer(target.ex), now);
+    const after = await progressOf(p.id);
+    expect(after).toMatchObject({ attempts: 4, correct: 4, lastPracticedAt: now });
+    expect(after!.strength).toBeCloseTo(0.58, 5); // 0.4 + 0.3 × (1 − 0.4)
   });
 
   it("seenAt is set on lesson completion, not on start or quit", async () => {

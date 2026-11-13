@@ -55,22 +55,31 @@ const tableSchema = z
     message: "every table row needs as many cells as the table head",
   });
 
+/**
+ * The card body learners read, as stored in `GrammarPattern.card` (the title has its own column).
+ * The server re-parses stored cards with it, so a hand-edited row fails loudly instead of reaching
+ * the client.
+ */
+export const patternCardSchema = z.object({
+  rule: text,
+  table: tableSchema.optional(),
+  /** [tagalog, english]; two or three. */
+  examples: z
+    .array(z.tuple([text, text]))
+    .min(2)
+    .max(3),
+  notes: z.array(text).default([]),
+  /** [wrong answer, explanation]. */
+  mistakes: z.array(z.tuple([text, text])).default([]),
+});
+
 /** One grammar pattern: the card learners read plus the ingredients for its drills. */
 export const patternSchema = z
   .object({
     /** Kebab-case, unique across the course; lessons refer to it from `teaches` and `uses`. */
     id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
     title: text,
-    rule: text,
-    table: tableSchema.optional(),
-    /** [tagalog, english]; two or three. */
-    examples: z
-      .array(z.tuple([text, text]))
-      .min(2)
-      .max(3),
-    notes: z.array(text).default([]),
-    /** [wrong answer, explanation]. */
-    mistakes: z.array(z.tuple([text, text])).default([]),
+    ...patternCardSchema.shape,
     /** Ids of patterns learners should already know; they must be taught earlier in the course. */
     requires: z.array(text).default([]),
     drills: z

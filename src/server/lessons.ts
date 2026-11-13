@@ -22,7 +22,7 @@ import { safeParseExercise, type ExerciseType, type ParsedExercise } from "@/lib
 import { gradeAnswer, type GradeContext } from "@/lib/game/grading";
 import { liveHearts, loseHeart, MAX_HEARTS } from "@/lib/game/hearts";
 import { applyLessonToStreak, dayKey } from "@/lib/game/streak";
-import { updateStrength } from "@/lib/game/strength";
+import { effectiveStrength, updateStrength } from "@/lib/game/strength";
 import { xpForLesson, xpForPractice, type XpAward } from "@/lib/game/xp";
 import type { VerbForm } from "@/lib/grammar/types";
 import { hash, rng, shuffle } from "@/lib/random";
@@ -229,7 +229,7 @@ async function gradeContext(
   tx: Prisma.TransactionClient,
   ex: ParsedExercise,
   lessonId: string,
-  patterns: { title: string; card: Prisma.JsonValue }[],
+  patterns: { slug: string; title: string; card: Prisma.JsonValue }[],
 ): Promise<GradeContext> {
   const patternMistakes = patterns.flatMap((p) => cardOf(p).mistakes);
   if (!VERB_TYPES.has(ex.type) || !("root" in ex.payload)) return { patternMistakes };
@@ -240,7 +240,11 @@ async function gradeContext(
   return { patternMistakes, verbTables: await loadApprovedVerbTables(tx, lesson.skill.unit.courseId, ex.payload.root) };
 }
 
-/** Fold one graded answer into the learner's progress on each pattern (strength before decay, per the spec). */
+/**
+ * Fold one graded answer into the learner's progress on each pattern. The stored strength is decayed
+ * to `now` first and the answer applied to that: `lastPracticedAt` resets to `now`, so updating the
+ * raw value would discard the elapsed decay (a wrong answer after a long gap would raise strength).
+ */
 async function recordPatternAnswer(
   tx: Prisma.TransactionClient,
   userId: string,
@@ -250,8 +254,9 @@ async function recordPatternAnswer(
 ) {
   for (const patternId of patternIds) {
     const where = { userId_patternId: { userId, patternId } };
-    const prior = await tx.patternProgress.findUnique({ where, select: { strength: true } });
-    const strength = updateStrength(prior?.strength ?? 0, correct);
+    const prior = await tx.patternProgress.findUnique({ where, select: { strength: true, lastPracticedAt: true } });
+    const decayed = prior ? effectiveStrength(prior.strength, prior.lastPracticedAt, now) : 0;
+    const strength = updateStrength(decayed, correct);
     const right = correct ? 1 : 0;
     await tx.patternProgress.upsert({
       where,
@@ -299,13 +304,15 @@ export async function submitAnswer(
 
     const links = await tx.exercisePattern.findMany({
       where: { exerciseId },
-      select: { pattern: { select: { id: true, title: true, card: true } } },
+      select: { pattern: { select: { id: true, slug: true, title: true, card: true } } },
     });
     const patterns = links.map((l) => l.pattern);
     const result = gradeAnswer(parsed, answer, await gradeContext(tx, parsed, row.lessonId, patterns));
-    // Only the first try counts toward pattern strength: retries of a re-queued exercise would
-    // otherwise turn every miss into a hit. A speak skip says nothing about the learner.
-    const first = (await tx.attemptAnswer.count({ where: { attemptId, exerciseId } })) === 0;
+    // Only the first real try counts toward pattern strength: retries of a re-queued exercise would
+    // otherwise turn every miss into a hit. A speak skip says nothing about the learner, so neither
+    // it nor earlier skips count. Skips are stored as ordinary answers; re-grading tells them apart.
+    const earlier = await tx.attemptAnswer.findMany({ where: { attemptId, exerciseId }, select: { answer: true } });
+    const first = earlier.every((a) => gradeAnswer(parsed, a.answer).skipped === true);
     await tx.attemptAnswer.create({ data: { attemptId, exerciseId, correct: result.correct, answer: answer ?? {} } });
     if (first && !result.skipped) {
       await recordPatternAnswer(

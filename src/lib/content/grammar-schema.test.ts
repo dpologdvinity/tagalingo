@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { patternSchema, verbEntrySchema } from "./grammar-schema";
+import { patternCardSchema, patternSchema, verbEntrySchema } from "./grammar-schema";
 
 const pattern = {
   id: "um-aspect",
@@ -100,6 +100,20 @@ describe("patternSchema", () => {
       expect(() => patternSchema.parse(choice({ why: [null, "x"] }))).toThrow(/why/);
       expect(() => patternSchema.parse(choice({ answerIndex: 3 }))).toThrow();
     });
+  });
+});
+
+describe("patternCardSchema", () => {
+  const { rule, examples } = pattern;
+
+  it("accepts a stored card and fills absent notes and mistakes", () => {
+    expect(patternCardSchema.parse({ rule, examples })).toEqual({ rule, examples, notes: [], mistakes: [] });
+  });
+
+  it("rejects malformed cards", () => {
+    expect(() => patternCardSchema.parse({ examples })).toThrow();
+    expect(() => patternCardSchema.parse({ rule, examples: [["only one"]] })).toThrow();
+    expect(() => patternCardSchema.parse({ rule, examples, mistakes: [["no reason"]] })).toThrow();
   });
 });
 

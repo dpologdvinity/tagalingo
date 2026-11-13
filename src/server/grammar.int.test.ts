@@ -30,7 +30,15 @@ async function pattern(name: string, lessonId: string, tagged: string[] = [], or
       order,
       title: `Pattern ${name}`,
       lessonId,
-      card: { rule: `Rule ${name}`, examples: [["a", "b"]], notes: [], mistakes: [] },
+      card: {
+        rule: `Rule ${name}`,
+        examples: [
+          ["a", "b"],
+          ["c", "d"],
+        ],
+        notes: [],
+        mistakes: [],
+      },
     },
   });
   await db.exercisePattern.createMany({ data: tagged.map((exerciseId) => ({ exerciseId, patternId: p.id })) });
@@ -81,6 +89,14 @@ describe("grammar overview", () => {
       }),
       expect.objectContaining({ slug: `${SLUG}later`, unlocked: false, card: null }),
     ]);
+  });
+
+  it("refuses a stored card that doesn't match the card schema", async () => {
+    const [first] = await firstLessons();
+    const p = await pattern("broken", first.id);
+    await db.grammarPattern.update({ where: { id: p.id }, data: { card: { rule: "", examples: "nope" } } });
+    await finish(first.id);
+    await expect(getGrammarOverview(user.id, new Date())).rejects.toThrow(/t-grammar-broken/);
   });
 });
 

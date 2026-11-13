@@ -10,7 +10,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
-import type { PatternCard } from "@/lib/content/grammar-schema";
+import { patternCardSchema, type PatternCard } from "@/lib/content/grammar-schema";
 import { effectiveStrength, strengthLabel, type StrengthLabel } from "@/lib/game/strength";
 import { analyse, type Analysis } from "@/lib/grammar/analyse";
 import type { Prisma } from "@/generated/prisma/client";
@@ -41,11 +41,15 @@ export function isUnlocked(progress: { seenAt: Date | null } | undefined, teachi
 }
 
 /**
- * The learner-facing card: the stored JSON plus the pattern's title. The JSON is written only by
- * `syncGrammar` from validated course.yaml (`{ rule, table?, examples, notes, mistakes }`).
+ * The learner-facing card: the stored JSON plus the pattern's title. `syncGrammar` writes the JSON
+ * from validated course.yaml, but it is re-parsed here so a hand-edited row fails loudly, naming the
+ * pattern, instead of sending a broken card to the client.
  */
-export function cardOf(pattern: { title: string; card: Prisma.JsonValue }): PatternCard {
-  return { ...(pattern.card as Omit<PatternCard, "title">), title: pattern.title };
+export function cardOf(pattern: { slug: string; title: string; card: Prisma.JsonValue }): PatternCard {
+  const parsed = patternCardSchema.safeParse(pattern.card);
+  if (!parsed.success)
+    throw new Error(`Grammar pattern "${pattern.slug}" has an invalid card: ${parsed.error.message}`);
+  return { ...parsed.data, title: pattern.title };
 }
 
 /**
