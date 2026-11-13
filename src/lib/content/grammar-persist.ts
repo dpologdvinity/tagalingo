@@ -128,12 +128,16 @@ export async function exportVerbTables(prisma: PrismaClient, contentDir: string)
   return file;
 }
 
-/** The course's entry for a file row, or an error naming the row when course.yaml has no such verb/affix. */
+/**
+ * The course's entry for a file row, or an error naming the row when course.yaml has no such
+ * verb/affix. The same root may be listed in several skills with different affixes, so the match is
+ * on root and affix together.
+ */
 function entryFor(verbs: VerbEntry[], row: VerbFileEntry): VerbEntry {
-  const verb = verbs.find((v) => v.root === row.root);
-  if (!verb) throw new Error(`verbs.json: "${row.root}" (${row.affix}) is not a verb in course.yaml`);
-  if (!verb.affixes.includes(row.affix))
-    throw new Error(`verbs.json: course.yaml does not list the affix "${row.affix}" for "${row.root}"`);
+  const sameRoot = verbs.filter((v) => v.root === row.root);
+  if (!sameRoot.length) throw new Error(`verbs.json: "${row.root}" (${row.affix}) is not a verb in course.yaml`);
+  const verb = sameRoot.find((v) => v.affixes.includes(row.affix));
+  if (!verb) throw new Error(`verbs.json: course.yaml does not list the affix "${row.affix}" for "${row.root}"`);
   return verb;
 }
 

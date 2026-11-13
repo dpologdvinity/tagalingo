@@ -304,6 +304,14 @@ describe("verb tables", () => {
       expect(await prisma.verbTable.count()).toBe(1);
     });
 
+    it("matches a table on root and affix when two skills list the same root with different affixes", async () => {
+      writeFile([], ["kumain"]);
+      const both = courseWithVerbs(verb("kain", ["in"]));
+      both.units[0].skills[1].verbs = [verb("kain", ["um"])];
+      await syncCourseStructure(prisma, both);
+      await expect(importVerbTables(prisma, both, tmp)).resolves.toBe(1);
+    });
+
     it("rejects a table for a verb that is not in course.yaml", async () => {
       writeFile([], ["kumain"]);
       const other = courseWithVerbs(verb("basa", ["um"]));
