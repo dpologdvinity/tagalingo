@@ -85,7 +85,7 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
  * The course's APPROVED verb tables are handed to the generator for grammar drills, and every
  * draft that drills a grammar pattern is tagged with it (`ExercisePattern`). Returns the
  * GenerationRun id, how many drafts were created and how many generated items were rejected
- * (vocabulary and grammar alike; the reasons are kept on the GenerationRun).
+ * (vocabulary and grammar alike), with the reasons (also kept on the GenerationRun).
  */
 export async function generateDraftsForLesson(
   prisma: PrismaClient,
@@ -101,10 +101,18 @@ export async function generateDraftsForLesson(
     where: { skillId_order: { skillId: skill.id, order: target.lessonOrder } },
   });
 
+  // Anything that goes wrong before the drafts are written (the generator itself, or a tag naming a
+  // pattern that is not in the course) is recorded as a failed GenerationRun, then rethrown.
   let result;
+  let patternIds: Map<string, string>;
   try {
     const tables = await loadApprovedVerbTables(prisma, skill.unit.courseId);
     result = await generator.generate(lessonRequest(def, skillDef, target.lessonOrder - 1), tables);
+    patternIds = new Map(
+      (await prisma.grammarPattern.findMany({ where: { courseId: skill.unit.courseId } })).map((p) => [p.slug, p.id]),
+    );
+    for (const slug of result.exercises.flatMap((e) => e.patterns))
+      if (!patternIds.has(slug)) throw new Error(`Generated exercise is tagged with unknown pattern "${slug}"`);
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     await prisma.generationRun.create({
@@ -113,45 +121,48 @@ export async function generateDraftsForLesson(
     throw e;
   }
 
-  // Resolve every tag before writing anything, so an unknown slug can't leave half a lesson behind.
-  const patternIds = new Map(
-    (await prisma.grammarPattern.findMany({ where: { courseId: skill.unit.courseId } })).map((p) => [p.slug, p.id]),
-  );
-  for (const slug of result.exercises.flatMap((e) => e.patterns))
-    if (!patternIds.has(slug)) throw new Error(`Generated exercise is tagged with unknown pattern "${slug}"`);
-
-  const last = await prisma.exercise.aggregate({ where: { lessonId: lesson.id }, _max: { order: true } });
-  const start = (last._max.order ?? 0) + 1;
-  const run = await prisma.generationRun.create({
-    data: {
-      skillId: skill.id,
-      provider: generator.provider,
-      model: generator.model,
-      requestedById,
-      exerciseCount: result.exercises.length,
-      error: result.rejected.length
-        ? `${result.rejected.length} item(s) failed validation: ${result.rejected.map((r) => r.reason).join(" | ")}`
-        : null,
-    },
+  const { exercises, rejected } = result;
+  // One transaction: the run, the drafts and their pattern tags land together or not at all.
+  const runId = await prisma.$transaction(async (tx) => {
+    const last = await tx.exercise.aggregate({ where: { lessonId: lesson.id }, _max: { order: true } });
+    const start = (last._max.order ?? 0) + 1;
+    const run = await tx.generationRun.create({
+      data: {
+        skillId: skill.id,
+        provider: generator.provider,
+        model: generator.model,
+        requestedById,
+        exerciseCount: exercises.length,
+        error: rejected.length
+          ? `${rejected.length} item(s) failed validation: ${rejected.map((r) => r.reason).join(" | ")}`
+          : null,
+      },
+    });
+    const created = await tx.exercise.createManyAndReturn({
+      data: exercises.map((ex, i) => ({
+        lessonId: lesson.id,
+        order: start + i,
+        type: ex.type,
+        payload: ex.payload,
+        status: "DRAFT" as const,
+        source: generator.provider === "claude" ? ("CLAUDE" as const) : ("STUB" as const),
+        generationRunId: run.id,
+      })),
+      select: { id: true, order: true },
+    });
+    await tx.exercisePattern.createMany({
+      data: created.flatMap(({ id, order }) =>
+        exercises[order - start].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
+      ),
+    });
+    return run.id;
   });
-  const created = await prisma.exercise.createManyAndReturn({
-    data: result.exercises.map((ex, i) => ({
-      lessonId: lesson.id,
-      order: start + i,
-      type: ex.type,
-      payload: ex.payload,
-      status: "DRAFT" as const,
-      source: generator.provider === "claude" ? ("CLAUDE" as const) : ("STUB" as const),
-      generationRunId: run.id,
-    })),
-    select: { id: true, order: true },
-  });
-  await prisma.exercisePattern.createMany({
-    data: created.flatMap(({ id, order }) =>
-      result.exercises[order - start].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
-    ),
-  });
-  return { runId: run.id, created: result.exercises.length, rejected: result.rejected.length };
+  return {
+    runId,
+    created: exercises.length,
+    rejected: rejected.length,
+    rejectedReasons: rejected.map((r) => r.reason),
+  };
 }
 
 const exportFileSchema = z.object({

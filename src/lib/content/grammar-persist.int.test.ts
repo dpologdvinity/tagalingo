@@ -23,6 +23,7 @@ import {
 import type { CoursePattern } from "./grammar-schema";
 import { COURSE_FILE, CONTENT_DIR } from "./paths";
 import { StubGenerator } from "./generators/stub";
+import type { ExerciseGenerator } from "./generators/types";
 import {
   exportApprovedExercises,
   generateDraftsForLesson,
@@ -344,7 +345,7 @@ describe("generateDraftsForLesson with grammar", () => {
   afterEach(async () => {
     // Drafts and runs created here must not leak into other test files (tags go with the exercises).
     await prisma.exercise.deleteMany({ where: { generationRunId: { in: generatedRunIds } } });
-    await prisma.generationRun.deleteMany({ where: { id: { in: generatedRunIds } } });
+    await prisma.generationRun.deleteMany({ where: { OR: [{ id: { in: generatedRunIds } }, { model: "fake" }] } });
     generatedRunIds.length = 0;
   });
 
@@ -395,5 +396,52 @@ describe("generateDraftsForLesson with grammar", () => {
     ]);
     expect(withGrammar.created).toBe(vocabulary.created + 2);
     expect(withGrammar.rejected).toBe(0);
+  });
+  it("reports grammar rejections in the result and on the GenerationRun", async () => {
+    const def = grammarCourse();
+    def.grammar[0].drills.frames.push(["___ ako ng bulaklak.", "I ate a flower.", "um", "completed"]);
+    await syncCourseStructure(prisma, def);
+    await draftVerbTables(prisma, def);
+    await prisma.verbTable.updateMany({ data: { status: "APPROVED" } });
+
+    const result = await generateDraftsForLesson(prisma, new StubGenerator(), def, {
+      skillSlug: def.units[0].skills[0].slug,
+      lessonOrder: 1,
+    });
+    generatedRunIds.push(result.runId);
+    expect(result.rejected).toBe(1);
+    expect(result.rejectedReasons).toEqual([expect.stringMatching(/unknown word "bulaklak"/)]);
+    const run = await prisma.generationRun.findUniqueOrThrow({ where: { id: result.runId } });
+    expect(run.error).toMatch(/^1 item\(s\) failed validation: .*bulaklak/);
+  });
+
+  it("records a failed run and writes nothing when a draft names an unknown pattern", async () => {
+    const def = grammarCourse();
+    await syncCourseStructure(prisma, def);
+    const skill = await prisma.skill.findUniqueOrThrow({ where: { slug: def.units[0].skills[0].slug } });
+    const lesson = await prisma.lesson.findUniqueOrThrow({ where: { skillId_order: { skillId: skill.id, order: 1 } } });
+    const before = await prisma.exercise.count({ where: { lessonId: lesson.id } });
+    const generator: ExerciseGenerator = {
+      provider: "stub",
+      model: "fake",
+      generate: async () => ({
+        exercises: [
+          {
+            type: "speak",
+            payload: { text: "Kumusta po.", translation: "Hello." },
+            patterns: ["no-such-pattern"],
+          },
+        ],
+        rejected: [],
+      }),
+    };
+
+    await expect(
+      generateDraftsForLesson(prisma, generator, def, { skillSlug: skill.slug, lessonOrder: 1 }),
+    ).rejects.toThrow(/no-such-pattern/);
+    expect(await prisma.exercise.count({ where: { lessonId: lesson.id } })).toBe(before);
+    const runs = await prisma.generationRun.findMany({ where: { model: "fake" } });
+    expect(runs).toHaveLength(1);
+    expect(runs[0].error).toMatch(/no-such-pattern/);
   });
 });
