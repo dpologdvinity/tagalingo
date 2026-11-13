@@ -80,11 +80,13 @@ describe("grammar on the path and the skill page", () => {
   it("gives the skill page its patterns (cards only once unlocked) and the tables of its verb exercises", async () => {
     const lesson = await firstLesson();
     await pattern("open", lesson.id, 901);
-    await pattern(
-      "closed",
-      (await db.lesson.findFirstOrThrow({ where: { skillId: { not: lesson.skillId } } })).id,
-      902,
-    );
+    // The closed pattern lives in another skill; the page below is that skill's, not "any other".
+    const elsewhereLesson = await db.lesson.findFirstOrThrow({
+      where: { skillId: { not: lesson.skillId } },
+      orderBy: [{ skill: { unit: { order: "asc" } } }, { skill: { order: "asc" } }, { order: "asc" }],
+      include: { skill: true },
+    });
+    await pattern("closed", elsewhereLesson.id, 902);
     await db.lessonProgress.create({ data: { userId: user.id, lessonId: lesson.id } });
 
     const root = `${SLUG}root`;
@@ -129,8 +131,7 @@ describe("grammar on the path and the skill page", () => {
       [root, "mag"],
     ]);
 
-    const other = await db.skill.findFirstOrThrow({ where: { id: { not: lesson.skillId } } });
-    const elsewhere = await getSkillPage(user.id, other.slug);
+    const elsewhere = await getSkillPage(user.id, elsewhereLesson.skill.slug);
     expect(elsewhere!.patterns.map((p) => p.slug)).toEqual([`${SLUG}closed`]);
     expect(elsewhere!.patterns[0]).toMatchObject({ unlocked: false, card: null });
     expect(elsewhere!.verbTables).toEqual([]);
