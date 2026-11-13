@@ -13,16 +13,16 @@ Browser ──► proxy.ts (session cookie check) ──► Server Components (p
 
 ## Module boundaries
 
-| Path                      | Responsibility                                                                                                    | May import               |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                           | nothing app-specific     |
-| `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence           | `lib/game`, Prisma types |
-| `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                               | —                        |
-| `src/server/*`            | Use-cases that combine rules with the database (`server-only`): lessons, path, learner stats, leaderboard, studio | `lib/*`                  |
-| `src/app/actions/*`       | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                    | `server/*`, `lib/*`      |
-| `src/app/**/page.tsx`     | Server-rendered screens                                                                                           | `server/*`, components   |
-| `src/components/*`        | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                | `lib/*` types            |
-| `prisma/`, `scripts/`     | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                            | `lib/*`                  |
+| Path                      | Responsibility                                                                                                                      | May import               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | nothing app-specific     |
+| `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, Prisma types |
+| `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                                                 | —                        |
+| `src/server/*`            | Use-cases that combine rules with the database (`server-only`): lessons, path, grammar progress, learner stats, leaderboard, studio | `lib/*`                  |
+| `src/app/actions/*`       | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                                      | `server/*`, `lib/*`      |
+| `src/app/**/page.tsx`     | Server-rendered screens                                                                                                             | `server/*`, components   |
+| `src/components/*`        | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                                  | `lib/*` types            |
+| `prisma/`, `scripts/`     | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                                              | `lib/*`                  |
 
 The rules in `src/lib/game` are deliberately pure functions with unit tests; everything that
 touches the database is covered by integration tests (`*.int.test.ts`) and Playwright.

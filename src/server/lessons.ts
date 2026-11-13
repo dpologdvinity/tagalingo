@@ -9,20 +9,26 @@
  *  - each answer is graded server-side; wrong answers cost a heart in lessons (except
  *    match_pairs and speak, which give live feedback / depend on a microphone);
  *  - running out of hearts fails a lesson attempt;
- *  - completion is idempotent (the attempt flips IN_PROGRESS → COMPLETED exactly once).
+ *  - completion is idempotent (the attempt flips IN_PROGRESS → COMPLETED exactly once);
+ *  - the first answer to an exercise in an attempt (speak skips aside) updates the learner's
+ *    strength in each grammar pattern it drills; completing a lesson unlocks the patterns it teaches.
  */
 import "server-only";
 import { db } from "@/lib/db";
 import { heartRefillMs } from "@/lib/env";
 import { toClientExercise, type ClientExercise } from "@/lib/content/client-view";
+import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
 import { safeParseExercise, type ExerciseType, type ParsedExercise } from "@/lib/content/schema";
-import { gradeAnswer } from "@/lib/game/grading";
+import { gradeAnswer, type GradeContext } from "@/lib/game/grading";
 import { liveHearts, loseHeart, MAX_HEARTS } from "@/lib/game/hearts";
 import { applyLessonToStreak, dayKey } from "@/lib/game/streak";
+import { updateStrength } from "@/lib/game/strength";
 import { xpForLesson, xpForPractice, type XpAward } from "@/lib/game/xp";
+import type { VerbForm } from "@/lib/grammar/types";
 import { hash, rng, shuffle } from "@/lib/random";
 import type { Prisma, User } from "@/generated/prisma/client";
 import { canPlayLesson } from "./course";
+import { attemptGrammar, cardOf, weakestPatterns, type LessonCard } from "./grammar";
 
 export class LessonError extends Error {
   constructor(
@@ -74,7 +80,14 @@ export async function getLessonInfo(userId: string, lessonId: string): Promise<L
   return { id: lesson.id, title: lesson.title, skillTitle: lesson.skill.title, skillEmoji: lesson.skill.emoji };
 }
 
-export type StartedAttempt = { attemptId: string; exercises: ClientExercise[] };
+export type StartedAttempt = {
+  attemptId: string;
+  exercises: ClientExercise[];
+  /** Every grammar pattern tagged on a served exercise, in course order. */
+  cards: LessonCard[];
+  /** Exercise id → slugs of the patterns it drills; untagged exercises are absent. */
+  exercisePatterns: Record<string, string[]>;
+};
 
 /** Start a lesson: snapshot its approved exercises and return them (without answers). */
 export async function startAttempt(user: User, lessonId: string, now = new Date()): Promise<StartedAttempt> {
@@ -83,41 +96,115 @@ export async function startAttempt(user: User, lessonId: string, now = new Date(
   const lesson = await db.lesson.findUnique({ where: { id: lessonId }, include: { exercises: APPROVED_IN_ORDER } });
   const items = playable(lesson?.exercises ?? []);
   if (items.length === 0) throw new LessonError("not_found", "This lesson has no approved exercises yet");
-  const attempt = await db.lessonAttempt.create({
-    data: { userId: user.id, kind: "LESSON", lessonId, exerciseIds: items.map((i) => i.row.id) },
-  });
-  return { attemptId: attempt.id, exercises: items.map((i) => toClientExercise(i.row.id, i.parsed)) };
+  const exerciseIds = items.map((i) => i.row.id);
+  const attempt = await db.lessonAttempt.create({ data: { userId: user.id, kind: "LESSON", lessonId, exerciseIds } });
+  return {
+    attemptId: attempt.id,
+    exercises: items.map((i) => toClientExercise(i.row.id, i.parsed)),
+    ...(await attemptGrammar(user.id, exerciseIds, lessonId)),
+  };
 }
 
-export type PracticeScope = { skillId: string } | { unitId: string };
+export type PracticeScope = { skillId: string } | { unitId: string } | { patternSlug: string } | { weakGrammar: true };
 
-/**
- * Start a practice session over lessons the learner has finished in a skill or unit. A random
- * mix of up to PRACTICE_SIZE approved exercises; no hearts required.
- */
-export async function startPractice(user: User, scope: PracticeScope, now = new Date()): Promise<StartedAttempt> {
+type Playable = ReturnType<typeof playable<ExerciseRow>>[number];
+type Picked = { picked: Playable[]; scope: Prisma.LessonAttemptUncheckedCreateInput };
+
+/** A random mix of approved exercises from the learner's finished lessons in a skill or unit. */
+async function lessonPractice(
+  userId: string,
+  scope: { skillId: string } | { unitId: string },
+  random: () => number,
+): Promise<Picked> {
   const inScope = "skillId" in scope ? { skillId: scope.skillId } : { skill: { unitId: scope.unitId } };
-  const finished = await db.lessonProgress.findMany({
-    where: { userId: user.id, lesson: inScope },
-    select: { lessonId: true },
-  });
+  const finished = await db.lessonProgress.findMany({ where: { userId, lesson: inScope }, select: { lessonId: true } });
   if (finished.length === 0) throw new LessonError("locked", "Finish a lesson here first, then practise it.");
   const rows = await db.exercise.findMany({
     where: { lessonId: { in: finished.map((f) => f.lessonId) }, status: "APPROVED" },
     select: { id: true, type: true, payload: true },
     orderBy: { id: "asc" },
   });
-  const picked = shuffle(playable(rows), rng(hash(`${user.id}:${now.getTime()}`))).slice(0, PRACTICE_SIZE);
-  if (picked.length === 0) throw new LessonError("not_found", "There's nothing to practise here yet.");
-  const attempt = await db.lessonAttempt.create({
-    data: {
-      userId: user.id,
-      kind: "PRACTICE",
-      ...("skillId" in scope ? { skillId: scope.skillId } : { unitId: scope.unitId }),
-      exerciseIds: picked.map((p) => p.row.id),
+  return { picked: shuffle(playable(rows), random).slice(0, PRACTICE_SIZE), scope: { userId, ...scope } };
+}
+
+/**
+ * For each pattern id, its approved exercises from lessons the learner has finished, shuffled.
+ * An exercise drilling several of the patterns appears in each of their lists.
+ */
+async function taggedExercises(userId: string, patternIds: string[], random: () => number) {
+  const rows = await db.exercise.findMany({
+    where: {
+      status: "APPROVED",
+      patterns: { some: { patternId: { in: patternIds } } },
+      lesson: { progress: { some: { userId } } },
     },
+    select: { id: true, type: true, payload: true, patterns: { select: { patternId: true } } },
+    orderBy: { id: "asc" },
   });
-  return { attemptId: attempt.id, exercises: picked.map((p) => toClientExercise(p.row.id, p.parsed)) };
+  const items = shuffle(playable(rows), random);
+  return patternIds.map((id) => items.filter((i) => i.row.patterns.some((p) => p.patternId === id)));
+}
+
+/** One item from each list in turn, skipping exercises already taken, until `size` or all lists run out. */
+function interleave(lists: Playable[][], size: number): Playable[] {
+  const out: Playable[] = [];
+  const taken = new Set<string>();
+  for (let i = 0; out.length < size && lists.some((l) => i < l.length); i++) {
+    for (const item of lists.map((l) => l[i])) {
+      if (!item || taken.has(item.row.id) || out.length >= size) continue;
+      taken.add(item.row.id);
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+/** Drills for one pattern, or mixed drills for the learner's weakest patterns. */
+async function grammarPractice(
+  userId: string,
+  scope: { patternSlug: string } | { weakGrammar: true },
+  now: Date,
+  random: () => number,
+): Promise<Picked> {
+  if ("patternSlug" in scope) {
+    const pattern = await db.grammarPattern.findFirst({ where: { slug: scope.patternSlug }, select: { id: true } });
+    if (!pattern) throw new LessonError("not_found", "That grammar pattern doesn't exist.");
+    const [drills] = await taggedExercises(userId, [pattern.id], random);
+    return { picked: drills.slice(0, PRACTICE_SIZE), scope: { userId, patternId: pattern.id } };
+  }
+  const slugs = await weakestPatterns(userId, now);
+  const patterns = await db.grammarPattern.findMany({
+    where: { slug: { in: slugs } },
+    select: { id: true, slug: true },
+  });
+  const ids = slugs.flatMap((slug) => patterns.filter((p) => p.slug === slug).map((p) => p.id));
+  if (ids.length === 0)
+    throw new LessonError("not_found", "Answer a few more grammar drills first, then practise your weakest ones.");
+  return {
+    picked: interleave(await taggedExercises(userId, ids, random), PRACTICE_SIZE),
+    scope: { userId, weakGrammar: true },
+  };
+}
+
+/**
+ * Start a practice session over lessons the learner has finished: a skill or unit (a random mix of
+ * their exercises), one grammar pattern (its drills) or the weakest grammar patterns (their drills
+ * taken in turn). Up to PRACTICE_SIZE approved exercises; no hearts required.
+ */
+export async function startPractice(user: User, scope: PracticeScope, now = new Date()): Promise<StartedAttempt> {
+  const random = rng(hash(`${user.id}:${now.getTime()}`));
+  const { picked, scope: data } =
+    "skillId" in scope || "unitId" in scope
+      ? await lessonPractice(user.id, scope, random)
+      : await grammarPractice(user.id, scope, now, random);
+  if (picked.length === 0) throw new LessonError("not_found", "There's nothing to practise here yet.");
+  const exerciseIds = picked.map((p) => p.row.id);
+  const attempt = await db.lessonAttempt.create({ data: { ...data, kind: "PRACTICE", exerciseIds } });
+  return {
+    attemptId: attempt.id,
+    exercises: picked.map((p) => toClientExercise(p.row.id, p.parsed)),
+    ...(await attemptGrammar(user.id, exerciseIds, null)),
+  };
 }
 
 export type AnswerFeedback = {
@@ -128,7 +215,63 @@ export type AnswerFeedback = {
   hearts: number;
   nextHeartAt: string | null;
   outOfHearts: boolean;
+  /** Why a wrong answer is wrong (wrong verb form, known mistake, ...); null when correct or unexplained. */
+  explanation: string | null;
+  /** Paradigm only: the hidden cells filled wrongly. */
+  wrongCells: VerbForm[] | null;
 };
+
+/** Exercise types built on one verb; grading loads that verb's approved tables to name wrong forms. */
+const VERB_TYPES: ReadonlySet<ExerciseType> = new Set(["conjugate", "paradigm", "find_root"]);
+
+/** What grading needs beyond the exercise: the verb's approved tables and the linked patterns' mistakes. */
+async function gradeContext(
+  tx: Prisma.TransactionClient,
+  ex: ParsedExercise,
+  lessonId: string,
+  patterns: { title: string; card: Prisma.JsonValue }[],
+): Promise<GradeContext> {
+  const patternMistakes = patterns.flatMap((p) => cardOf(p).mistakes);
+  if (!VERB_TYPES.has(ex.type) || !("root" in ex.payload)) return { patternMistakes };
+  const lesson = await tx.lesson.findUniqueOrThrow({
+    where: { id: lessonId },
+    select: { skill: { select: { unit: { select: { courseId: true } } } } },
+  });
+  return { patternMistakes, verbTables: await loadApprovedVerbTables(tx, lesson.skill.unit.courseId, ex.payload.root) };
+}
+
+/** Fold one graded answer into the learner's progress on each pattern (strength before decay, per the spec). */
+async function recordPatternAnswer(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  patternIds: string[],
+  correct: boolean,
+  now: Date,
+) {
+  for (const patternId of patternIds) {
+    const where = { userId_patternId: { userId, patternId } };
+    const prior = await tx.patternProgress.findUnique({ where, select: { strength: true } });
+    const strength = updateStrength(prior?.strength ?? 0, correct);
+    const right = correct ? 1 : 0;
+    await tx.patternProgress.upsert({
+      where,
+      create: { userId, patternId, attempts: 1, correct: right, strength, lastPracticedAt: now },
+      update: { attempts: { increment: 1 }, correct: { increment: right }, strength, lastPracticedAt: now },
+    });
+  }
+}
+
+/** Set `seenAt` on each pattern's progress where it isn't set yet, creating rows as needed. */
+async function markSeen(tx: Prisma.TransactionClient, userId: string, patternIds: string[], now: Date) {
+  await tx.patternProgress.createMany({
+    data: patternIds.map((patternId) => ({ userId, patternId, seenAt: now })),
+    skipDuplicates: true,
+  });
+  await tx.patternProgress.updateMany({
+    where: { userId, patternId: { in: patternIds }, seenAt: null },
+    data: { seenAt: now },
+  });
+}
 
 export async function submitAnswer(
   userId: string,
@@ -154,8 +297,25 @@ export async function submitAnswer(
     const parsed = row && safeParseExercise(row.type as ExerciseType, row.payload);
     if (!row || !parsed) throw new LessonError("not_found", "Exercise not found in this lesson");
 
-    const result = gradeAnswer(parsed, answer);
+    const links = await tx.exercisePattern.findMany({
+      where: { exerciseId },
+      select: { pattern: { select: { id: true, title: true, card: true } } },
+    });
+    const patterns = links.map((l) => l.pattern);
+    const result = gradeAnswer(parsed, answer, await gradeContext(tx, parsed, row.lessonId, patterns));
+    // Only the first try counts toward pattern strength: retries of a re-queued exercise would
+    // otherwise turn every miss into a hit. A speak skip says nothing about the learner.
+    const first = (await tx.attemptAnswer.count({ where: { attemptId, exerciseId } })) === 0;
     await tx.attemptAnswer.create({ data: { attemptId, exerciseId, correct: result.correct, answer: answer ?? {} } });
+    if (first && !result.skipped) {
+      await recordPatternAnswer(
+        tx,
+        userId,
+        links.map((l) => l.pattern.id),
+        result.correct,
+        now,
+      );
+    }
 
     const refill = heartRefillMs();
     let hearts = liveHearts(attempt.user, now, refill);
@@ -183,6 +343,8 @@ export async function submitAnswer(
       hearts: hearts.hearts,
       nextHeartAt: hearts.nextHeartAt?.toISOString() ?? null,
       outOfHearts,
+      explanation: result.explanation ?? null,
+      wrongCells: result.wrongCells ?? null,
     };
   });
 }
@@ -278,6 +440,10 @@ export async function completeAttempt(userId: string, attemptId: string, now = n
         create: { userId, lessonId: attempt.lessonId!, firstCompletedAt: now },
         update: { timesCompleted: { increment: 1 } },
       });
+      // The learner has now seen this lesson's grammar cards; quitting part-way leaves them unseen.
+      const taught = await tx.grammarPattern.findMany({ where: { lessonId: attempt.lessonId! }, select: { id: true } });
+      const patternIds = taught.map((p) => p.id);
+      if (patternIds.length > 0) await markSeen(tx, userId, patternIds, now);
     }
 
     const before = activity.xp - xp.total;

@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { parseExercise, type ExerciseType, type ParsedExercise } from "@/lib/content/schema";
 import type { User } from "@/generated/prisma/client";
@@ -333,5 +333,143 @@ describe("weekly leaderboard", () => {
     expect(me).toMatchObject({ xp: 20, name: "Test Learner" });
     const xps = board.rows.map((r) => r.xp);
     expect([...xps].sort((a, b) => b - a)).toEqual(xps);
+  });
+});
+
+describe("grammar patterns", () => {
+  const SLUG = "t-lessons-";
+  let courseId: string;
+
+  /** A pattern taught by `lessonId`, tagged on the given exercises. */
+  async function pattern(name: string, lessonId: string, exerciseIds: string[] = [], order = 900) {
+    const p = await db.grammarPattern.create({
+      data: {
+        courseId,
+        slug: SLUG + name,
+        order,
+        title: `Pattern ${name}`,
+        lessonId,
+        card: { rule: `Rule ${name}`, examples: [["a", "b"]], notes: [], mistakes: [["kumain na", "Drop na."]] },
+      },
+    });
+    await db.exercisePattern.createMany({ data: exerciseIds.map((exerciseId) => ({ exerciseId, patternId: p.id })) });
+    return p;
+  }
+
+  const progressOf = (patternId: string) =>
+    db.patternProgress.findUnique({ where: { userId_patternId: { userId: user.id, patternId } } });
+
+  beforeAll(async () => {
+    courseId = (await db.course.findFirstOrThrow()).id;
+  });
+
+  afterEach(async () => {
+    await db.grammarPattern.deleteMany({ where: { slug: { startsWith: SLUG } } });
+  });
+
+  it("returns card data for all tagged patterns, isNew only for unseen taught ones", async () => {
+    const [first, second] = await firstLessons();
+    const [e0, e1] = await lessonExercises(first.id);
+    const taught = await pattern("a", first.id, [e0.id, e1.id], 900);
+    const used = await pattern("b", second.id, [e0.id], 901);
+    await pattern("untagged", first.id, [], 902);
+
+    const started = await startAttempt(user, first.id);
+    expect(started.cards).toEqual([
+      {
+        slug: taught.slug,
+        title: "Pattern a",
+        card: expect.objectContaining({ title: "Pattern a", rule: "Rule a" }),
+        isNew: true,
+      },
+      { slug: used.slug, title: "Pattern b", card: expect.objectContaining({ rule: "Rule b" }), isNew: false },
+    ]);
+    expect(started.exercisePatterns[e0.id]).toEqual([taught.slug, used.slug]);
+    expect(started.exercisePatterns[e1.id]).toEqual([taught.slug]);
+
+    await playPerfect(first.id);
+    const again = await startAttempt(user, first.id);
+    expect(again.cards.map((c) => c.isNew)).toEqual([false, false]);
+  });
+
+  it("first answer only updates PatternProgress", async () => {
+    const [first] = await firstLessons();
+    const target = (await lessonExercises(first.id)).find((e) => e.ex.type !== "match_pairs" && e.ex.type !== "speak")!;
+    const p = await pattern("a", first.id, [target.id]);
+    const { attemptId } = await startAttempt(user, first.id);
+    await submitAnswer(user.id, attemptId, target.id, wrongAnswer(target.ex));
+    await submitAnswer(user.id, attemptId, target.id, correctAnswer(target.ex));
+    expect(await progressOf(p.id)).toMatchObject({ attempts: 1, correct: 0, strength: 0, seenAt: null });
+    expect((await progressOf(p.id))?.lastPracticedAt).not.toBeNull();
+  });
+
+  it("speak skips do not touch PatternProgress", async () => {
+    const [first] = await firstLessons();
+    const speak = (await lessonExercises(first.id)).find((e) => e.ex.type === "speak")!;
+    const p = await pattern("a", first.id, [speak.id]);
+    const { attemptId } = await startAttempt(user, first.id);
+    await expect(submitAnswer(user.id, attemptId, speak.id, { skipped: true })).resolves.toMatchObject({
+      skipped: true,
+    });
+    expect(await progressOf(p.id)).toBeNull();
+  });
+
+  it("seenAt is set on lesson completion, not on start or quit", async () => {
+    const [first, second] = await firstLessons();
+    const [e0] = await lessonExercises(first.id);
+    const taught = await pattern("a", first.id, [e0.id]);
+    const used = await pattern("b", second.id, [e0.id], 901);
+
+    const quit = await startAttempt(user, first.id);
+    await submitAnswer(user.id, quit.attemptId, e0.id, correctAnswer(e0.ex));
+    expect((await progressOf(taught.id))?.seenAt).toBeNull();
+
+    await playPerfect(first.id);
+    expect((await progressOf(taught.id))?.seenAt).toBeInstanceOf(Date);
+    expect((await progressOf(used.id))?.seenAt ?? null).toBeNull();
+  });
+
+  it("conjugate feedback names the wrong form", async () => {
+    const [first] = await firstLessons();
+    const forms = {
+      infinitive: ["kumain"],
+      completed: ["kumain"],
+      incompleted: ["kumakain"],
+      contemplated: ["kakain"],
+    };
+    await db.verbTable.upsert({
+      where: { courseId_root_affix: { courseId, root: "kain", affix: "um" } },
+      create: { courseId, root: "kain", affix: "um", en: "eat", forms, status: "APPROVED" },
+      update: { forms, status: "APPROVED" },
+    });
+    const ex = await db.exercise.create({
+      data: {
+        lessonId: first.id,
+        order: 998,
+        type: "conjugate",
+        payload: {
+          sentence: "___ ako kahapon.",
+          translation: "I ate yesterday.",
+          root: "kain",
+          affix: "um",
+          form: "completed",
+          answers: ["kumain"],
+        },
+        status: "APPROVED",
+        source: "HUMAN",
+      },
+    });
+    try {
+      const { attemptId } = await startAttempt(user, first.id);
+      const feedback = await submitAnswer(user.id, attemptId, ex.id, { text: "kumakain" });
+      expect(feedback).toMatchObject({
+        correct: false,
+        explanation: "That's the present form (kumakain). The past is kumain.",
+        wrongCells: null,
+      });
+    } finally {
+      await db.exercise.delete({ where: { id: ex.id } });
+      await db.verbTable.deleteMany({ where: { courseId, root: "kain", affix: "um" } });
+    }
   });
 });

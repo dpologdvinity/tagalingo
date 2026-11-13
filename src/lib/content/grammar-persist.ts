@@ -109,11 +109,16 @@ export async function draftVerbTables(
 
 /**
  * The course's APPROVED verb tables as the analyser and the generators see them, sorted by root then
- * affix. Rows are parsed with the same schema as `verbs.json`, so a hand-edited row that is not a
- * valid table fails loudly here instead of producing drills from garbage.
+ * affix; pass `root` to load only that verb's tables (answer grading does). Rows are parsed with the
+ * same schema as `verbs.json`, so a hand-edited row that is not a valid table fails loudly here
+ * instead of producing drills from garbage. Takes any client with `verbTable`, so a transaction works.
  */
-export async function loadApprovedVerbTables(prisma: PrismaClient, courseId: string): Promise<VerbTableData[]> {
-  const rows = await prisma.verbTable.findMany({ where: { courseId, status: "APPROVED" } });
+export async function loadApprovedVerbTables(
+  prisma: Pick<PrismaClient, "verbTable">,
+  courseId: string,
+  root?: string,
+): Promise<VerbTableData[]> {
+  const rows = await prisma.verbTable.findMany({ where: { courseId, status: "APPROVED", root } });
   return rows
     .map(({ root, affix, en, forms }) => ({ root, affix, en, forms: verbFileEntrySchema.shape.forms.parse(forms) }))
     .sort((a, b) => (a.root < b.root ? -1 : a.root > b.root ? 1 : AFFIXES.indexOf(a.affix) - AFFIXES.indexOf(b.affix)));
