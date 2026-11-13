@@ -17,18 +17,22 @@ export function GrammarCardView({
   card: { title, card },
   onDone,
   doneLabel = "Got it — let's try",
+  headingLevel = 2,
 }: {
   card: LessonCard;
   onDone?: () => void;
   doneLabel?: string;
+  /** For pages that already have an h2 around the card. */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = `h${headingLevel}` as const;
   // Unique per card: the grammar page shows many of them at once.
   const titleId = useId();
   return (
     <article aria-labelledby={titleId} className="space-y-6">
-      <h2 id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
+      <Heading id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
         {title}
-      </h2>
+      </Heading>
       <p className="rounded-3xl border-2 border-lagoon-bright/40 bg-lagoon-soft px-5 py-4 text-lg font-bold text-lagoon sm:text-xl">
         {card.rule}
       </p>

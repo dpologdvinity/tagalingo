@@ -42,16 +42,18 @@ export function PatternEntry({
   card,
   label,
   effective,
+  headingLevel,
 }: {
   slug: string;
   title: string;
   card: PatternCard;
   label: StrengthLabel;
   effective?: number;
+  headingLevel?: 2 | 3;
 }) {
   return (
     <div className="space-y-5">
-      <GrammarCardView card={{ slug, title, card, isNew: false }} />
+      <GrammarCardView card={{ slug, title, card, isNew: false }} headingLevel={headingLevel} />
       <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-line pt-4">
         {effective === undefined ? (
           <span className="font-bold text-ink-soft">{LABEL_TEXT[label]}</span>

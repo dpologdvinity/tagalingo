@@ -69,7 +69,7 @@ export default async function SkillPage({ params }: PageProps<"/skills/[slug]">)
           <h2 className="font-display text-2xl">Grammar</h2>
           {skill.patterns.map((p) =>
             p.card ? (
-              <PatternEntry key={p.slug} slug={p.slug} title={p.title} card={p.card} label={p.label} />
+              <PatternEntry key={p.slug} slug={p.slug} title={p.title} card={p.card} label={p.label} headingLevel={3} />
             ) : (
               <p key={p.slug} className="flex items-center gap-2 text-ink-soft">
                 <LockIcon size={18} />
