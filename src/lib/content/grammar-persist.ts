@@ -68,7 +68,8 @@ export async function syncGrammar(prisma: PrismaClient, def: CourseDefinition): 
 }
 
 /** Every verb in course.yaml, across all skills. */
-const courseVerbs = (def: CourseDefinition): VerbEntry[] => def.units.flatMap((u) => u.skills.flatMap((s) => s.verbs));
+export const courseVerbs = (def: CourseDefinition): VerbEntry[] =>
+  def.units.flatMap((u) => u.skills.flatMap((s) => s.verbs));
 
 /**
  * Create a DRAFT table from the engine's rules for every course verb × affix, for a reviewer to
@@ -152,15 +153,19 @@ export async function exportVerbTables(prisma: PrismaClient, contentDir: string)
 }
 
 /**
- * The course's entry for a file row, or an error naming the row when course.yaml has no such
- * verb/affix. The same root may be listed in several skills with different affixes, so the match is
- * on root and affix together.
+ * The course's entry for a table row, or an error naming the row (prefixed with `source`, where the
+ * row came from) when course.yaml has no such verb/affix. The same root may be listed in several
+ * skills with different affixes, so the match is on root and affix together.
  */
-function entryFor(verbs: VerbEntry[], row: VerbFileEntry): VerbEntry {
+export function entryFor(
+  verbs: VerbEntry[],
+  row: Pick<VerbFileEntry, "root" | "affix">,
+  source = "verbs.json",
+): VerbEntry {
   const sameRoot = verbs.filter((v) => v.root === row.root);
-  if (!sameRoot.length) throw new Error(`verbs.json: "${row.root}" (${row.affix}) is not a verb in course.yaml`);
+  if (!sameRoot.length) throw new Error(`${source}: "${row.root}" (${row.affix}) is not a verb in course.yaml`);
   const verb = sameRoot.find((v) => v.affixes.includes(row.affix));
-  if (!verb) throw new Error(`verbs.json: course.yaml does not list the affix "${row.affix}" for "${row.root}"`);
+  if (!verb) throw new Error(`${source}: course.yaml does not list the affix "${row.affix}" for "${row.root}"`);
   return verb;
 }
 

@@ -1,7 +1,9 @@
 "use server";
 /**
- * Studio server actions: generate drafts, edit, approve and reject exercises. Reviewer-only;
- * every action re-checks the role.
+ * Studio server actions: generate drafts, edit, approve and reject exercises and verb tables, flag
+ * grammar cards and tag exercises with patterns. Reviewer-only; every action re-checks the role.
+ * The verb-table, flag and tag actions are thin: they check the role, call the matching function in
+ * `server/studio.ts` and revalidate the pages that show the result.
  */
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -12,9 +14,17 @@ import { COURSE_FILE } from "@/lib/content/paths";
 import { generateDraftsForLesson } from "@/lib/content/persist";
 import { ExerciseValidationError, parseExercise, type ExerciseType } from "@/lib/content/schema";
 import { getCurrentUser } from "@/server/session";
+import {
+  flagCard,
+  resolveFlag,
+  reviewVerbTable,
+  saveVerbTable,
+  setExercisePatterns,
+  type StudioResult,
+} from "@/server/studio";
 import { canReview } from "@/lib/roles";
 
-export type StudioResult = { ok: true; message: string } | { ok: false; message: string };
+export type { StudioResult };
 
 async function reviewer() {
   const user = await getCurrentUser();
@@ -113,4 +123,51 @@ export async function saveExerciseAction(exerciseId: string, payloadJson: string
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "Save failed." };
   }
+}
+
+/** Run a reviewer-only write, turning a refusal or an unexpected failure into a `StudioResult`. */
+async function asReviewer(
+  write: (user: Awaited<ReturnType<typeof reviewer>>) => Promise<StudioResult>,
+  paths: string[],
+  failure: string,
+): Promise<StudioResult> {
+  try {
+    const result = await write(await reviewer());
+    if (result.ok) for (const p of ["/studio", ...paths]) revalidatePath(p);
+    return result;
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : failure };
+  }
+}
+
+export async function saveVerbTableAction(id: string, formsJson: string): Promise<StudioResult> {
+  return asReviewer(
+    (user) => saveVerbTable(loadCourseFile(COURSE_FILE), user.id, id, formsJson),
+    ["/studio/verbs"],
+    "Save failed.",
+  );
+}
+
+export async function reviewVerbTableAction(id: string, status: string, note?: string): Promise<StudioResult> {
+  return asReviewer((user) => reviewVerbTable(user.id, id, status, note), ["/studio/verbs"], "Update failed.");
+}
+
+export async function flagCardAction(patternSlug: string, note: string): Promise<StudioResult> {
+  return asReviewer((user) => flagCard(user.id, patternSlug, note), ["/studio/grammar"], "Couldn’t flag the card.");
+}
+
+export async function resolveFlagAction(flagId: string): Promise<StudioResult> {
+  return asReviewer(() => resolveFlag(flagId), ["/studio/grammar"], "Couldn’t resolve the flag.");
+}
+
+export async function setExercisePatternsAction(exerciseId: string, slugs: string[]): Promise<StudioResult> {
+  return asReviewer(
+    async () => {
+      const result = await setExercisePatterns(exerciseId, slugs);
+      if (result.ok) revalidatePath(await skillPathFor(exerciseId));
+      return result;
+    },
+    ["/studio/grammar"],
+    "Couldn’t save the patterns.",
+  );
 }

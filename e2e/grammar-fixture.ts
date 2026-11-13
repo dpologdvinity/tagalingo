@@ -1,8 +1,9 @@
 /**
  * E2E fixture for the grammar player: one unit/skill/lesson at the start of the course, one grammar
  * pattern taught by that lesson, two approved verb tables (kain/um, which the exercises drill, and
- * kilala/ma, so Tala's stub reply "makilala" is a known verb form) and four approved exercises (conjugate,
- * paradigm, find_root, transform) tagged with the pattern. Everything is inserted with SQL under
+ * kilala/ma, so Tala's stub reply "makilala" is a known verb form), one DRAFT table (kain/mag, for
+ * the Studio review specs) and four approved exercises (conjugate, paradigm, find_root, transform)
+ * tagged with the pattern. Everything is inserted with SQL under
  * `e2e-grammar-` ids, because the dev database has no grammar content. `removeGrammarFixture`
  * deletes the unit (cascading to skill, lesson, exercises, pattern and tags) and the verb table, so
  * it is safe to call from `afterAll` even after a failed run.
@@ -26,6 +27,8 @@ export const FIXTURE = {
   patternSlug: `${P}pattern`,
   skillSlug: `${P}skill`,
   skillTitle: "E2E verbs",
+  /** The DRAFT kain/mag table; the Studio specs approve it. */
+  draftTableId: `${P}verb-draft`,
   /** Exercise ids in lesson order. */
   exercises: {
     conjugate: `${P}conjugate`,
@@ -63,6 +66,14 @@ const KILALA_FORMS = {
   incompleted: ["nakikilala"],
   contemplated: ["makikilala"],
   recent: ["kakikilala"],
+};
+
+const DRAFT_FORMS = {
+  infinitive: ["magkain"],
+  completed: ["nagkain"],
+  incompleted: ["nagkakain"],
+  contemplated: ["magkakain"],
+  recent: ["kakakain"],
 };
 
 const EXERCISES = [
@@ -152,6 +163,10 @@ export async function createGrammarFixture(): Promise<void> {
   await query(
     `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kilala', 'ma', 'to know (someone)', $3, 'APPROVED')`,
     [`${P}verb-kilala`, course.id, JSON.stringify(KILALA_FORMS)],
+  );
+  await query(
+    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kain', 'mag', 'to feed', $3, 'DRAFT')`,
+    [FIXTURE.draftTableId, course.id, JSON.stringify(DRAFT_FORMS)],
   );
   for (const [i, [id, type, payload]] of EXERCISES.entries()) {
     await query(

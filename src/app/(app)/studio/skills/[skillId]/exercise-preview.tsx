@@ -3,6 +3,7 @@
  * answer(s) marked, so a reviewer can judge it without reading JSON.
  */
 import type { ParsedExercise } from "@/lib/content/schema";
+import { FORM_LABEL } from "@/lib/grammar/types";
 
 const TYPE_LABEL: Record<ParsedExercise["type"], string> = {
   select_translation: "Pick the meaning",
@@ -23,14 +24,35 @@ export function typeLabel(t: ParsedExercise["type"]) {
   return TYPE_LABEL[t];
 }
 
-function Choice({ text, correct }: { text: string; correct: boolean }) {
+function Choice({ text, correct, why }: { text: string; correct: boolean; why?: string | null }) {
   return (
     <li
       className={`rounded-xl border-2 px-3 py-1.5 ${correct ? "border-lagoon-bright bg-lagoon-soft font-bold text-lagoon" : "border-line"}`}
     >
       {correct && <span className="sr-only">Correct: </span>}
       {text}
+      {why && <span className="block text-sm font-normal text-ink-soft">Why not: {why}</span>}
     </li>
+  );
+}
+
+/** The hint a learner can open before answering. */
+function Hint({ text }: { text?: string }) {
+  return text ? <p className="text-sm text-ink-soft">Hint: {text}</p> : null;
+}
+
+/** Explanations for specific wrong answers: "answer → why". */
+function Mistakes({ items }: { items?: { answer: string; why: string }[] }) {
+  if (!items?.length) return null;
+  return (
+    <ul className="space-y-0.5 text-sm">
+      {items.map((m) => (
+        <li key={m.answer}>
+          <span className="text-ink-soft">Mistake: </span>
+          <strong lang="tl">{m.answer}</strong> → {m.why}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -44,9 +66,10 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           </p>
           <ul className="grid gap-1.5 sm:grid-cols-2">
             {ex.payload.options.map((o, i) => (
-              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} why={ex.payload.why?.[i]} />
             ))}
           </ul>
+          <Hint text={ex.payload.hint} />
         </div>
       );
     case "fill_blank":
@@ -58,7 +81,7 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           <p className="text-ink-soft">“{ex.payload.translation}”</p>
           <ul className="flex flex-wrap gap-1.5">
             {ex.payload.options.map((o, i) => (
-              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} why={ex.payload.why?.[i]} />
             ))}
           </ul>
         </div>
@@ -115,7 +138,7 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           </p>
           <ul className="grid gap-1.5 sm:grid-cols-2">
             {ex.payload.options.map((o, i) => (
-              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} why={ex.payload.why?.[i]} />
             ))}
           </ul>
         </div>
@@ -142,17 +165,99 @@ export function ExercisePreview({ ex }: { ex: ParsedExercise }) {
           </ul>
           <ul className="grid gap-1.5">
             {ex.payload.options.map((o, i) => (
-              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} />
+              <Choice key={i} text={o} correct={i === ex.payload.answerIndex} why={ex.payload.why?.[i]} />
             ))}
           </ul>
           <p className="text-sm text-ink-soft">Reply means: {ex.payload.replyEn}</p>
         </div>
       );
-    // Placeholder until the dedicated grammar previews land.
     case "conjugate":
+      return (
+        <div className="space-y-2">
+          <p className="text-lg font-bold" lang="tl">
+            {ex.payload.sentence}
+          </p>
+          <p className="text-ink-soft">“{ex.payload.translation}”</p>
+          <p>
+            <strong lang="tl">{ex.payload.root}</strong> · {ex.payload.affix} · {FORM_LABEL[ex.payload.form].en}
+          </p>
+          <p>
+            <span className="text-ink-soft">Accepted answers: </span>
+            <strong className="text-lagoon">{ex.payload.answers.join(" / ")}</strong>
+          </p>
+          <Mistakes items={ex.payload.mistakes} />
+        </div>
+      );
     case "find_root":
+      return (
+        <div className="space-y-2">
+          <p className="text-lg font-bold" lang="tl">
+            {ex.payload.word}
+          </p>
+          {ex.payload.translation && <p className="text-ink-soft">“{ex.payload.translation}”</p>}
+          <p className="text-sm text-ink-soft">{ex.payload.mode === "choice" ? "Pick the root" : "Type the root"}</p>
+          {ex.payload.options ? (
+            <ul className="flex flex-wrap gap-1.5">
+              {ex.payload.options.map((o) => (
+                <Choice key={o} text={o} correct={o.trim().toLowerCase() === ex.payload.root.trim().toLowerCase()} />
+              ))}
+            </ul>
+          ) : (
+            <p>
+              <span className="text-ink-soft">Root: </span>
+              <strong className="text-lagoon">{ex.payload.root}</strong>
+            </p>
+          )}
+          <Hint text={ex.payload.hint} />
+        </div>
+      );
     case "transform":
+      return (
+        <div className="space-y-2">
+          <p className="text-lg font-bold" lang="tl">
+            {ex.payload.source}
+          </p>
+          <p className="text-ink-soft">“{ex.payload.sourceEn}”</p>
+          <p>
+            <strong>{ex.payload.instruction}</strong>{" "}
+            <span className="text-sm text-ink-soft">
+              ({ex.payload.mode === "build" ? "build with tiles" : "type it"})
+            </span>
+          </p>
+          <p>
+            <span className="text-ink-soft">Accepted answers: </span>
+            <strong className="text-lagoon">{ex.payload.answers.map((a) => a.join(" ")).join(" / ")}</strong>
+          </p>
+          <p>
+            <span className="text-ink-soft">Distractor tiles: </span>
+            {ex.payload.distractors.length ? ex.payload.distractors.join(", ") : "none"}
+          </p>
+          <Mistakes items={ex.payload.mistakes} />
+        </div>
+      );
     case "paradigm":
-      return <p className="text-ink-soft">Preview not yet supported for this exercise type.</p>;
+      return (
+        <div className="space-y-2">
+          <p>
+            <strong lang="tl">{ex.payload.root}</strong> · {ex.payload.affix} · {ex.payload.en}
+          </p>
+          <ul className="grid gap-1.5 sm:grid-cols-2">
+            {ex.payload.cells.map((c) => (
+              <li
+                key={c.form}
+                className={`rounded-xl border-2 px-3 py-1.5 ${c.hidden ? "border-mango bg-mango-soft" : "border-line"}`}
+              >
+                <span className="block text-xs text-ink-soft">{FORM_LABEL[c.form].en}</span>
+                <strong lang="tl">{c.value}</strong>
+                {c.hidden && <span className="ml-2 text-xs font-bold text-mango-deep">hidden from the learner</span>}
+              </li>
+            ))}
+          </ul>
+          <p>
+            <span className="text-ink-soft">Distractor tiles: </span>
+            {ex.payload.distractors.length ? ex.payload.distractors.join(", ") : "none"}
+          </p>
+        </div>
+      );
   }
 }

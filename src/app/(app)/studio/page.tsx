@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { selectGenerator } from "@/lib/content/generators";
-import { getStudioOverview } from "@/server/studio";
+import { getStudioGrammarCounts, getStudioOverview } from "@/server/studio";
 import { requireReviewer } from "@/server/session";
 
 export const metadata: Metadata = { title: "Studio" };
 
 export default async function StudioPage() {
   await requireReviewer();
-  const rows = await getStudioOverview();
+  const [rows, grammar] = await Promise.all([getStudioOverview(), getStudioGrammarCounts()]);
   let generator = "offline stub";
   try {
     const g = selectGenerator();
@@ -27,6 +27,24 @@ export default async function StudioPage() {
           approved exercises.
         </p>
       </header>
+
+      <nav aria-label="Grammar review" className="flex flex-wrap gap-3">
+        <Link
+          href="/studio/verbs"
+          className="rounded-2xl border-2 border-line bg-surface px-4 py-2 font-bold text-lagoon hover:bg-seaglass"
+        >
+          Verb tables <span className="font-normal text-ink-soft">({grammar.draftTables} draft)</span>
+        </Link>
+        <Link
+          href="/studio/grammar"
+          className="rounded-2xl border-2 border-line bg-surface px-4 py-2 font-bold text-lagoon hover:bg-seaglass"
+        >
+          Grammar cards{" "}
+          <span className="font-normal text-ink-soft">
+            ({grammar.openFlags} open flag{grammar.openFlags === 1 ? "" : "s"})
+          </span>
+        </Link>
+      </nav>
 
       <div className="rounded-3xl border-2 border-line bg-surface p-5">
         <p>

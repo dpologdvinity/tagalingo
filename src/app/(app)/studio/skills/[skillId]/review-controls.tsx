@@ -12,7 +12,7 @@ import {
 } from "@/app/actions/studio";
 import { Button } from "@/components/ui";
 
-function Message({ result }: { result: StudioResult | null }) {
+export function Message({ result }: { result: StudioResult | null }) {
   if (!result) return null;
   return (
     <p role="status" className={`text-sm font-bold ${result.ok ? "text-lagoon" : "text-gumamela"}`}>

@@ -21,7 +21,9 @@ the built-in content Studio before learners ever see it.
   review show as locked until it's approved.
 - **Hearts:** 5 maximum. A wrong answer costs one, and one comes back every 30 minutes.
 - **Content Studio** (`/studio`, reviewers only): generate drafts, preview each exercise as a
-  learner sees it with lint warnings, then edit, approve or reject.
+  learner sees it with lint warnings, then edit, approve or reject. Grammar has its own review
+  pages: `/studio/verbs` (edit, approve or reject each drafted verb table) and `/studio/grammar`
+  (every grammar card as learners read it, with flags), and each exercise shows its pattern tags.
 
 ### Added in 1.1: richer lessons
 
