@@ -41,7 +41,12 @@ export async function startLessonAction(lessonId: string): Promise<ActionResult<
   return run(async () => startAttempt(await userOrError(), id.parse(lessonId)));
 }
 
-const practiceScope = z.union([z.object({ skillId: id }), z.object({ unitId: id })]);
+const practiceScope = z.union([
+  z.object({ skillId: id }),
+  z.object({ unitId: id }),
+  z.object({ patternSlug: z.string().min(1).max(64) }),
+  z.object({ weakGrammar: z.literal(true) }),
+]);
 
 export async function startPracticeAction(scope: unknown): Promise<ActionResult<StartedAttempt>> {
   return run(async () => startPractice(await userOrError(), practiceScope.parse(scope)));
