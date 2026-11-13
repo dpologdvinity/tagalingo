@@ -7,11 +7,14 @@
  *    approved table is skipped (nothing is built, so nothing is rejected).
  *  - Only verbs the lesson has been taught are used (`req.grammar.verbs`), and only their tables
  *    count as known vocabulary, so a later skill's approved verb never leaks into an earlier lesson.
+ *  - A drill whose only unknown words are forms of a taught verb that has no approved table yet is
+ *    skipped like the verb drills are: nothing malformed was built, it just has to wait for review.
  *  - `checkDrill` is the automatic review every drill passes before a human sees it. A drill that
  *    fails is returned in `rejected` with the reason and never blocks the vocabulary drills.
  *  - A lesson gets at most `MAX_GRAMMAR_DRILLS` drills, shared round-robin between its patterns.
  */
 import { analyse, type VerbTableData } from "@/lib/grammar/analyse";
+import { conjugate } from "@/lib/grammar/morphology";
 import { AFFIXES, VERB_FORMS, type Affix, type VerbForm } from "@/lib/grammar/types";
 import { FUNCTION_WORDS, unknownWords } from "@/lib/grammar/vocab-check";
 import { normalizeAnswer } from "@/lib/normalize";
@@ -219,14 +222,39 @@ function paradigmDrill(p: CoursePattern, req: GenerationRequest, taught: readonl
   } satisfies RawDrill;
 }
 
-/** Validate a raw drill and run the automatic checks; either failure is reported, not thrown. */
-function vet(
-  raw: RawDrill,
-  req: GenerationRequest,
-  tables: readonly VerbTableData[],
-): { drill: TaggedExercise } | { rejected: Rejected } {
+/**
+ * Spellings the engine would draft for taught verbs that have no approved table. A drill that is
+ * unknown-word-clean except for these is waiting on table review, not malformed.
+ */
+function uncoveredForms(req: GenerationRequest, taught: readonly VerbTableData[]): Set<string> {
+  const forms = new Set<string>();
+  for (const verb of req.grammar.verbs) {
+    for (const affix of verb.affixes) {
+      if (findTable(taught, verb.root, affix)) continue;
+      let draft;
+      try {
+        draft = conjugate(verb, affix);
+      } catch {
+        continue; // the engine cannot conjugate this root; it has no forms to wait for
+      }
+      for (const form of VERB_FORMS) for (const cell of draft[form] ?? []) forms.add(normalizeAnswer(cell));
+    }
+  }
+  return forms;
+}
+
+type Vetted = { drill: TaggedExercise } | { rejected: Rejected } | { skipped: true };
+
+/**
+ * Validate a raw drill and run the automatic checks; failures are reported, not thrown. A drill that
+ * only fails because it needs forms no approved table covers yet is skipped instead.
+ */
+function vet(raw: RawDrill, req: GenerationRequest, tables: readonly VerbTableData[], uncovered: Set<string>): Vetted {
   try {
     const drill: TaggedExercise = { ...parseExercise(raw.type, raw.payload), patterns: raw.patterns };
+    const known = new Set(req.grammar.knownWords);
+    const unknown = tagalogTexts(drill).flatMap((text) => unknownWords(text, known, tables));
+    if (unknown.length > 0 && unknown.every((w) => uncovered.has(normalizeAnswer(w)))) return { skipped: true };
     const reason = checkDrill(drill, req, tables);
     return reason === null ? { drill } : { rejected: { raw, reason } };
   } catch (e) {
@@ -269,9 +297,10 @@ export function buildGrammarDrills(
     offers.push(options.filter((d) => d !== null).slice(0, 1));
   }
 
+  const uncovered = uncoveredForms(req, taught);
   const accepted = offers.map((offer) =>
     offer.flatMap((raw) => {
-      const result = vet(raw, req, taught);
+      const result = vet(raw, req, taught, uncovered);
       if ("rejected" in result) rejected.push(result.rejected);
       return "drill" in result ? [result.drill] : [];
     }),
@@ -345,11 +374,22 @@ export function checkDrill(d: TaggedExercise, req: GenerationRequest, tables: re
     if (unknown !== undefined) return `uses unknown word "${unknown}": "${text}"`;
   }
 
-  if (d.type === "find_root" && normalizeAnswer(d.payload.hint).split(" ").includes(normalizeAnswer(d.payload.root)))
-    return "the hint gives the root away";
+  return leaksAnswer(d, tables);
+}
+
+/**
+ * Reason when a find_root hint or a transform instruction gives the answer away, else null. The
+ * give-aways are the root, a whole accepted answer, or any answer word that is a form in an
+ * approved table; all compared as whole words after `normalizeAnswer`.
+ */
+function leaksAnswer(d: TaggedExercise, tables: readonly VerbTableData[]): string | null {
+  const mentions = (text: string, phrase: string) =>
+    ` ${normalizeAnswer(text)} `.includes(` ${normalizeAnswer(phrase)} `);
+  if (d.type === "find_root" && mentions(d.payload.hint, d.payload.root)) return "the hint gives the root away";
   if (d.type === "transform") {
-    const instruction = ` ${normalizeAnswer(d.payload.instruction)} `;
-    if (d.payload.answers.some((a) => instruction.includes(` ${normalizeAnswer(a.join(" "))} `)))
+    const { instruction, answers } = d.payload;
+    const forms = answers.flat().filter((token) => analyse(token, tables).length > 0);
+    if ([...answers.map((a) => a.join(" ")), ...forms].some((answer) => mentions(instruction, answer)))
       return "the instruction gives the answer away";
   }
   return null;

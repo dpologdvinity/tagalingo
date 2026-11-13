@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
 import path from "node:path";
 import { loadCourseFile, lessonRequest } from "../course";
 import { lintExercise, parseExercise } from "../schema";
@@ -225,7 +226,6 @@ describe("grammar drills", () => {
       uses,
       verbs: [kainEntry],
       knownWords: ["isda", "kahapon"],
-      verbTables: [],
     },
   });
   const rand = () => 0.5;
@@ -300,15 +300,25 @@ describe("grammar drills", () => {
     expect(q.payload.hint).not.toContain(q.payload.root);
   });
 
-  it("builds no drills from a verb with no approved table, and says which words it could not vouch for", async () => {
+  it("skips drills that need forms no approved table covers yet, rejecting nothing", async () => {
+    // No table is approved: conjugate and paradigm are not built, and the choice and transform
+    // (whose words are the unapproved forms kumain, kakain...) wait for review instead of failing.
     const { exercises, rejected } = await stub.generate(lessonWith([umAspect]), []);
-    // No conjugate or paradigm is built, so nothing is rejected for them; the choice and the transform
-    // contain inflected forms nobody has approved, so the vocabulary check holds them back.
+    expect(rejected).toEqual([]);
     expect(exercises.filter((e) => e.patterns.length)).toEqual([]);
-    expect(rejected.map((r) => r.reason)).toEqual([
-      expect.stringMatching(/unknown word "kakain"/),
-      expect.stringMatching(/unknown word "kumain"/),
-    ]);
+  });
+
+  it("still rejects a drill with a word that is unknown for another reason when tables are missing", async () => {
+    const pattern: CoursePattern = {
+      ...umAspect,
+      drills: {
+        ...umAspect.drills,
+        choices: [["___ siya ng bulaklak.", "She ate a flower.", ["kumain", "kakain"], 0, [null, "Future."]]],
+      },
+    };
+    const { rejected } = await stub.generate(lessonWith([pattern]), []);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toMatch(/unknown word "bulaklak"/);
   });
 
   it("does not use tables of verbs the lesson has not been taught", async () => {
@@ -383,6 +393,17 @@ describe("grammar drills", () => {
       patterns: ["um-aspect"],
     };
     expect(checkDrill(transform, req, [kain])).toMatch(/instruction/);
+    // An inflected answer word from the approved table is a give-away too, even inside other words.
+    const forms: TaggedExercise = {
+      ...transform,
+      payload: { ...transform.payload, instruction: "Change to the future: Kakain!" },
+    };
+    expect(checkDrill(forms, req, [kain])).toMatch(/instruction/);
+    const fine: TaggedExercise = {
+      ...transform,
+      payload: { ...transform.payload, instruction: "Change to the future." },
+    };
+    expect(checkDrill(fine, req, [kain])).toBeNull();
   });
 
   it(`never adds more than ${MAX_GRAMMAR_DRILLS} grammar drills, sharing them between patterns`, async () => {
@@ -409,14 +430,33 @@ describe("grammar drills", () => {
     expect(tagged[0].patterns).toEqual(["um-aspect"]);
   });
 
-  it("leaves lessons without teaches/uses unchanged, whatever tables are passed", async () => {
+  it("tags no vocabulary drill, whatever tables are passed", async () => {
     for (const req of allRequests) {
-      const plain = await stub.generate(req);
+      const { exercises } = await stub.generate(req, [kain]);
       expect(
-        plain.exercises.every((e) => e.patterns.length === 0),
+        exercises.every((e) => e.patterns.length === 0),
         req.lesson.title,
       ).toBe(true);
-      expect(await stub.generate(req, [kain]), req.lesson.title).toEqual(plain);
+    }
+  });
+
+  it("leaves vocabulary-only lessons exactly as they were before grammar existed", async () => {
+    // Fixture: the stub's output for two shipped lessons at e2c77a7 (before grammar drills), without `patterns`.
+    const fixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "vocabulary-lessons.fixture.json"), "utf8"),
+    ) as Record<string, unknown[]>;
+    const requests = new Map<string, (typeof allRequests)[number]>(
+      course.units.flatMap((u) =>
+        u.skills.flatMap((s) => s.lessons.map((_, i) => [`${s.slug}#${i}`, lessonRequest(course, s, i)] as const)),
+      ),
+    );
+    expect(Object.keys(fixture)).toHaveLength(2);
+    for (const [key, expected] of Object.entries(fixture)) {
+      const { exercises } = await stub.generate(requests.get(key)!, [kain]);
+      expect(
+        exercises.map(({ type, payload }) => ({ type, payload })),
+        key,
+      ).toEqual(expected);
     }
   });
 

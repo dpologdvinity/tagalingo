@@ -11,7 +11,6 @@
 import fs from "node:fs";
 import YAML from "yaml";
 import { z } from "zod";
-import type { VerbTableData } from "../grammar/analyse";
 import type { VerbEntry } from "../grammar/types";
 import { patternSchema, verbEntrySchema, type CoursePattern } from "./grammar-schema";
 
@@ -222,8 +221,6 @@ export type GenerationRequest = {
     verbs: VerbEntry[];
     /** Lower-cased tokens of every lesson word taught up to and including this lesson (`knownWordsUpTo`). */
     knownWords: string[];
-    /** Approved verb tables; `lessonRequest` leaves this empty and callers with a database fill it. */
-    verbTables: VerbTableData[];
   };
 };
 
@@ -281,7 +278,6 @@ export function lessonRequest(course: CourseDefinition, skill: CourseSkill, less
       uses: patterns(lesson.uses),
       verbs: [...earlierSkills, skill].flatMap((s) => s.verbs),
       knownWords: [...knownWordsUpTo(course, skill.slug, lessonIndex)],
-      verbTables: [],
     },
   };
 }

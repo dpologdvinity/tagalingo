@@ -276,7 +276,6 @@ describe("lessonRequest", () => {
     expect(req.grammar.teaches.map((p) => p.id)).toEqual(["b"]);
     expect(req.grammar.uses.map((p) => p.id)).toEqual(["a"]);
     expect(req.grammar.verbs.map((v) => v.root).sort()).toEqual(["inom", "kain"]);
-    expect(req.grammar.verbTables).toEqual([]);
     // All of skill 1, lessons 1-2 of skill 2 (split and lower-cased), nothing from lesson 3.
     expect(new Set(req.grammar.knownWords)).toEqual(
       new Set(["salamat", "oo", "hindi", "ano", "ang", "pangalan", "mo", "kumusta", "po", "magandang", "umaga"]),
