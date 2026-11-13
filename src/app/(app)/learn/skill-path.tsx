@@ -149,6 +149,21 @@ function Stop({ skill, index, open, onToggle }: { skill: Skill; index: number; o
             {skill.emoji} {skill.title}
           </h3>
           <p className="text-ink-soft">{skill.description}</p>
+          {skill.patterns.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="text-sm font-bold text-ink-soft">Grammar</span>
+              <ul aria-label="Grammar patterns" className="flex flex-wrap gap-1.5">
+                {skill.patterns.map((title) => (
+                  <li
+                    key={title}
+                    className="rounded-full border-2 border-mango bg-mango-soft px-2.5 py-0.5 text-sm font-bold text-mango-deep"
+                  >
+                    {title}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <ol className="my-4 space-y-1.5">
             {skill.lessons.map((l, i) => (
               <li key={l.id} className="flex items-center gap-2">

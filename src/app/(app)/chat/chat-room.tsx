@@ -1,7 +1,8 @@
 "use client";
 /**
  * Chat with Tala: type in Tagalog, get a reply with audio and a translation you can reveal,
- * plus a gentle correction and a suggested next line.
+ * plus a gentle correction and a suggested next line. Verb forms in Tala's lines are tappable and
+ * open their verb table.
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { chatAction } from "@/app/actions/chat";
@@ -10,6 +11,7 @@ import type { ChatReply, ChatTurn } from "@/lib/chat/tutor";
 import { SpeakButton } from "@/components/speak-button";
 import { Tala } from "@/components/tala";
 import { Button } from "@/components/ui";
+import { TagalogText } from "@/components/verb-sheet";
 
 type Message = ChatTurn & { reply?: ChatReply; correction?: string };
 
@@ -30,7 +32,7 @@ function TalaBubble({ reply }: { reply: ChatReply }) {
       <Tala size={36} />
       <div className="max-w-[85%] rounded-3xl rounded-bl-md border-2 border-line bg-surface px-4 py-3">
         <p lang="tl" className="flex flex-wrap items-center gap-2 text-lg font-bold">
-          {reply.text} <SpeakButton text={reply.text} size="sm" />
+          <TagalogText text={reply.text} /> <SpeakButton text={reply.text} size="sm" />
         </p>
         {shown ? (
           <p className="text-ink-soft">{reply.translation}</p>

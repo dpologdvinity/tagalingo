@@ -4,24 +4,29 @@
  * drill of a new pattern) and `PatternChip` is the small "?" that reopens a card in a dialog without
  * touching grading. Cards are server-validated (`patternCardSchema`), so this only lays them out.
  */
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { LessonCard } from "@/server/grammar";
 import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui";
 
-/** The card: rule up front, then the table (root column picked out), examples and notes. */
+/**
+ * The card: rule up front, then the table (root column picked out), examples and notes. With
+ * `onDone` it ends in a button (the player's step); without it, it is the plain card (grammar page).
+ */
 export function GrammarCardView({
   card: { title, card },
   onDone,
   doneLabel = "Got it — let's try",
 }: {
   card: LessonCard;
-  onDone: () => void;
+  onDone?: () => void;
   doneLabel?: string;
 }) {
+  // Unique per card: the grammar page shows many of them at once.
+  const titleId = useId();
   return (
-    <article aria-labelledby="grammar-card-title" className="space-y-6">
-      <h2 id="grammar-card-title" className="font-display text-3xl text-ink sm:text-4xl">
+    <article aria-labelledby={titleId} className="space-y-6">
+      <h2 id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
         {title}
       </h2>
       <p className="rounded-3xl border-2 border-lagoon-bright/40 bg-lagoon-soft px-5 py-4 text-lg font-bold text-lagoon sm:text-xl">
@@ -90,9 +95,11 @@ export function GrammarCardView({
         </ul>
       )}
 
-      <Button onClick={onDone} className="w-full sm:w-auto sm:min-w-48" autoFocus>
-        {doneLabel}
-      </Button>
+      {onDone && (
+        <Button onClick={onDone} className="w-full sm:w-auto sm:min-w-48" autoFocus>
+          {doneLabel}
+        </Button>
+      )}
     </article>
   );
 }

@@ -113,3 +113,12 @@ export const ChatIcon = (p: IconProps) => (
     />
   </Svg>
 );
+
+export const BookIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path
+      fill="currentColor"
+      d="M5 3h12a2 2 0 0 1 2 2v13H7a1 1 0 0 0 0 2h12v1.5H7A2.5 2.5 0 0 1 4.5 19V5.5A2.5 2.5 0 0 1 5 3zm2 3v2h8V6H7z"
+    />
+  </Svg>
+);

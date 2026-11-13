@@ -34,10 +34,12 @@ the built-in content Studio before learners ever see it.
 - **Practice:** review any finished skill, or a whole unit. It works with 0 hearts, never costs
   hearts, and wins one back.
 - **Skill pages:** original grammar tips, flip-card flashcards with audio, and the skill's
-  conversations to read.
+  conversations to read, plus the skill's grammar patterns and verb tables.
+- **Grammar:** a page listing every grammar pattern with its card and strength, a "Practise this"
+  button per pattern and a shortcut to your weakest ones. Locked patterns show where they unlock.
 - **"Sounds of Tagalog"** pronunciation guide, linked from the first unit.
 - **Chat with Tala:** a beginner conversation partner, using Claude with a key or an offline
-  scripted tutor without one.
+  scripted tutor without one. Verb forms in Tala's lines are underlined; tap one for its verb table.
 
 See [PLAN.md](PLAN.md) for the data model, screens and what's deliberately left out, and
 [ARCHITECTURE.md](ARCHITECTURE.md) for how it fits together.

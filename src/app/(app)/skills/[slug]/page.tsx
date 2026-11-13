@@ -1,9 +1,12 @@
-/** Skill page: grammar tips, flashcards, dialogues to read, and start/practise buttons. */
+/** Skill page: tips, grammar patterns and verb tables, flashcards, dialogues to read, and start/practise buttons. */
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LockIcon } from "@/components/icons";
+import { PatternEntry } from "@/components/pattern-entry";
 import { SpeakButton } from "@/components/speak-button";
 import { ButtonLink, Card } from "@/components/ui";
+import { VerbTableView } from "@/components/verb-sheet";
 import { getSkillPage } from "@/server/course";
 import { requireUser } from "@/server/session";
 import { Flashcards } from "./flashcards";
@@ -58,6 +61,27 @@ export default async function SkillPage({ params }: PageProps<"/skills/[slug]">)
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {(skill.patterns.length > 0 || skill.verbTables.length > 0) && (
+        <Card className="space-y-5">
+          <h2 className="font-display text-2xl">Grammar</h2>
+          {skill.patterns.map((p) =>
+            p.card ? (
+              <PatternEntry key={p.slug} slug={p.slug} title={p.title} card={p.card} label={p.label} />
+            ) : (
+              <p key={p.slug} className="flex items-center gap-2 text-ink-soft">
+                <LockIcon size={18} />
+                <strong>{p.title}</strong> — finish the lesson to unlock it
+              </p>
+            ),
+          )}
+          {skill.verbTables.map((table) => (
+            <section key={`${table.root}/${table.affix}`} aria-label={`${table.root} verb table`}>
+              <VerbTableView table={table} />
+            </section>
+          ))}
         </Card>
       )}
 

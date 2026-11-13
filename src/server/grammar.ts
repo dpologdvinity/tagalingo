@@ -12,7 +12,8 @@ import { db } from "@/lib/db";
 import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
 import { patternCardSchema, type PatternCard } from "@/lib/content/grammar-schema";
 import { effectiveStrength, strengthLabel, type StrengthLabel } from "@/lib/game/strength";
-import { analyse, type Analysis } from "@/lib/grammar/analyse";
+import { analyse, type Analysis, type VerbTableData } from "@/lib/grammar/analyse";
+import { normalizeAnswer } from "@/lib/normalize";
 import type { Prisma } from "@/generated/prisma/client";
 
 /** A pattern card as the lesson player receives it; `isNew` means "introduce it in this lesson". */
@@ -29,8 +30,12 @@ export type GrammarOverviewItem = {
   /** Strength after time decay, 0-1. */
   effective: number;
   /** The skill whose lesson teaches the pattern. */
+  skillId: string;
   skillTitle: string;
 };
+
+/** `lookupWords` takes at most this many words per call. */
+export const LOOKUP_MAX_WORDS = 60;
 
 /** Patterns whose drills `weakestPatterns` considers need at least this many answers. */
 const WEAK_MIN_ATTEMPTS = 3;
@@ -85,7 +90,7 @@ export async function attemptGrammar(
 async function patternStates(userId: string, now: Date) {
   const patterns = await db.grammarPattern.findMany({
     orderBy: [{ order: "asc" }, { slug: "asc" }],
-    include: { progress: { where: { userId } }, lesson: { select: { skill: { select: { title: true } } } } },
+    include: { progress: { where: { userId } }, lesson: { select: { skill: { select: { id: true, title: true } } } } },
   });
   const finished = await db.lessonProgress.findMany({
     where: { userId, lessonId: { in: patterns.map((p) => p.lessonId) } },
@@ -113,6 +118,7 @@ export async function getGrammarOverview(userId: string, now: Date): Promise<Gra
     card: unlocked ? cardOf(pattern) : null,
     label: strengthLabel(effective, attempts),
     effective,
+    skillId: pattern.lesson.skill.id,
     skillTitle: pattern.lesson.skill.title,
   }));
 }
@@ -134,4 +140,35 @@ export async function lookupWord(word: string): Promise<Analysis[]> {
   const course = await db.course.findFirst({ select: { id: true } });
   if (!course) return [];
   return analyse(word, await loadApprovedVerbTables(db, course.id));
+}
+
+/** One verb table a word appears in, with the cells (readings) it matched there. */
+export type VerbLookup = { table: VerbTableData; analyses: Analysis[] };
+
+/**
+ * Look several words up in one go (a chat message's worth): the approved tables load once, and each
+ * distinct word, keyed by its `normalizeAnswer` form, maps to the tables it appears in. A word that
+ * matches several cells of one table (kumain is both infinitive and past) is one entry with several
+ * readings; words that match nothing are left out.
+ */
+export async function lookupWords(words: string[]): Promise<Record<string, VerbLookup[]>> {
+  if (words.length > LOOKUP_MAX_WORDS) throw new Error(`lookupWords takes at most ${LOOKUP_MAX_WORDS} words`);
+  const keys = [...new Set(words.map(normalizeAnswer).filter((key) => key !== ""))];
+  const course = keys.length ? await db.course.findFirst({ select: { id: true } }) : null;
+  if (!course) return {};
+  const tables = await loadApprovedVerbTables(db, course.id);
+
+  const found: Record<string, VerbLookup[]> = {};
+  for (const key of keys) {
+    const lookups = new Map<VerbTableData, VerbLookup>();
+    for (const analysis of analyse(key, tables)) {
+      const table = tables.find((t) => t.root === analysis.root && t.affix === analysis.affix);
+      if (!table) continue; // unreachable: analyse only returns cells of the tables it was given
+      const lookup = lookups.get(table) ?? { table, analyses: [] };
+      lookup.analyses.push(analysis);
+      lookups.set(table, lookup);
+    }
+    if (lookups.size) found[key] = [...lookups.values()];
+  }
+  return found;
 }

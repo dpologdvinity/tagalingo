@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import type { User } from "@/generated/prisma/client";
-import { getGrammarOverview, lookupWord, weakestPatterns } from "./grammar";
+import { getGrammarOverview, lookupWord, lookupWords, weakestPatterns } from "./grammar";
 import { LessonError, startPractice } from "./lessons";
 
 const SLUG = "t-grammar-";
@@ -181,5 +181,46 @@ describe("word lookup", () => {
     } finally {
       await db.verbTable.deleteMany({ where: { courseId, root: "sulat" } });
     }
+  });
+
+  it("looks several words up at once, grouped by table, keeping every reading of an ambiguous word", async () => {
+    const um = {
+      infinitive: ["kumain"],
+      completed: ["kumain"],
+      incompleted: ["kumakain"],
+      contemplated: ["kakain"],
+    };
+    const mag = {
+      infinitive: ["magkain"],
+      completed: ["nagkain"],
+      incompleted: ["nagkakain"],
+      contemplated: ["magkakain"],
+    };
+    await db.verbTable.createMany({
+      data: [
+        { courseId, root: "kain", affix: "um", en: "eat", forms: um, status: "APPROVED" },
+        { courseId, root: "kain", affix: "mag", en: "eat", forms: mag, status: "APPROVED" },
+        { courseId, root: "kain", affix: "ma", en: "draft", forms: um },
+      ],
+    });
+    try {
+      const found = await lookupWords(["Kumain", "nagkakain", "kakain", "wala", "kumain", ""]);
+      expect(Object.keys(found).sort()).toEqual(["kakain", "kumain", "nagkakain"]);
+      // kumain is both the infinitive and the past of kain/um: one table, two readings.
+      expect(found.kumain).toHaveLength(1);
+      expect(found.kumain[0].table).toMatchObject({ root: "kain", affix: "um", en: "eat", forms: um });
+      expect(found.kumain[0].analyses.map((a) => a.form)).toEqual(["infinitive", "completed"]);
+      expect(found.nagkakain[0].table.affix).toBe("mag");
+      expect(found.nagkakain[0].analyses).toEqual([
+        { root: "kain", affix: "mag", en: "eat", form: "incompleted", canonical: "nagkakain" },
+      ]);
+    } finally {
+      await db.verbTable.deleteMany({ where: { courseId, root: "kain" } });
+    }
+  });
+
+  it("returns nothing for no words, and refuses more than the cap", async () => {
+    expect(await lookupWords([])).toEqual({});
+    await expect(lookupWords(Array.from({ length: 61 }, (_, i) => `w${i}`))).rejects.toThrow(/at most 60/);
   });
 });

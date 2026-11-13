@@ -68,6 +68,12 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
 - **Chat:** `ChatTutor` (`src/lib/chat/tutor.ts`): `ClaudeTutor` (forced tool call → reply,
   translation, optional correction and hint) or the offline `StubTutor`. The conversation stays in
   the browser; the server action only sees the last 12 turns.
+- **Word lookup:** `lookupWords` (`src/server/grammar.ts`) analyses words against the approved verb
+  tables, grouped by table. `TagalogText` (`src/components/verb-sheet.tsx`) tokenises a line
+  (`src/lib/grammar/tokenize.ts`), makes one batch `lookupWordsAction` call and turns known verb
+  forms into buttons that open a `VerbSheet`; unknown words and failed lookups stay plain text.
+  It is used for Tala's chat lines only; the grammar page (`/grammar`) and skill pages show verb
+  tables directly (`VerbTableView`).
 - **Content:** `course.yaml` also holds emoji pictures (flashcard decoration only), hand-written dialogues (with wrong
   replies) and tips. They're synced into `Word.pic`, `Skill.dialogues` and `Skill.tips`.
 
