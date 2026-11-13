@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createGrammarFixture, FIXTURE, removeGrammarFixture } from "./grammar-fixture";
-import { answerCurrent, signUpFreshLearner } from "./helpers";
+import { answerCurrent, query, signUpFreshLearner } from "./helpers";
 
 /** A fresh learner on the fixture lesson (the first lesson of the course, so already unlocked). */
 async function openGrammarLesson(page: Page) {
@@ -64,5 +64,82 @@ test.describe("grammar player", () => {
     await expect(page.getByText("Correct answer:")).toBeVisible();
     await expect(page.getByRole("button", { name: "present cell" })).toHaveClass(/border-gumamela/);
     await expect(page.getByRole("button", { name: "future cell" })).not.toHaveClass(/border-gumamela/);
+  });
+});
+
+/** Mark the fixture lesson finished for the learner who signed up with `email`, which unlocks its pattern. */
+async function finishGrammarLesson(email: string) {
+  await query(`insert into "LessonProgress" ("userId", "lessonId") select id, $2 from "User" where email = $1`, [
+    email,
+    FIXTURE.lessonId,
+  ]);
+}
+
+test.describe("grammar browsing and word lookup", () => {
+  test.beforeAll(createGrammarFixture);
+  test.afterAll(removeGrammarFixture);
+
+  test("the grammar page lists unlocked patterns and practises one", async ({ page }) => {
+    const email = await signUpFreshLearner(page);
+    await page.goto("/grammar");
+    await expect(page.getByRole("heading", { name: "Grammar", level: 1 })).toBeVisible();
+
+    // Nothing is unlocked yet: the pattern is a title with its unlocking skill, and the weak button waits.
+    await expect(page.getByRole("heading", { name: FIXTURE.patternTitle })).toBeVisible();
+    await expect(page.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toBeVisible();
+    await expect(page.getByText("Put -um- after the first consonant")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Practise your weakest grammar" })).toBeDisabled();
+    await expect(page.getByText("Answer a few grammar drills first.")).toBeVisible();
+
+    await finishGrammarLesson(email);
+    await page.reload();
+    await expect(page.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toHaveCount(0);
+    await expect(page.getByText("Put -um- after the first consonant")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "kumakain" })).toBeVisible();
+    await page.getByRole("link", { name: "Practise this" }).click();
+    await page.waitForURL(`**/practice?pattern=${FIXTURE.patternSlug}`);
+    await expect(page.locator("[data-exercise-id]")).toBeVisible();
+  });
+
+  test("tapping a verb in Tala's reply shows its table; unknown words show nothing", async ({ page }) => {
+    await signUpFreshLearner(page);
+    await page.goto("/chat");
+    await page.getByRole("textbox", { name: "Message in Tagalog" }).fill("Ako si Marco.");
+    await page.getByRole("button", { name: "Send" }).click();
+
+    const reply = page.getByText("Ikinagagalak").locator("xpath=ancestor::p[1]");
+    await expect(reply).toBeVisible();
+    // The batch lookup marks only the verb form; names and other words stay plain.
+    await expect(reply.getByRole("button", { name: "Look up makilala" })).toBeVisible();
+    await expect(reply.getByRole("button", { name: /Look up (Marco|Taga-saan|ka)/ })).toHaveCount(0);
+
+    await reply.getByRole("button", { name: "Look up makilala" }).click();
+    const sheet = page.getByRole("dialog");
+    await expect(sheet.getByRole("heading", { name: "makilala" })).toBeVisible();
+    await expect(sheet.getByText(/infinitive of kilala/)).toBeVisible();
+    await expect(sheet.getByRole("rowheader", { name: /kilala/ })).toBeVisible();
+    for (const form of ["nakilala", "nakikilala", "makikilala", "kakikilala"])
+      await expect(sheet.getByRole("cell", { name: form })).toBeVisible();
+    await sheet.getByRole("button", { name: "Close" }).click();
+    await expect(sheet).toBeHidden();
+  });
+
+  test("the skill page shows the pattern and its verb table", async ({ page }) => {
+    const email = await signUpFreshLearner(page);
+    await finishGrammarLesson(email);
+    await page.goto(`/skills/${FIXTURE.skillSlug}`);
+
+    await expect(page.getByRole("heading", { name: "Grammar", level: 2 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: FIXTURE.patternTitle })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Practise this", exact: true })).toBeVisible();
+    // The verb table of the skill's exercises (kain), not every table in the course.
+    const table = page.getByRole("region", { name: "kain verb table" });
+    await expect(table.getByRole("cell", { name: "kumakain" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "kilala verb table" })).toHaveCount(0);
+
+    // The path placard lists the pattern on the skill's stop.
+    await page.goto("/learn");
+    await page.getByRole("button", { name: new RegExp(`^${FIXTURE.skillTitle}:`) }).click();
+    await expect(page.getByRole("list", { name: "Grammar patterns" }).getByText(FIXTURE.patternTitle)).toBeVisible();
   });
 });

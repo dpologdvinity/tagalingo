@@ -1,6 +1,7 @@
 /**
  * E2E fixture for the grammar player: one unit/skill/lesson at the start of the course, one grammar
- * pattern taught by that lesson, one approved verb table and four approved exercises (conjugate,
+ * pattern taught by that lesson, two approved verb tables (kain/um, which the exercises drill, and
+ * kilala/ma, so Tala's stub reply "makilala" is a known verb form) and four approved exercises (conjugate,
  * paradigm, find_root, transform) tagged with the pattern. Everything is inserted with SQL under
  * `e2e-grammar-` ids, because the dev database has no grammar content. `removeGrammarFixture`
  * deletes the unit (cascading to skill, lesson, exercises, pattern and tags) and the verb table, so
@@ -22,6 +23,9 @@ const P = "e2e-grammar-";
 export const FIXTURE = {
   lessonId: `${P}lesson`,
   patternTitle: "Um verbs (e2e)",
+  patternSlug: `${P}pattern`,
+  skillSlug: `${P}skill`,
+  skillTitle: "E2E verbs",
   /** Exercise ids in lesson order. */
   exercises: {
     conjugate: `${P}conjugate`,
@@ -51,6 +55,14 @@ const VERB_FORMS = {
   incompleted: ["kumakain"],
   contemplated: ["kakain"],
   recent: ["kakakain"],
+};
+
+const KILALA_FORMS = {
+  infinitive: ["makilala"],
+  completed: ["nakilala"],
+  incompleted: ["nakikilala"],
+  contemplated: ["makikilala"],
+  recent: ["kakikilala"],
 };
 
 const EXERCISES = [
@@ -137,6 +149,10 @@ export async function createGrammarFixture(): Promise<void> {
     `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kain', 'um', 'to eat', $3, 'APPROVED')`,
     [`${P}verb`, course.id, JSON.stringify(VERB_FORMS)],
   );
+  await query(
+    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kilala', 'ma', 'to know (someone)', $3, 'APPROVED')`,
+    [`${P}verb-kilala`, course.id, JSON.stringify(KILALA_FORMS)],
+  );
   for (const [i, [id, type, payload]] of EXERCISES.entries()) {
     await query(
       `insert into "Exercise" (id, "lessonId", "order", type, payload, status, source, "updatedAt") values ($1, $2, $3, $4::"ExerciseType", $5, 'APPROVED', 'HUMAN', now())`,
@@ -149,5 +165,5 @@ export async function createGrammarFixture(): Promise<void> {
 /** Delete the fixture rows (a no-op when they are not there). */
 export async function removeGrammarFixture(): Promise<void> {
   await query(`delete from "Unit" where id = $1`, [`${P}unit`]);
-  await query(`delete from "VerbTable" where id = $1`, [`${P}verb`]);
+  await query(`delete from "VerbTable" where id like $1`, [`${P}verb%`]);
 }
