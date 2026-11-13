@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadApprovedVerbs } from "./verbs-file";
+import { loadApprovedVerbs, readVerbFile } from "./verbs-file";
 
 let dir: string;
 beforeEach(() => {
@@ -33,7 +33,7 @@ const kain = {
     contemplated: ["kakain"],
     recent: ["kakakain"],
   },
-  irregular: false,
+  irregular: [],
   reviewNote: "",
 };
 
@@ -62,5 +62,18 @@ describe("loadApprovedVerbs", () => {
   it("throws a clear error for a file that fails validation", () => {
     writeVerbs(JSON.stringify({ verbs: [{ ...kain, affix: "zz" }] }));
     expect(() => loadApprovedVerbs(dir)).toThrow(/Invalid verbs\.json[\s\S]*verbs\.0\.affix/);
+  });
+
+  it("rejects an irregular marker that is not a form name", () => {
+    writeVerbs(JSON.stringify({ verbs: [{ ...kain, irregular: ["past"] }] }));
+    expect(() => loadApprovedVerbs(dir)).toThrow(/Invalid verbs\.json[\s\S]*verbs\.0\.irregular/);
+  });
+});
+
+describe("readVerbFile", () => {
+  it("returns whole entries including the review metadata", () => {
+    const entry = { ...kain, irregular: ["completed"], reviewNote: "checked" };
+    writeVerbs(JSON.stringify({ verbs: [entry] }));
+    expect(readVerbFile(dir)).toEqual([entry]);
   });
 });

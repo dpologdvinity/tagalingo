@@ -8,16 +8,18 @@
  * File layout:
  *   content/<lang>/course.yaml               structure + word lists (hand-written)
  *   content/<lang>/exercises/<skill>.json    APPROVED exercises (exported after review)
+ *   content/<lang>/grammar/verbs.json        APPROVED verb tables (see grammar-persist.ts)
  */
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { lessonRequest, type CourseDefinition } from "./course";
+import { syncGrammar } from "./grammar-persist";
 import type { ExerciseGenerator } from "./generators/types";
 import { EXERCISE_TYPES, parseExercise } from "./schema";
 
-/** Insert or update course → units → skills → lessons → words to match course.yaml. */
+/** Insert or update course → units → skills → lessons → words and grammar patterns to match course.yaml. */
 export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefinition) {
   const course = await prisma.course.upsert({
     where: { slug: def.course.slug },
@@ -74,6 +76,7 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
       }
     }
   }
+  await syncGrammar(prisma, def);
   return course;
 }
 
@@ -146,6 +149,8 @@ const exportFileSchema = z.object({
           payload: z.unknown(),
           source: z.enum(["HUMAN", "CLAUDE", "STUB"]),
           reviewNote: z.string().nullish(),
+          /** Slugs of the grammar patterns the exercise drills; absent in files exported before patterns existed. */
+          patterns: z.array(z.string()).default([]),
         }),
       ),
     }),
@@ -162,7 +167,13 @@ export async function exportApprovedExercises(prisma: PrismaClient, contentDir: 
     include: {
       lessons: {
         orderBy: { order: "asc" },
-        include: { exercises: { where: { status: "APPROVED" }, orderBy: [{ order: "asc" }, { createdAt: "asc" }] } },
+        include: {
+          exercises: {
+            where: { status: "APPROVED" },
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+            include: { patterns: { include: { pattern: { select: { slug: true } } } } },
+          },
+        },
       },
     },
   });
@@ -180,6 +191,7 @@ export async function exportApprovedExercises(prisma: PrismaClient, contentDir: 
           payload: e.payload,
           source: e.source,
           reviewNote: e.reviewNote,
+          patterns: e.patterns.map((p) => p.pattern.slug).sort(),
         })),
       })),
     };
@@ -200,13 +212,19 @@ export async function importApprovedExercises(prisma: PrismaClient, contentDir: 
     .filter((f) => f.endsWith(".json"))
     .sort()) {
     const file = exportFileSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")));
-    const skill = await prisma.skill.findUnique({ where: { slug: file.skill } });
+    const skill = await prisma.skill.findUnique({ where: { slug: file.skill }, include: { unit: true } });
     if (!skill) throw new Error(`${name}: skill "${file.skill}" is not in course.yaml`);
+    const patternIds = new Map(
+      (await prisma.grammarPattern.findMany({ where: { courseId: skill.unit.courseId } })).map((p) => [p.slug, p.id]),
+    );
     for (const l of file.lessons) {
       const lesson = await prisma.lesson.findUniqueOrThrow({
         where: { skillId_order: { skillId: skill.id, order: l.order } },
       });
-      await prisma.exercise.createMany({
+      // Check every tag first so a bad slug can't leave a half-imported lesson behind.
+      for (const slug of l.exercises.flatMap((e) => e.patterns))
+        if (!patternIds.has(slug)) throw new Error(`${name}: pattern "${slug}" is not in course.yaml`);
+      const created = await prisma.exercise.createManyAndReturn({
         data: l.exercises.map((e, i) => {
           const parsed = parseExercise(e.type, e.payload); // reject corrupt files loudly
           return {
@@ -221,7 +239,13 @@ export async function importApprovedExercises(prisma: PrismaClient, contentDir: 
             reviewedAt: new Date(),
           };
         }),
+        select: { id: true, order: true },
       });
+      // Re-create the pattern tags; `order` is the exercise's position in the file (1-based).
+      const tags = created.flatMap(({ id, order }) =>
+        l.exercises[order - 1].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
+      );
+      await prisma.exercisePattern.createMany({ data: tags });
     }
     imported.add(file.skill);
   }

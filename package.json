@@ -22,6 +22,7 @@
     "db:reset": "prisma migrate reset --force",
     "content:generate": "tsx scripts/generate-content.ts",
     "content:export": "tsx scripts/export-content.ts",
+    "grammar:draft": "tsx scripts/draft-verbs.ts",
     "postinstall": "prisma generate",
     "setup": "npm run db:up && prisma migrate deploy && prisma db seed",
     "test:integration": "vitest run --config vitest.integration.config.ts",

@@ -1,10 +1,11 @@
 /**
  * Seeds a fresh, realistic Tagalingo database. Safe to re-run: it wipes and rebuilds.
  *
- *  1. Course structure + word lists from content/tagalog/course.yaml.
- *  2. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED).
+ *  1. Course structure, word lists and grammar patterns from content/tagalog/course.yaml.
+ *  2. Reviewed verb tables from content/tagalog/grammar/verbs.json (skipped when the file is absent).
+ *  3. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED).
  *     Skills without a reviewed file get stub-generated DRAFTs, waiting in /studio.
- *  3. A demo account (also a reviewer) with a 7-day streak and partial progress, plus 24
+ *  4. A demo account (also a reviewer) with a 7-day streak and partial progress, plus 24
  *     other learners so the weekly leaderboard looks alive.
  *
  * Demo login: demo@tagalingo.app / tagalingo-demo
@@ -18,6 +19,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { loadCourseFile } from "../src/lib/content/course";
 import { StubGenerator } from "../src/lib/content/generators/stub";
+import { importVerbTables } from "../src/lib/content/grammar-persist";
 import { generateDraftsForLesson, importApprovedExercises, syncCourseStructure } from "../src/lib/content/persist";
 import { COURSE_FILE, CONTENT_DIR } from "../src/lib/content/paths";
 import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
@@ -238,6 +240,7 @@ async function main() {
   await syncCourseStructure(prisma, course);
 
   const demo = withDemo ? await seedDemoLearner(now, timezone) : null;
+  const verbTables = await importVerbTables(prisma, course, CONTENT_DIR, demo?.id);
   const reviewed = await importApprovedExercises(prisma, CONTENT_DIR, demo?.id);
 
   // Anything without reviewed content starts life as stub drafts in the Studio review queue.
@@ -254,7 +257,9 @@ async function main() {
   if (withDemo) await seedRivals(now);
 
   const approved = await prisma.exercise.count({ where: { status: "APPROVED" } });
+  const patterns = await prisma.grammarPattern.count();
   console.log(`Seeded: ${approved} approved exercises (${reviewed.size} skills), ${drafts} drafts awaiting review.`);
+  console.log(`Grammar: ${patterns} patterns, ${verbTables} approved verb tables.`);
   if (withDemo) console.log(`Demo login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
   else
     console.log(

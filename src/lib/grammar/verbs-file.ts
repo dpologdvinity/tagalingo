@@ -3,14 +3,16 @@
  *
  * Unlike the studio's database helpers this needs no connection, so tests, scripts and CI can
  * validate content against the reviewed tables. The file shape is
- * `{ verbs: { root, affix, en, forms, irregular, reviewNote }[] }`; only the fields `analyse`
- * needs (`VerbTableData`) are returned. A missing file means "no verbs approved yet".
+ * `{ verbs: { root, affix, en, forms, irregular, reviewNote }[] }` (`VerbFileEntry`); `irregular`
+ * lists the forms a reviewer deliberately changed from the engine's rule output. `loadApprovedVerbs`
+ * returns only the fields `analyse` needs (`VerbTableData`); `readVerbFile` returns whole entries
+ * for the database import. A missing file means "no verbs approved yet".
  */
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import type { VerbTableData } from "./analyse";
-import { AFFIXES, type Affix } from "./types";
+import { AFFIXES, VERB_FORMS, type Affix } from "./types";
 
 /** Default content directory (the shipped Tagalog course), resolved from the working directory. */
 const DEFAULT_CONTENT_DIR = path.join("content", "tagalog");
@@ -19,7 +21,8 @@ const spelling = z.string().trim().min(1);
 /** A cell lists the canonical spelling first, then accepted variants. */
 const cell = z.array(spelling).min(1);
 
-const verbFileSchema = z.object({
+/** Schema of `grammar/verbs.json`; the single definition shared by the reader and the DB export. */
+export const verbFileSchema = z.object({
   verbs: z.array(
     z.object({
       root: spelling,
@@ -33,20 +36,24 @@ const verbFileSchema = z.object({
         /** Only um-, mag- and ma- verbs have a recently-completed form. */
         recent: cell.optional(),
       }),
-      irregular: z.boolean(),
+      /** Forms that intentionally differ from the engine's rule output; any other difference is a mistake. */
+      irregular: z.array(z.enum(VERB_FORMS)),
       reviewNote: z.string(),
     }),
   ),
 });
 
+export type VerbFileEntry = z.infer<typeof verbFileSchema>["verbs"][number];
+
+/** Where the approved verb tables live inside a content directory. */
+export const verbsFilePath = (contentDir: string) => path.join(contentDir, "grammar", "verbs.json");
+
 /**
- * Reads `<contentDir>/grammar/verbs.json` and returns its tables, or `[]` when the file is absent.
+ * Reads `<contentDir>/grammar/verbs.json` and returns its entries, or `[]` when the file is absent.
  * Throws an error naming the file when it is not valid JSON or does not match the schema.
  */
-export function loadApprovedVerbs(
-  contentDir: string = path.resolve(process.cwd(), DEFAULT_CONTENT_DIR),
-): VerbTableData[] {
-  const file = path.join(contentDir, "grammar", "verbs.json");
+export function readVerbFile(contentDir: string): VerbFileEntry[] {
+  const file = verbsFilePath(contentDir);
   let raw: string;
   try {
     raw = fs.readFileSync(file, "utf8");
@@ -67,5 +74,12 @@ export function loadApprovedVerbs(
     const summary = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("\n  ");
     throw new Error(`Invalid verbs.json (${file}):\n  ${summary}`);
   }
-  return result.data.verbs.map(({ root, affix, en, forms }) => ({ root, affix, en, forms }));
+  return result.data.verbs;
+}
+
+/** The approved tables in `<contentDir>/grammar/verbs.json` as the analyser sees them, or `[]` when absent. */
+export function loadApprovedVerbs(
+  contentDir: string = path.resolve(process.cwd(), DEFAULT_CONTENT_DIR),
+): VerbTableData[] {
+  return readVerbFile(contentDir).map(({ root, affix, en, forms }) => ({ root, affix, en, forms }));
 }

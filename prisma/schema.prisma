@@ -35,21 +35,26 @@ model User {
   avatarHue       Int      @default(180)
   createdAt       DateTime @default(now())
 
-  attempts       LessonAttempt[]
-  progress       LessonProgress[]
-  xpEvents       XpEvent[]
-  dailyActivity  DailyActivity[]
-  reviewed       Exercise[]       @relation("ReviewedBy")
-  generationRuns GenerationRun[]
+  attempts        LessonAttempt[]
+  progress        LessonProgress[]
+  xpEvents        XpEvent[]
+  dailyActivity   DailyActivity[]
+  reviewed        Exercise[]        @relation("ReviewedBy")
+  generationRuns  GenerationRun[]
+  patternProgress PatternProgress[]
+  cardFlags       CardFlag[]
+  reviewedVerbs   VerbTable[]
 }
 
 model Course {
-  id       String @id @default(cuid())
-  slug     String @unique
-  title    String
-  fromLang String
-  toLang   String
-  units    Unit[]
+  id         String           @id @default(cuid())
+  slug       String           @unique
+  title      String
+  fromLang   String
+  toLang     String
+  units      Unit[]
+  patterns   GrammarPattern[]
+  verbTables VerbTable[]
 }
 
 model Unit {
@@ -98,6 +103,8 @@ model Lesson {
   exercises Exercise[]
   attempts  LessonAttempt[]
   progress  LessonProgress[]
+  /// Grammar patterns this lesson introduces (`teaches` in course.yaml).
+  patterns  GrammarPattern[]
 
   @@unique([skillId, order])
 }
@@ -133,6 +140,25 @@ enum ExerciseType {
   paradigm
 }
 
+/// Verb affixes the morphology engine conjugates; mirrors `Affix` in lib/grammar/types.ts.
+enum VerbAffix {
+  um
+  mag
+  ma
+  mang
+  maka
+  makapag
+  magpa
+  maki
+  in
+  i
+  an
+  ipag
+  ipang
+  pa_in
+  ma_obj
+}
+
 enum ExerciseStatus {
   DRAFT
   APPROVED
@@ -146,24 +172,25 @@ enum ExerciseSource {
 }
 
 model Exercise {
-  id              String          @id @default(cuid())
+  id              String            @id @default(cuid())
   lessonId        String
-  lesson          Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson          Lesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   order           Int
   type            ExerciseType
   /// Type-specific JSON, validated by `exercisePayloadSchema` in lib/content/schema.ts.
   payload         Json
-  status          ExerciseStatus  @default(DRAFT)
+  status          ExerciseStatus    @default(DRAFT)
   source          ExerciseSource
   generationRunId String?
-  generationRun   GenerationRun?  @relation(fields: [generationRunId], references: [id], onDelete: SetNull)
+  generationRun   GenerationRun?    @relation(fields: [generationRunId], references: [id], onDelete: SetNull)
   reviewedById    String?
-  reviewedBy      User?           @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy      User?             @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt      DateTime?
   reviewNote      String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   answers         AttemptAnswer[]
+  patterns        ExercisePattern[]
 
   @@index([lessonId, status])
 }
@@ -213,6 +240,11 @@ model LessonAttempt {
   completedAt DateTime?
   mistakes    Int             @default(0)
   xpAwarded   Int             @default(0)
+  /// Set for PRACTICE attempts scoped to one grammar pattern.
+  patternId   String?
+  pattern     GrammarPattern? @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  /// PRACTICE attempt built from the learner's weakest grammar patterns.
+  weakGrammar Boolean         @default(false)
   answers     AttemptAnswer[]
 
   @@index([userId, startedAt])
@@ -265,4 +297,90 @@ model DailyActivity {
   lessons Int    @default(0)
 
   @@id([userId, day])
+}
+
+/// One grammar pattern from course.yaml: the card learners read, taught by exactly one lesson.
+model GrammarPattern {
+  id       String @id @default(cuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  /// The pattern's yaml id.
+  slug     String
+  /// Position in the course's grammar list.
+  order    Int
+  title    String
+  /// Learner-facing card: { rule, table?, examples, notes, mistakes } (the yaml pattern minus id, requires, drills).
+  card     Json
+  /// The lesson that teaches it.
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  exercises ExercisePattern[]
+  progress  PatternProgress[]
+  flags     CardFlag[]
+  attempts  LessonAttempt[]
+
+  @@unique([courseId, slug])
+}
+
+/// Which grammar patterns an exercise drills (many-to-many).
+model ExercisePattern {
+  exerciseId String
+  exercise   Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  patternId  String
+  pattern    GrammarPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, patternId])
+  @@index([patternId])
+}
+
+/// A learner's mastery of one pattern; the live strength decays with time (see lib/game/pattern-strength).
+model PatternProgress {
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patternId       String
+  pattern         GrammarPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  seenAt          DateTime?
+  attempts        Int            @default(0)
+  correct         Int            @default(0)
+  /// Stored EWMA of answer correctness, before time decay.
+  strength        Float          @default(0)
+  lastPracticedAt DateTime?
+
+  @@id([userId, patternId])
+  @@index([patternId])
+}
+
+/// Aspect forms of one verb root with one affix. The engine drafts them; a reviewer approves them.
+model VerbTable {
+  id           String         @id @default(cuid())
+  courseId     String
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  root         String
+  affix        VerbAffix
+  en           String
+  /// FormTable: { infinitive, completed, incompleted, contemplated, recent? }, each an array whose
+  /// first entry is the canonical form and the rest accepted variants.
+  forms        Json
+  status       ExerciseStatus @default(DRAFT)
+  /// Forms a reviewer intentionally changed from the engine's rule output (e.g. "completed").
+  irregular    String[]       @default([])
+  reviewNote   String?
+  reviewedById String?
+  reviewedBy   User?          @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+
+  @@unique([courseId, root, affix])
+}
+
+/// A reviewer's "flag a problem" note on a grammar card.
+model CardFlag {
+  id         String         @id @default(cuid())
+  patternId  String
+  pattern    GrammarPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note       String
+  createdAt  DateTime       @default(now())
+  resolvedAt DateTime?
 }
