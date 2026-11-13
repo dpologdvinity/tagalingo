@@ -30,11 +30,11 @@ export function GrammarCardView({
 
       {card.table && (
         <div className="overflow-x-auto rounded-2xl border-2 border-line">
-          <table className="w-full border-collapse text-left text-lg">
+          <table className="w-full border-collapse text-left text-xs sm:text-lg">
             <thead>
-              <tr className="bg-seaglass text-sm text-ink-soft">
+              <tr className="bg-seaglass text-xs text-ink-soft sm:text-sm">
                 {card.table.head.map((h, i) => (
-                  <th key={i} scope="col" className="px-4 py-2 font-bold">
+                  <th key={i} scope="col" className="px-1.5 py-2 font-bold sm:px-4">
                     {h}
                   </th>
                 ))}
@@ -45,11 +45,16 @@ export function GrammarCardView({
                 <tr key={r} className="border-t-2 border-line">
                   {row.map((cell, c) =>
                     c === 0 ? (
-                      <th key={c} scope="row" lang="tl" className="bg-mango-soft px-4 py-2.5 font-bold text-ink">
+                      <th
+                        key={c}
+                        scope="row"
+                        lang="tl"
+                        className="bg-mango-soft px-1.5 py-2.5 font-bold text-ink [overflow-wrap:anywhere] sm:px-4"
+                      >
                         {cell}
                       </th>
                     ) : (
-                      <td key={c} lang="tl" className="px-4 py-2.5 font-bold">
+                      <td key={c} lang="tl" className="px-1.5 py-2.5 font-bold [overflow-wrap:anywhere] sm:px-4">
                         {cell}
                       </td>
                     ),
@@ -114,7 +119,7 @@ export function PatternChip({ card }: { card: LessonCard }) {
       <dialog
         ref={ref}
         onClose={() => setOpen(false)}
-        className="m-auto max-h-[90dvh] w-[min(92vw,40rem)] overflow-y-auto rounded-3xl border-2 border-line p-6 backdrop:bg-ink/40"
+        className="m-auto max-h-[90dvh] w-[min(98vw,40rem)] max-w-none overflow-y-auto rounded-3xl border-2 border-line p-2.5 backdrop:bg-ink/40 sm:p-6"
       >
         {open && <GrammarCardView card={card} onDone={() => ref.current?.close()} doneLabel="Back to the exercise" />}
       </dialog>
