@@ -1,0 +1,431 @@
+{
+  "verbs": [
+    {
+      "root": "aral",
+      "affix": "mag",
+      "en": "study",
+      "forms": {
+        "infinitive": [
+          "mag-aral"
+        ],
+        "completed": [
+          "nag-aral"
+        ],
+        "incompleted": [
+          "nag-aaral"
+        ],
+        "contemplated": [
+          "mag-aaral"
+        ],
+        "recent": [
+          "kaaaral",
+          "kakaaral"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "baba",
+      "affix": "um",
+      "en": "get off",
+      "forms": {
+        "infinitive": [
+          "bumaba"
+        ],
+        "completed": [
+          "bumaba"
+        ],
+        "incompleted": [
+          "bumababa"
+        ],
+        "contemplated": [
+          "bababa"
+        ],
+        "recent": [
+          "kabababa",
+          "kakababa"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "bili",
+      "affix": "um",
+      "en": "buy",
+      "forms": {
+        "infinitive": [
+          "bumili"
+        ],
+        "completed": [
+          "bumili"
+        ],
+        "incompleted": [
+          "bumibili"
+        ],
+        "contemplated": [
+          "bibili"
+        ],
+        "recent": [
+          "kabibili",
+          "kakabili"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "bukas",
+      "affix": "an",
+      "en": "open",
+      "forms": {
+        "infinitive": [
+          "buksan"
+        ],
+        "completed": [
+          "binuksan"
+        ],
+        "incompleted": [
+          "binubuksan"
+        ],
+        "contemplated": [
+          "bubuksan"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "inom",
+      "affix": "um",
+      "en": "drink",
+      "forms": {
+        "infinitive": [
+          "uminom"
+        ],
+        "completed": [
+          "uminom"
+        ],
+        "incompleted": [
+          "umiinom"
+        ],
+        "contemplated": [
+          "iinom"
+        ],
+        "recent": [
+          "kaiinom",
+          "kakainom"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "kain",
+      "affix": "um",
+      "en": "eat",
+      "forms": {
+        "infinitive": [
+          "kumain"
+        ],
+        "completed": [
+          "kumain"
+        ],
+        "incompleted": [
+          "kumakain"
+        ],
+        "contemplated": [
+          "kakain"
+        ],
+        "recent": [
+          "kakakain"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "kaliwa",
+      "affix": "um",
+      "en": "turn left",
+      "forms": {
+        "infinitive": [
+          "kumaliwa"
+        ],
+        "completed": [
+          "kumaliwa"
+        ],
+        "incompleted": [
+          "kumakaliwa"
+        ],
+        "contemplated": [
+          "kakaliwa"
+        ],
+        "recent": [
+          "kakakaliwa"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "kanan",
+      "affix": "um",
+      "en": "turn right",
+      "forms": {
+        "infinitive": [
+          "kumanan"
+        ],
+        "completed": [
+          "kumanan"
+        ],
+        "incompleted": [
+          "kumakanan"
+        ],
+        "contemplated": [
+          "kakanan"
+        ],
+        "recent": [
+          "kakakanan"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "kilala",
+      "affix": "ma_obj",
+      "en": "get to know",
+      "forms": {
+        "infinitive": [
+          "makilala"
+        ],
+        "completed": [
+          "nakilala"
+        ],
+        "incompleted": [
+          "nakikilala"
+        ],
+        "contemplated": [
+          "makikilala"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "laro",
+      "affix": "mag",
+      "en": "play",
+      "forms": {
+        "infinitive": [
+          "maglaro"
+        ],
+        "completed": [
+          "naglaro"
+        ],
+        "incompleted": [
+          "naglalaro"
+        ],
+        "contemplated": [
+          "maglalaro"
+        ],
+        "recent": [
+          "kalalaro",
+          "kakalaro"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "luto",
+      "affix": "mag",
+      "en": "cook",
+      "forms": {
+        "infinitive": [
+          "magluto"
+        ],
+        "completed": [
+          "nagluto"
+        ],
+        "incompleted": [
+          "nagluluto"
+        ],
+        "contemplated": [
+          "magluluto"
+        ],
+        "recent": [
+          "kaluluto",
+          "kakaluto"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "nood",
+      "affix": "mang",
+      "en": "watch",
+      "forms": {
+        "infinitive": [
+          "manood"
+        ],
+        "completed": [
+          "nanood"
+        ],
+        "incompleted": [
+          "nanonood"
+        ],
+        "contemplated": [
+          "manonood"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "patay",
+      "affix": "in",
+      "en": "turn off",
+      "forms": {
+        "infinitive": [
+          "patayin"
+        ],
+        "completed": [
+          "pinatay"
+        ],
+        "incompleted": [
+          "pinapatay"
+        ],
+        "contemplated": [
+          "papatayin"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "punta",
+      "affix": "um",
+      "en": "go",
+      "forms": {
+        "infinitive": [
+          "pumunta"
+        ],
+        "completed": [
+          "pumunta"
+        ],
+        "incompleted": [
+          "pumupunta"
+        ],
+        "contemplated": [
+          "pupunta"
+        ],
+        "recent": [
+          "kapupunta",
+          "kakapunta"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "sakay",
+      "affix": "um",
+      "en": "ride",
+      "forms": {
+        "infinitive": [
+          "sumakay"
+        ],
+        "completed": [
+          "sumakay"
+        ],
+        "incompleted": [
+          "sumasakay"
+        ],
+        "contemplated": [
+          "sasakay"
+        ],
+        "recent": [
+          "kasasakay",
+          "kakasakay"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "sara",
+      "affix": "i",
+      "en": "close",
+      "forms": {
+        "infinitive": [
+          "isara"
+        ],
+        "completed": [
+          "isinara"
+        ],
+        "incompleted": [
+          "isinasara"
+        ],
+        "contemplated": [
+          "isasara"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "tulog",
+      "affix": "ma",
+      "en": "sleep",
+      "forms": {
+        "infinitive": [
+          "matulog"
+        ],
+        "completed": [
+          "natulog"
+        ],
+        "incompleted": [
+          "natutulog"
+        ],
+        "contemplated": [
+          "matutulog"
+        ],
+        "recent": [
+          "katutulog",
+          "kakatulog"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    },
+    {
+      "root": "upo",
+      "affix": "um",
+      "en": "sit",
+      "forms": {
+        "infinitive": [
+          "umupo"
+        ],
+        "completed": [
+          "umupo"
+        ],
+        "incompleted": [
+          "umuupo"
+        ],
+        "contemplated": [
+          "uupo"
+        ],
+        "recent": [
+          "kauupo",
+          "kakaupo"
+        ]
+      },
+      "irregular": [],
+      "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+    }
+  ]
+}

@@ -19,6 +19,10 @@
 #   tips       short grammar/culture notes shown on the skill's tips page
 #   dialogues  short conversations; the last line (speaker B) is the reply learners pick,
 #              `wrong` lists clearly wrong replies to offer alongside it
+#   verbs      roots the morphology engine conjugates, each with the affixes the course uses.
+#              glottal: the root ends in an unwritten glottal stop (luto -> lutuin, not lutuhin);
+#              stem: the contracted stem before -in/-an (bukas -> buksan). Tables are drafted with
+#              `npm run grammar:draft`, reviewed in /studio/verbs and exported to grammar/verbs.json.
 #
 # Lessons list which words they introduce; later lessons may reuse earlier words for review.
 # All content here is original to Tagalingo.
@@ -381,6 +385,8 @@ units:
             wrong:
               - Malamig ang gatas.
               - May tinapay ba?
+        verbs:
+          - { root: kain, en: eat, affixes: [um] }
 
       - slug: pamilya
         title: Pamilya
@@ -940,6 +946,9 @@ units:
             wrong:
               - Guro ang trabaho ko.
               - Kilala ko si Ben.
+        # nakatira (lives) uses the stative naka- prefix, which the engine has no affix for: it stays a plain word.
+        verbs:
+          - { root: kilala, en: get to know, affixes: [ma_obj] }
 
       - slug: biyahe
         title: Biyahe
@@ -1045,6 +1054,12 @@ units:
             wrong:
               - Mabagal ang bus.
               - Bago ang kotse ko.
+        verbs:
+          - { root: baba, en: get off, affixes: [um], glottal: true }
+          - { root: sakay, en: ride, affixes: [um] }
+          - { root: punta, en: go, affixes: [um] }
+          - { root: kaliwa, en: turn left, affixes: [um], glottal: true }
+          - { root: kanan, en: turn right, affixes: [um] }
 
       - slug: mga-pandiwa
         title: Mga Pandiwa
@@ -1164,6 +1179,12 @@ units:
             wrong:
               - Magluluto ako bukas.
               - Natutulog si Lolo ngayon.
+        verbs:
+          - { root: inom, en: drink, affixes: [um] }
+          - { root: luto, en: cook, affixes: [mag], glottal: true }
+          - { root: aral, en: study, affixes: [mag] }
+          - { root: laro, en: play, affixes: [mag], glottal: true }
+          - { root: tulog, en: sleep, affixes: [ma] }
 
       - slug: sa-bahay
         title: Sa Bahay
@@ -1278,6 +1299,12 @@ units:
             wrong:
               - Malambot ang kama.
               - Nasa mesa ang susi.
+        verbs:
+          - { root: sara, en: close, affixes: [i] }
+          - { root: upo, en: sit, affixes: [um], glottal: true }
+          - { root: bukas, en: open, affixes: [an], stem: buks }
+          - { root: patay, en: turn off, affixes: [in] }
+          - { root: nood, en: watch, affixes: [mang] }
 
   - slug: sa-palengke
     title: Sa Palengke
@@ -1380,6 +1407,8 @@ units:
             wrong:
               - Gusto ko ng mangga.
               - Mahal ang karne.
+        verbs:
+          - { root: bili, en: buy, affixes: [um], stem: bilh }
 
       - slug: mga-kulay
         title: Mga Kulay
