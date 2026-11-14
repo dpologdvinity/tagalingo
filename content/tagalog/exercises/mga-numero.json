@@ -274,6 +274,75 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "A number needs a linker before a noun. Dalawa ends in a vowel, so add -ng.",
+              "Na follows words that end in a consonant. Dalawa ends in a vowel, so it takes -ng."
+            ],
+            "options": [
+              "Dalawang",
+              "Dalawa",
+              "Dalawa na"
+            ],
+            "sentence": "___ kape po.",
+            "answerIndex": 0,
+            "translation": "Two coffees, please."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "linkers"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ang marks who a sentence is about. Between a number and a noun you need a linker.",
+              "Ng is a separate marker for the thing acted on. After the m of anim, the linker is na.",
+              null
+            ],
+            "options": [
+              "ang",
+              "ng",
+              "na"
+            ],
+            "sentence": "Anim ___ estudyante.",
+            "answerIndex": 2,
+            "translation": "Six students."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "linkers"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Na follows words that end in a consonant. Sampu ends in a vowel, so it takes -ng.",
+              "A number needs a linker before a noun. Sampu ends in a vowel, so add -ng.",
+              null
+            ],
+            "options": [
+              "Sampu na",
+              "Sampu",
+              "Sampung"
+            ],
+            "sentence": "___ tinapay po.",
+            "answerIndex": 2,
+            "translation": "Ten pieces of bread, please."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "linkers"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [

@@ -83,6 +83,75 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Sa alone doesn't ask a question.",
+              null,
+              "Nasa says where something is (“is at”). To ask, use nasaan."
+            ],
+            "options": [
+              "Sa",
+              "Nasaan",
+              "Nasa"
+            ],
+            "sentence": "___ ang tindahan?",
+            "answerIndex": 1,
+            "translation": "Where is the store?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Nasaan asks “where?”. To say where she is, use nasa.",
+              "Ang marks who the sentence is about, not the place.",
+              null
+            ],
+            "options": [
+              "Nasaan",
+              "Ang",
+              "Nasa"
+            ],
+            "sentence": "___ paaralan si Ate.",
+            "answerIndex": 2,
+            "translation": "My older sister is at school."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Nasaan is a question word, not a place.",
+              "Nasa already includes sa, so don't add another.",
+              null
+            ],
+            "options": [
+              "nasaan",
+              "sa simbahan",
+              "simbahan"
+            ],
+            "sentence": "Nasa ___ si Lola.",
+            "answerIndex": 2,
+            "translation": "Grandma is at church."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
@@ -280,6 +349,29 @@
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
           "patterns": []
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Nasa says where something is (“is at”). To ask, use nasaan.",
+              "Sa alone doesn't ask a question.",
+              null
+            ],
+            "options": [
+              "Nasa",
+              "Sa",
+              "Nasaan"
+            ],
+            "sentence": "___ ang tindahan?",
+            "answerIndex": 2,
+            "translation": "Where is the store?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
         },
         {
           "type": "word_bank",

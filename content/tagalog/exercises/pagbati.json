@@ -277,6 +277,75 @@
           "patterns": []
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Opo is a polite “yes” on its own. After salamat, add po.",
+              "Oo means “yes”; it doesn't add respect.",
+              null
+            ],
+            "options": [
+              "opo",
+              "oo",
+              "po"
+            ],
+            "sentence": "Salamat ___.",
+            "answerIndex": 2,
+            "translation": "Thank you. (to your grandmother)"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "po-opo"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Oo is the casual yes, for friends and family your own age.",
+              "Po on its own doesn't mean yes, and it never starts a sentence."
+            ],
+            "options": [
+              "Opo",
+              "Oo",
+              "Po"
+            ],
+            "sentence": "___, mabuti po ako.",
+            "answerIndex": 0,
+            "translation": "Yes, I'm fine. (to an older neighbour)"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "po-opo"
+          ]
+        },
+        {
+          "type": "transform",
+          "payload": {
+            "mode": "build",
+            "source": "Oo, mabuti ako.",
+            "answers": [
+              [
+                "opo",
+                "mabuti",
+                "po",
+                "ako"
+              ]
+            ],
+            "sourceEn": "Yes, I'm fine.",
+            "distractors": [],
+            "instruction": "Say it politely to an elder"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "po-opo"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [

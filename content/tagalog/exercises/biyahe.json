@@ -81,6 +81,29 @@
           "patterns": []
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Oo means “yes”; it doesn't add respect.",
+              "Opo is a polite “yes” on its own. After salamat, add po."
+            ],
+            "options": [
+              "po",
+              "oo",
+              "opo"
+            ],
+            "sentence": "Salamat ___.",
+            "answerIndex": 0,
+            "translation": "Thank you. (to your grandmother)"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "po-opo"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [

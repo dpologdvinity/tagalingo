@@ -90,6 +90,107 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Kumakain means “is eating”. A quick invitation uses the bare root.",
+              null,
+              "Kakain means “will eat”. A quick invitation uses the bare root."
+            ],
+            "options": [
+              "Kumakain",
+              "Kain",
+              "Kakain"
+            ],
+            "sentence": "___ tayo!",
+            "answerIndex": 1,
+            "translation": "Let's eat!"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "roots"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Iinom is the future (will drink), but this happened kahapon, yesterday.",
+              "Umiinom is the present (is drinking), but “drank” is the past."
+            ],
+            "options": [
+              "Uminom",
+              "Iinom",
+              "Umiinom"
+            ],
+            "sentence": "___ siya ng tubig kahapon.",
+            "answerIndex": 0,
+            "translation": "He drank water yesterday."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "um-aspect"
+          ]
+        },
+        {
+          "type": "find_root",
+          "payload": {
+            "hint": "Take off the affix and any repeated first syllable; the plain verb is what is left.",
+            "mode": "choice",
+            "root": "inom",
+            "word": "umiinom",
+            "options": [
+              "sakay",
+              "inom",
+              "kaliwa"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "roots"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "incompleted",
+            "root": "kain",
+            "affix": "um",
+            "answers": [
+              "kumakain"
+            ],
+            "sentence": "___ si Ana ng tinapay ngayon.",
+            "translation": "Ana is eating bread now."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "roots"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "contemplated",
+            "root": "kain",
+            "affix": "um",
+            "answers": [
+              "kakain"
+            ],
+            "sentence": "___ kami ng isda bukas.",
+            "translation": "We'll eat fish tomorrow."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "um-aspect"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
@@ -297,6 +398,107 @@
             "sentence": "___ ako ng Tagalog.",
             "answerIndex": 1,
             "translation": "I am studying Tagalog."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "mag-aspect"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Magluluto is the future (will cook), but this was yesterday.",
+              "Magluto is the infinitive (to cook). A finished action switches to n-: nagluto.",
+              null
+            ],
+            "options": [
+              "Magluluto",
+              "Magluto",
+              "Nagluto"
+            ],
+            "sentence": "___ si Lola ng manok kahapon.",
+            "answerIndex": 2,
+            "translation": "Grandma cooked chicken yesterday."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "mag-aspect"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Natutulog comes from the root tulog (sleep).",
+              null,
+              "Naglalaro comes from the root laro (play)."
+            ],
+            "options": [
+              "Natutulog",
+              "Nagluluto",
+              "Naglalaro"
+            ],
+            "sentence": "___ si Tatay ngayon.",
+            "answerIndex": 1,
+            "translation": "Dad is cooking now. (root: luto)"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "find-the-root"
+          ]
+        },
+        {
+          "type": "find_root",
+          "payload": {
+            "hint": "Take off the affix and any repeated first syllable; the plain verb is what is left.",
+            "mode": "choice",
+            "root": "aral",
+            "word": "nag-aaral",
+            "options": [
+              "sakay",
+              "aral",
+              "kanan"
+            ]
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "find-the-root"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "contemplated",
+            "root": "laro",
+            "affix": "mag",
+            "answers": [
+              "maglalaro"
+            ],
+            "sentence": "___ kami bukas.",
+            "translation": "We'll play tomorrow."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "mag-aspect"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "incompleted",
+            "root": "tulog",
+            "affix": "ma",
+            "answers": [
+              "natutulog"
+            ],
+            "sentence": "___ si Lolo ngayon.",
+            "translation": "Grandpa is sleeping now."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",

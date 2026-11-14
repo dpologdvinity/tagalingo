@@ -83,6 +83,75 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ako means “I”, not “you”.",
+              null,
+              "Ikaw starts a sentence. After a word like kumusta, use ka."
+            ],
+            "options": [
+              "ako",
+              "ka",
+              "ikaw"
+            ],
+            "sentence": "Kumusta ___?",
+            "answerIndex": 1,
+            "translation": "How are you?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Sila means “they”, for more than one person.",
+              "Ako means “I”, not “she”."
+            ],
+            "options": [
+              "siya",
+              "sila",
+              "ako"
+            ],
+            "sentence": "Kaibigan ko ___.",
+            "answerIndex": 0,
+            "translation": "She's my friend."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ka means “you”, not “I”.",
+              null,
+              "Siya means “he” or “she”, not “I”."
+            ],
+            "options": [
+              "ka",
+              "ako",
+              "siya"
+            ],
+            "sentence": "Mabuti ___, salamat.",
+            "answerIndex": 1,
+            "translation": "I'm fine, thanks."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
@@ -264,6 +333,119 @@
             "sentence": "Mabait ang ___.",
             "answerIndex": 1,
             "translation": "The teacher is kind."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Sila means “they”, not “we”.",
+              "Kami leaves the listener out, but “you and I” includes them.",
+              null
+            ],
+            "options": [
+              "sila",
+              "kami",
+              "tayo"
+            ],
+            "sentence": "Estudyante ___, ikaw at ako.",
+            "answerIndex": 2,
+            "translation": "We're students, you and I."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ako means “I”, but the sentence is about siya.",
+              "Ang marks a noun. Between siya and guro you need ay.",
+              null
+            ],
+            "options": [
+              "ako",
+              "ang",
+              "ay"
+            ],
+            "sentence": "Siya ___ guro.",
+            "answerIndex": 2,
+            "translation": "She is a teacher."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Sila means “they”, not “we”.",
+              null,
+              "Tayo would include the listeners, but they are the students."
+            ],
+            "options": [
+              "sila",
+              "kami",
+              "tayo"
+            ],
+            "sentence": "Guro ___. Estudyante kayo.",
+            "answerIndex": 1,
+            "translation": "We're teachers. You're students."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Sila means “they”, but you are one of the women.",
+              "Tayo would include the man you're talking to."
+            ],
+            "options": [
+              "kami",
+              "sila",
+              "tayo"
+            ],
+            "sentence": "Babae ___, ako at siya.",
+            "answerIndex": 0,
+            "translation": "We're women, she and I. (said to a man)"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo"
+          ]
+        },
+        {
+          "type": "transform",
+          "payload": {
+            "mode": "build",
+            "source": "Ako ay guro.",
+            "answers": [
+              [
+                "guro",
+                "ako"
+              ]
+            ],
+            "sourceEn": "I'm a teacher.",
+            "distractors": [],
+            "instruction": "Put the description first and drop ay"
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",

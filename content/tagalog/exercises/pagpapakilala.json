@@ -85,6 +85,97 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Ang goes before a noun, so it can't end the sentence.",
+              "Po adds respect, but it doesn't make a question."
+            ],
+            "options": [
+              "ba",
+              "ang",
+              "po"
+            ],
+            "sentence": "Estudyante ka ___?",
+            "answerIndex": 0,
+            "translation": "Are you a student?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ba-questions"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Saan on its own asks where an action happens, not where someone is from.",
+              "Nasaan asks where someone is right now."
+            ],
+            "options": [
+              "Taga-saan",
+              "Saan",
+              "Nasaan"
+            ],
+            "sentence": "___ ka?",
+            "answerIndex": 0,
+            "translation": "Where are you from?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "taga"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Sa marks a place, but taga- already says where.",
+              "Ang goes before a noun. Here the person is a pronoun, ako.",
+              null
+            ],
+            "options": [
+              "sa",
+              "ang",
+              "ako"
+            ],
+            "sentence": "Taga-Maynila ___.",
+            "answerIndex": 2,
+            "translation": "I'm from Manila."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "taga"
+          ]
+        },
+        {
+          "type": "transform",
+          "payload": {
+            "mode": "build",
+            "source": "Guro siya.",
+            "answers": [
+              [
+                "guro",
+                "ba",
+                "siya"
+              ]
+            ],
+            "sourceEn": "He's a teacher.",
+            "distractors": [],
+            "instruction": "Make it a yes/no question"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ba-questions"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
@@ -270,6 +361,29 @@
             "sentence": "___ mo ba si Juan?",
             "answerIndex": 1,
             "translation": "Do you know Juan?"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ba-questions"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Po adds respect, but it doesn't make a question.",
+              null,
+              "Ang goes before a noun, so it can't end the sentence."
+            ],
+            "options": [
+              "po",
+              "ba",
+              "ang"
+            ],
+            "sentence": "Estudyante ka ___?",
+            "answerIndex": 1,
+            "translation": "Are you a student?"
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",

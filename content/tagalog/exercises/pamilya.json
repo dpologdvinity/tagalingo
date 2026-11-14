@@ -81,6 +81,75 @@
           "patterns": []
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              null,
+              "Ng marks the thing acted on, not who the sentence is about."
+            ],
+            "options": [
+              "ang",
+              "si",
+              "ng"
+            ],
+            "sentence": "Guro ___ Nanay.",
+            "answerIndex": 1,
+            "translation": "Mom is a teacher."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "si-names"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ng marks the bread here, not Ana.",
+              null,
+              "Ana is a name, so it takes si, not ang."
+            ],
+            "options": [
+              "ng",
+              "si",
+              "ang"
+            ],
+            "sentence": "Kumain ___ Ana ng tinapay.",
+            "answerIndex": 1,
+            "translation": "Ana ate bread."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "si-names"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Si goes before names. Babae is an ordinary noun, so it takes ang.",
+              "Ng marks the thing acted on, not who the sentence is about.",
+              null
+            ],
+            "options": [
+              "si",
+              "ng",
+              "ang"
+            ],
+            "sentence": "Guro ___ babae.",
+            "answerIndex": 2,
+            "translation": "The woman is a teacher."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "si-names"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
@@ -239,6 +308,29 @@
             "sentence": "Mahal ko si ___.",
             "answerIndex": 2,
             "translation": "I love Grandma."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "si-names"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              "Ng marks the thing acted on, not who the sentence is about.",
+              null
+            ],
+            "options": [
+              "ang",
+              "ng",
+              "si"
+            ],
+            "sentence": "Guro ___ Nanay.",
+            "answerIndex": 2,
+            "translation": "Mom is a teacher."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",

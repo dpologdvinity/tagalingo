@@ -81,6 +81,29 @@
           "patterns": []
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ang marks a noun. Between siya and guro you need ay.",
+              "Ako means “I”, but the sentence is about siya.",
+              null
+            ],
+            "options": [
+              "ang",
+              "ako",
+              "ay"
+            ],
+            "sentence": "Siya ___ guro.",
+            "answerIndex": 2,
+            "translation": "She is a teacher."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [

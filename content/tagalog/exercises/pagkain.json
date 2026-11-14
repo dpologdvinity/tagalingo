@@ -83,6 +83,75 @@
           ]
         },
         {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ang marks who the sentence is about, and that is ako.",
+              "Sa marks a place, not the food you eat.",
+              null
+            ],
+            "options": [
+              "ang",
+              "sa",
+              "ng"
+            ],
+            "sentence": "Kumain ako ___ isda.",
+            "answerIndex": 2,
+            "translation": "I ate fish."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              null,
+              "Si goes before people's names, not food.",
+              "Ang marks who the sentence is about, and that is siya."
+            ],
+            "options": [
+              "ng",
+              "si",
+              "ang"
+            ],
+            "sentence": "Kumakain siya ___ kanin.",
+            "answerIndex": 0,
+            "translation": "She's eating rice."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Sa marks a place, not the food you eat.",
+              "Ang marks who the sentence is about, and that is kami.",
+              null
+            ],
+            "options": [
+              "sa",
+              "ang",
+              "ng"
+            ],
+            "sentence": "Kakain kami ___ manok.",
+            "answerIndex": 2,
+            "translation": "We'll eat chicken."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
+        },
+        {
           "type": "word_bank",
           "payload": {
             "answer": [
