@@ -193,9 +193,17 @@ describe("gradeAnswer: grammar drills", () => {
     expect(result.explanation).toBe("That's the present form (kumakain). The future is kakain.");
   });
 
-  it("wrong-form explanation picks the first non-target form when several match", () => {
+  it("wrong-form explanation names every form the word fills, the aspects before the infinitive", () => {
+    // -um- verbs spell the past and the infinitive alike, so kumain is both.
     const result = gradeAnswer(conj(["kakain"]), { text: "kumain" }, { verbTables: [kain] });
-    expect(result.explanation).toBe("That's the infinitive / command form (kumain). The future is kakain.");
+    expect(result.explanation).toBe("That's the past and infinitive / command form (kumain). The future is kakain.");
+  });
+
+  it("a present drill answered with kumain names both forms kumain fills", () => {
+    const present = conj(["kumakain"], { form: "incompleted" });
+    expect(gradeAnswer(present, { text: "kumain" }, { verbTables: [kain] }).explanation).toBe(
+      "That's the past and infinitive / command form (kumain). The present is kumakain.",
+    );
   });
 
   it("wrong-form explanation ignores other verbs and affixes", () => {

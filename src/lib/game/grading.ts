@@ -58,6 +58,9 @@ export function similarity(a: string, b: string): number {
   return longest === 0 ? 1 : 1 - levenshtein(x, y) / longest;
 }
 
+/** How a wrong verb form is named: the aspects in table order, then the infinitive / command. */
+const WRONG_FORM_ORDER: readonly VerbForm[] = [...VERB_FORMS.filter((f) => f !== "infinitive"), "infinitive"];
+
 /** Speech recognition mishears small things; this much similarity counts as saying it right. */
 export const SPEECH_MATCH_THRESHOLD = 0.75;
 
@@ -97,9 +100,13 @@ function explain(ex: ParsedExercise, answer: unknown, ctx: GradeContext): string
     const wrong = analyse(text, ctx.verbTables ?? []).filter(
       (a) => a.root === root && a.affix === affix && a.form !== target,
     );
-    const hit = VERB_FORMS.map((f) => wrong.find((a) => a.form === f)).find((a) => a !== undefined);
-    if (hit) {
-      return `That's the ${FORM_LABEL[hit.form].en} form (${hit.canonical}). The ${FORM_LABEL[target].en} is ${answers[0]}.`;
+    // A spelling can fill several cells (-um- kumain is the past and the infinitive), so name them all,
+    // the aspects first: "That's the past and infinitive / command form (kumain)."
+    const forms = WRONG_FORM_ORDER.filter((f) => wrong.some((a) => a.form === f));
+    if (forms.length) {
+      const labels = forms.map((f) => FORM_LABEL[f].en).join(" and ");
+      const canonical = wrong.find((a) => a.form === forms[0])!.canonical;
+      return `That's the ${labels} form (${canonical}). The ${FORM_LABEL[target].en} is ${answers[0]}.`;
     }
   }
   if (text !== null && normalizeAnswer(text) !== "") {
