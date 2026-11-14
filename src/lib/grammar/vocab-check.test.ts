@@ -97,6 +97,10 @@ describe("unknownWords", () => {
   it("exposes the function-word list", () => {
     for (const w of ["ang", "ng", "sa", "ako", "kita", "taga"]) expect(FUNCTION_WORDS.has(w)).toBe(true);
   });
+
+  it("knows the locative nasa, so cards can say where things are", () => {
+    expect(unknownWords("Nasa bahay si Nanay.", new Set(["bahay"]), [])).toEqual([]);
+  });
 });
 
 describe("grammarVocabIssues", () => {

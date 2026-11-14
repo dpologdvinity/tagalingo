@@ -19,7 +19,8 @@
             "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -34,7 +35,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -59,7 +61,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -74,7 +77,10 @@
             "translation": "She is a teacher."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
         },
         {
           "type": "word_bank",
@@ -93,7 +99,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
         },
         {
           "type": "type_translation",
@@ -105,7 +114,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -126,7 +136,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -145,7 +156,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
         },
         {
           "type": "speak",
@@ -154,7 +168,8 @@
             "translation": "We are students."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -166,7 +181,10 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ako-ka-siya"
+          ]
         }
       ]
     },
@@ -188,7 +206,10 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo"
+          ]
         },
         {
           "type": "listen_select",
@@ -203,7 +224,8 @@
             "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -228,7 +250,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -243,7 +266,10 @@
             "translation": "The teacher is kind."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
         },
         {
           "type": "word_bank",
@@ -261,7 +287,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
         },
         {
           "type": "type_translation",
@@ -275,7 +304,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -296,7 +326,10 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
         },
         {
           "type": "word_bank",
@@ -321,7 +354,11 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo",
+            "predicate-first"
+          ]
         },
         {
           "type": "speak",
@@ -330,7 +367,10 @@
             "translation": "We are friends."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "kami-tayo"
+          ]
         },
         {
           "type": "select_translation",
@@ -345,7 +385,10 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
         },
         {
           "type": "fill_blank",
@@ -360,7 +403,10 @@
             "translation": "The woman is a teacher."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "predicate-first"
+          ]
         },
         {
           "type": "type_translation",
@@ -372,7 +418,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     }

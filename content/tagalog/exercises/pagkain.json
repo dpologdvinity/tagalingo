@@ -19,7 +19,8 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -34,7 +35,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -59,7 +61,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -74,7 +77,10 @@
             "translation": "She is eating chicken."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
         },
         {
           "type": "word_bank",
@@ -94,7 +100,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
         },
         {
           "type": "type_translation",
@@ -106,7 +115,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -127,7 +137,8 @@
             "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -146,7 +157,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
         },
         {
           "type": "speak",
@@ -155,7 +169,10 @@
             "translation": "I want water."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "ng-object"
+          ]
         },
         {
           "type": "type_translation",
@@ -167,7 +184,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     },
@@ -189,7 +207,8 @@
             "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -204,7 +223,8 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -229,7 +249,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -244,7 +265,8 @@
             "translation": "The adobo is delicious."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -263,7 +285,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -275,7 +298,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -296,7 +320,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -314,7 +339,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "speak",
@@ -323,7 +349,8 @@
             "translation": "I love fruit."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -335,7 +362,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     }

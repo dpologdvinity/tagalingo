@@ -48,6 +48,7 @@ units:
             words: [kumusta, mabuti, salamat, oo, hindi]
           - title: Morning to night
             words: [magandang umaga, magandang gabi, paalam, po, ingat]
+            teaches: [po-opo]
         words:
           - {
               tl: kumusta,
@@ -160,8 +161,10 @@ units:
         lessons:
           - title: Me, you, them
             words: [ako, ikaw, siya, sila, kaibigan]
+            teaches: [ako-ka-siya]
           - title: Who's who
             words: [kami, tayo, guro, estudyante, lalaki, babae]
+            teaches: [kami-tayo, predicate-first]
         words:
           - {
               tl: ako,
@@ -282,6 +285,7 @@ units:
         lessons:
           - title: Rice and water
             words: [kanin, tubig, isda, manok, kape]
+            teaches: [ng-object]
           - title: Let's eat!
             words: [tinapay, gatas, masarap, gutom, kain, prutas]
         words:
@@ -395,8 +399,10 @@ units:
         lessons:
           - title: Mom and Dad
             words: [nanay, tatay, kapatid, bahay, pamilya]
+            teaches: [si-names]
           - title: Ate, Kuya, Lola
             words: [ate, kuya, lola, lolo, anak]
+            uses: [si-names]
         words:
           - {
               tl: nanay,
@@ -518,6 +524,7 @@ units:
             words: [isa, dalawa, tatlo, apat, lima]
           - title: Six to ten
             words: [anim, pito, walo, siyam, sampu]
+            teaches: [linkers]
         words:
           - {
               tl: isa,
@@ -598,8 +605,10 @@ units:
         lessons:
           - title: Where is it?
             words: [nasaan, paaralan, palengke, tindahan, simbahan]
+            teaches: [nasa-nasaan-saan]
           - title: Near and far
             words: [ospital, opisina, dagat, bundok, malapit, malayo]
+            uses: [nasa-nasaan-saan]
         words:
           - {
               tl: nasaan,
@@ -710,8 +719,10 @@ units:
         lessons:
           - title: Today and tomorrow
             words: [ngayon, bukas, kahapon, umaga, gabi]
+            uses: [predicate-first]
           - title: Days of the week
             words: [hapon, araw, oras, Lunes, Biyernes, Linggo]
+            uses: [predicate-first]
         words:
           - {
               tl: ngayon,
@@ -834,8 +845,11 @@ units:
         lessons:
           - title: What's your name?
             words: [pangalan, taga, saan, ba, taon]
+            teaches: [ba-questions, taga]
+            uses: [nasa-nasaan-saan]
           - title: Nice to meet you
             words: [trabaho, ikinagagalak kitang makilala, kilala, Pilipino, Amerikano, nakatira]
+            uses: [ba-questions, nasa-nasaan-saan]
         words:
           - {
               tl: pangalan,
@@ -957,6 +971,7 @@ units:
         lessons:
           - title: Para po!
             words: [jeep, para, kanto, bumaba, trapik]
+            uses: [po-opo, nasa-nasaan-saan]
           - title: Left, right, straight
             words: [kotse, bus, eroplano, kaliwa, kanan, diretso]
         words:
@@ -1068,8 +1083,10 @@ units:
         lessons:
           - title: Ate, eating, will eat
             words: [kumain, kumakain, kakain, uminom, iinom]
+            teaches: [roots, um-aspect]
           - title: Cooked, studying, played
             words: [nagluto, magluluto, nag-aaral, naglaro, natulog]
+            teaches: [mag-aspect, find-the-root]
         words:
           - {
               tl: kumain,
@@ -1193,8 +1210,10 @@ units:
         lessons:
           - title: Room by room
             words: [kusina, kuwarto, banyo, sala, pinto]
+            uses: [nasa-nasaan-saan]
           - title: Open the window
             words: [mesa, upuan, kama, bintana, ilaw]
+            teaches: [commands-mo-paki]
         words:
           - {
               tl: kusina,
@@ -1469,3 +1488,684 @@ units:
             wrong:
               - Asul ang langit.
               - Gutom na ako.
+
+# Grammar patterns, in course order. Each is taught by exactly one lesson (`teaches`) and may be
+# practised again by later lessons (`uses`). Fields:
+#   rule, table, examples ([tl, en], 2-3), notes, mistakes ([wrong, why])   the card learners read
+#   requires   ids of earlier patterns the card builds on
+#   drills     ingredients for the stub generator's grammar drills:
+#     frames      [sentence with ___, English, affix, form, root]   conjugation drills
+#     transforms  [source, English, instruction, [accepted answers]]
+#     choices     [sentence with ___, English, [options], answer index, [why per option, null at the answer]]
+# Every Tagalog word in examples, table cells and drills must be known by the teaching lesson
+# (course words so far, the function-word list, or a form of an approved verb table).
+grammar:
+  - id: po-opo
+    title: "Po and opo: being polite"
+    rule: "Po shows respect when you talk to someone older or to a stranger. It goes after the first word or phrase, never at the start. Opo is the respectful “yes”; plain oo is for friends and family your own age."
+    table:
+      head: [casual, polite]
+      rows:
+        - [oo, opo]
+        - [hindi, hindi po]
+        - [salamat, salamat po]
+        - [magandang umaga, magandang umaga po]
+    examples:
+      - [Magandang umaga po., Good morning. (to an elder)]
+      - ["Opo, salamat po.", "Yes, thank you. (to an elder)"]
+      - [Mabuti naman po., "I'm fine. (to an elder)"]
+    notes:
+      - "With elders, “you” is kayo rather than ka: Kumusta po kayo?"
+    mistakes:
+      - [Po salamat., "Po never starts a sentence. It follows the first word: Salamat po."]
+      - [Po magandang umaga., "Po comes after the greeting: Magandang umaga po."]
+    drills:
+      choices:
+        - - Salamat ___.
+          - Thank you. (to your grandmother)
+          - [po, opo, oo]
+          - 0
+          - [
+              null,
+              "Opo is a polite “yes” on its own. After salamat, add po.",
+              "Oo means “yes”; it doesn't add respect.",
+            ]
+        - - ___, mabuti po ako.
+          - Yes, I'm fine. (to an older neighbour)
+          - [Opo, Oo, Po]
+          - 0
+          - [
+              null,
+              "Oo is the casual yes, for friends and family your own age.",
+              "Po on its own doesn't mean yes, and it never starts a sentence.",
+            ]
+        - - Magandang gabi ___, Lola.
+          - Good evening, Grandma.
+          - [po, oo, opo]
+          - 0
+          - [
+              null,
+              "Oo means “yes”; it doesn't make a greeting polite.",
+              "Opo answers a question (“yes”). Inside a greeting, use po.",
+            ]
+      transforms:
+        - ["Oo, mabuti ako.", "Yes, I'm fine.", Say it politely to an elder, ["Opo, mabuti po ako."]]
+        - [Magandang umaga., Good morning., Say it politely to an elder, [Magandang umaga po.]]
+
+  - id: ako-ka-siya
+    title: "Ako, ka, siya: I, you, he or she"
+    rule: "Ako means “I”, siya means “he” or “she” and sila means “they”. “You” has two forms: ikaw starts a sentence, and ka follows another word."
+    table:
+      head: [I, you, he / she, they]
+      rows:
+        - [ako, ikaw / ka, siya, sila]
+    examples:
+      - [Kumusta ka?, How are you?]
+      - ["Mabuti ako, salamat.", "I'm fine, thanks."]
+      - [Kaibigan ko siya., "She's my friend."]
+    notes:
+      - Siya means both “he” and “she”. Tagalog pronouns don't mark gender, so context tells you who is meant.
+      - "Ko after a noun means “my”: kaibigan ko, my friend."
+    mistakes:
+      - [Kumusta ikaw?, "After another word, “you” is ka: Kumusta ka?"]
+    drills:
+      choices:
+        - - Kumusta ___?
+          - How are you?
+          - [ka, ikaw, ako]
+          - 0
+          - [null, "Ikaw starts a sentence. After a word like kumusta, use ka.", "Ako means “I”, not “you”."]
+        - - Kaibigan ko ___.
+          - She's my friend.
+          - [siya, sila, ako]
+          - 0
+          - [null, "Sila means “they”, for more than one person.", "Ako means “I”, not “she”."]
+        - - Mabuti ___, salamat.
+          - I'm fine, thanks.
+          - [ako, siya, ka]
+          - 0
+          - [null, "Siya means “he” or “she”, not “I”.", "Ka means “you”, not “I”."]
+
+  - id: kami-tayo
+    title: "Kami and tayo: two ways to say “we”"
+    rule: "Tagalog has two words for “we”. Kami leaves out the person you're talking to; tayo includes them."
+    table:
+      head: [we (not you), we (you too)]
+      rows:
+        - [kami, tayo]
+    examples:
+      - [Guro kami., "We're teachers. (you aren't)"]
+      - [Estudyante tayo., "We're students. (you are too)"]
+    notes:
+      - "Tayo also makes invitations. You'll soon meet Kain tayo! (Let's eat!)"
+      - Kayo is “you” for more than one person, and the polite “you” for one elder.
+    mistakes:
+      - ["Estudyante kami, ikaw at ako.", "“You and I” includes the listener, so use tayo: Estudyante tayo."]
+    requires: [ako-ka-siya]
+    drills:
+      choices:
+        - - Estudyante ___, ikaw at ako.
+          - We're students, you and I.
+          - [tayo, kami, sila]
+          - 0
+          - [null, "Kami leaves the listener out, but “you and I” includes them.", "Sila means “they”, not “we”."]
+        - - Guro ___. Estudyante kayo.
+          - We're teachers. You're students.
+          - [kami, tayo, sila]
+          - 0
+          - [null, "Tayo would include the listeners, but they are the students.", "Sila means “they”, not “we”."]
+        - - Babae ___, ako at siya.
+          - "We're women, she and I. (said to a man)"
+          - [kami, tayo, sila]
+          - 0
+          - [null, "Tayo would include the man you're talking to.", "Sila means “they”, but you are one of the women."]
+
+  - id: predicate-first
+    title: "Description first: Guro ako"
+    rule: "A Tagalog sentence usually starts with what you say about someone, then names who it's about: Guro ako is literally “teacher I”. You can also put the person first and join the two with ay: Ako ay guro. Both mean “I'm a teacher”; the first is the everyday way."
+    table:
+      head: [description first, with ay]
+      rows:
+        - [Guro ako., Ako ay guro.]
+        - [Estudyante siya., Siya ay estudyante.]
+    examples:
+      - [Guro ako., "I'm a teacher."]
+      - [Estudyante ang babae., The woman is a student.]
+      - [Siya ay guro., "He's a teacher."]
+    notes:
+      - "Tagalog has no word for “am”, “is” or “are”."
+      - "Put ang before a noun such as babae: Guro ang lalaki (The man is a teacher)."
+    mistakes:
+      - [Ako guro., "Without ay, the description comes first: Guro ako. Or keep ako first and add ay: Ako ay guro."]
+      - [Guro ay ako., "Ay follows the person, not the description: Ako ay guro."]
+    requires: [ako-ka-siya]
+    drills:
+      choices:
+        - - Siya ___ guro.
+          - She is a teacher.
+          - [ay, ang, ako]
+          - 0
+          - [
+              null,
+              "Ang marks a noun. Between siya and guro you need ay.",
+              "Ako means “I”, but the sentence is about siya.",
+            ]
+        - - Guro ___ lalaki.
+          - The man is a teacher.
+          - [ang, ay, ako]
+          - 0
+          - [
+              null,
+              "With the description first, the noun after it takes ang, not ay.",
+              "Ako means “I”, but the sentence is about the man.",
+            ]
+        - - Babae ___.
+          - She's a woman.
+          - [siya, ay, ang]
+          - 0
+          - [
+              null,
+              "Ay only joins a person who comes first: Siya ay babae.",
+              "Ang goes before a noun, so it can't end the sentence.",
+            ]
+      transforms:
+        - [Ako ay guro., "I'm a teacher.", Put the description first and drop ay, [Guro ako.]]
+        - [Estudyante siya., "She's a student.", Put siya first and join with ay, [Siya ay estudyante.]]
+
+  - id: ng-object
+    title: "Ng: the thing you eat"
+    rule: "Ng (said “nang”) goes before the thing someone eats, drinks or wants: Kumain ako ng kanin (I ate rice). Ang already marks who the sentence is about, so the food takes ng."
+    examples:
+      - [Kumain ako ng kanin., I ate rice.]
+      - [Kumakain siya ng isda., "He's eating fish."]
+      - [Kakain kami ng manok., "We'll eat chicken."]
+    notes:
+      - Ng is written with two letters but said “nang”.
+      - "You'll hear it with gusto (want) too: Gusto ko ng tubig (I want water)."
+      - Ng usually means “some” or “a”, not “the”.
+    mistakes:
+      - [
+          Kumain ako ang kanin.,
+          "Ang marks who the sentence is about, here ako. The food takes ng: Kumain ako ng kanin.",
+        ]
+      - [Kumain ako sa kanin., "Sa marks a place, not the food: Kumain ako ng kanin."]
+    requires: [ako-ka-siya]
+    drills:
+      choices:
+        - - Kumain ako ___ isda.
+          - I ate fish.
+          - [ng, ang, sa]
+          - 0
+          - [null, "Ang marks who the sentence is about, and that is ako.", "Sa marks a place, not the food you eat."]
+        - - Kumakain siya ___ kanin.
+          - She's eating rice.
+          - [ng, ang, si]
+          - 0
+          - [null, "Ang marks who the sentence is about, and that is siya.", "Si goes before people's names, not food."]
+        - - Kakain kami ___ manok.
+          - We'll eat chicken.
+          - [ng, sa, ang]
+          - 0
+          - [null, "Sa marks a place, not the food you eat.", "Ang marks who the sentence is about, and that is kami."]
+
+  - id: si-names
+    title: "Si before names"
+    rule: "Put si before a person's name, or a family word used as a name, where you would put ang before an ordinary noun: Guro si Nanay (Mom is a teacher), but Guro ang babae (The woman is a teacher)."
+    examples:
+      - [Guro si Nanay., Mom is a teacher.]
+      - [Estudyante si Ana., Ana is a student.]
+      - [Kumakain si Tatay ng isda., Dad is eating fish.]
+    notes:
+      - "Ni is the partner of si for “of”: kapatid ni Ana (Ana's sibling)."
+      - "Family words work like names: si Lola, si Kuya, si Ate."
+    mistakes:
+      - [Estudyante ang Ana., "Ana is a name, so it takes si: Estudyante si Ana."]
+    requires: [predicate-first]
+    drills:
+      choices:
+        - - Guro ___ Nanay.
+          - Mom is a teacher.
+          - [si, ang, ng]
+          - 0
+          - [
+              null,
+              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              "Ng marks the thing acted on, not who the sentence is about.",
+            ]
+        - - Kumain ___ Ana ng tinapay.
+          - Ana ate bread.
+          - [si, ang, ng]
+          - 0
+          - [null, "Ana is a name, so it takes si, not ang.", "Ng marks the bread here, not Ana."]
+        - - Guro ___ babae.
+          - The woman is a teacher.
+          - [ang, si, ng]
+          - 0
+          - [
+              null,
+              "Si goes before names. Babae is an ordinary noun, so it takes ang.",
+              "Ng marks the thing acted on, not who the sentence is about.",
+            ]
+
+  - id: linkers
+    title: "Linkers: -ng and na"
+    rule: "A number or a description is joined to the noun after it by a linker. If the word ends in a vowel, add -ng to it: isa → isang kape. If it ends in n, add just -g. After any other consonant, put na between the words: anim na kape."
+    table:
+      head: [number, with a noun]
+      rows:
+        - [isa, isang kape]
+        - [tatlo, tatlong isda]
+        - [anim, anim na tinapay]
+        - [sampu, sampung estudyante]
+    examples:
+      - [Isang kape po., "One coffee, please."]
+      - [Anim na tinapay po., "Six pieces of bread, please."]
+      - [Magandang umaga!, Good morning!]
+    notes:
+      - "The same linkers join descriptions to nouns: maganda (beautiful) + umaga → magandang umaga."
+      - "This na is only a link. It is not the na that means “already”."
+    mistakes:
+      - [
+          Isa kape po.,
+          "A number needs a linker before a noun. Isa ends in a vowel, so it becomes isang: Isang kape po.",
+        ]
+      - [Animng isda., "Anim ends in a consonant, so it takes na: anim na isda."]
+    drills:
+      choices:
+        - - ___ kape po.
+          - Two coffees, please.
+          - [Dalawang, Dalawa, Dalawa na]
+          - 0
+          - [
+              null,
+              "A number needs a linker before a noun. Dalawa ends in a vowel, so add -ng.",
+              "Na follows words that end in a consonant. Dalawa ends in a vowel, so it takes -ng.",
+            ]
+        - - Anim ___ estudyante.
+          - Six students.
+          - [na, ng, ang]
+          - 0
+          - [
+              null,
+              "Ng is a separate marker for the thing acted on. After the m of anim, the linker is na.",
+              "Ang marks who a sentence is about. Between a number and a noun you need a linker.",
+            ]
+        - - ___ tinapay po.
+          - "Ten pieces of bread, please."
+          - [Sampung, Sampu, Sampu na]
+          - 0
+          - [
+              null,
+              "A number needs a linker before a noun. Sampu ends in a vowel, so add -ng.",
+              "Na follows words that end in a consonant. Sampu ends in a vowel, so it takes -ng.",
+            ]
+
+  - id: nasa-nasaan-saan
+    title: "Nasa, nasaan and saan: where"
+    rule: "Nasa says where someone or something is (“is at”, “is in”): Nasa palengke si Nanay (Mom is at the market). Nasaan asks where someone or something is: Nasaan ang simbahan? Saan, which you'll meet later, asks where an action happens: Saan ka pupunta? (Where are you going?)"
+    examples:
+      - [Nasaan si Tatay?, Where is Dad?]
+      - [Nasa simbahan si Tatay., Dad is at church.]
+      - [Nasa bahay ako., "I'm at home."]
+    notes:
+      - "Nasa already contains sa, so don't add another one: nasa bahay, not nasa sa bahay."
+      - "There's no word for “is”: nasa does that job too."
+    mistakes:
+      - [Nasa sa bahay si Nanay., "Nasa already includes sa: Nasa bahay si Nanay."]
+      - [Nasaan ka pupunta?, "For an action like going, ask with saan: Saan ka pupunta?"]
+    requires: [si-names]
+    drills:
+      choices:
+        - - ___ ang tindahan?
+          - Where is the store?
+          - [Nasaan, Nasa, Sa]
+          - 0
+          - [null, "Nasa says where something is (“is at”). To ask, use nasaan.", "Sa alone doesn't ask a question."]
+        - - ___ paaralan si Ate.
+          - My older sister is at school.
+          - [Nasa, Nasaan, Ang]
+          - 0
+          - [
+              null,
+              "Nasaan asks “where?”. To say where she is, use nasa.",
+              "Ang marks who the sentence is about, not the place.",
+            ]
+        - - Nasa ___ si Lola.
+          - Grandma is at church.
+          - [simbahan, sa simbahan, nasaan]
+          - 0
+          - [null, "Nasa already includes sa, so don't add another.", "Nasaan is a question word, not a place."]
+
+  - id: ba-questions
+    title: "Ba: yes/no questions"
+    rule: "Ba turns a statement into a yes/no question. It goes right after the first word: Guro ba siya? (Is he a teacher?). Only the short pronouns ka, ko and mo squeeze in before it: Guro ka ba? (Are you a teacher?)"
+    table:
+      head: [statement, question]
+      rows:
+        - [Guro siya., Guro ba siya?]
+        - [Estudyante ka., Estudyante ka ba?]
+        - [Kaibigan mo siya., Kaibigan mo ba siya?]
+    examples:
+      - [Guro ka ba?, Are you a teacher?]
+      - [Estudyante ba siya?, Is she a student?]
+      - [Kaibigan mo ba siya?, Is he your friend?]
+    notes:
+      - "Answer with oo or hindi, or politely with opo or hindi po."
+      - "Longer pronouns such as siya, ako and kami come after ba: Guro ba sila?"
+    mistakes:
+      - [Ba guro ka?, "Ba never starts a sentence. It follows the first word: Guro ka ba?"]
+      - [Guro siya ba?, "Siya is a longer pronoun, so it comes after ba: Guro ba siya?"]
+      - [Guro ba ka?, "Ka is a short pronoun, so it comes before ba: Guro ka ba?"]
+    requires: [predicate-first]
+    drills:
+      choices:
+        - - Estudyante ka ___?
+          - Are you a student?
+          - [ba, po, ang]
+          - 0
+          - [
+              null,
+              "Po adds respect, but it doesn't make a question.",
+              "Ang goes before a noun, so it can't end the sentence.",
+            ]
+        - - Kaibigan mo ___ siya?
+          - Is she your friend?
+          - [ba, ako, ng]
+          - 0
+          - [
+              null,
+              "Ako means “I”. To make a yes/no question, use ba.",
+              "Ng marks the thing acted on; it doesn't make a question.",
+            ]
+        - - Taga-Maynila ___ ba?
+          - Are you from Manila?
+          - [ka, ikaw, ako]
+          - 0
+          - [null, "Ikaw starts a sentence. After a word, “you” is ka.", "Ako would ask “Am I from Manila?”"]
+      transforms:
+        - [Guro siya., "He's a teacher.", Make it a yes/no question, [Guro ba siya?]]
+        - [Estudyante ka., "You're a student.", Make it a yes/no question, [Estudyante ka ba?]]
+        - [Kaibigan mo siya., "She's your friend.", Make it a yes/no question, [Kaibigan mo ba siya?]]
+
+  - id: taga
+    title: "Taga-: where you're from"
+    rule: "Join taga- to a place with a hyphen to say where someone is from: Taga-Cebu ako (I'm from Cebu). Ask with Taga-saan ka? (Where are you from?)"
+    examples:
+      - [Taga-Maynila ako., "I'm from Manila."]
+      - [Taga-saan ka?, Where are you from?]
+      - [Taga-Cebu si Ben., Ben is from Cebu.]
+    notes:
+      - "The place keeps its capital letter: taga-Davao."
+    mistakes:
+      - [Ako taga-Maynila., "Without ay, the description comes first: Taga-Maynila ako."]
+      - [Saan taga ka?, "Join taga- to saan with a hyphen: Taga-saan ka?"]
+    requires: [predicate-first]
+    drills:
+      choices:
+        - - ___ ka?
+          - Where are you from?
+          - [Taga-saan, Saan, Nasaan]
+          - 0
+          - [
+              null,
+              "Saan on its own asks where an action happens, not where someone is from.",
+              "Nasaan asks where someone is right now.",
+            ]
+        - - Taga-Maynila ___.
+          - I'm from Manila.
+          - [ako, ang, sa]
+          - 0
+          - [
+              null,
+              "Ang goes before a noun. Here the person is a pronoun, ako.",
+              "Sa marks a place, but taga- already says where.",
+            ]
+        - - Taga-Davao ___ Ben.
+          - Ben is from Davao.
+          - [si, ang, ng]
+          - 0
+          - [
+              null,
+              "Ben is a name, so it takes si, not ang.",
+              "Ng marks the thing acted on, not who the sentence is about.",
+            ]
+
+  - id: roots
+    title: "Verb roots"
+    rule: "Every Tagalog verb is built on a root, a short word that carries the meaning: kain (eat), inom (drink), luto (cook). Affixes added to the root show who acts and when: kain → kumain (ate). The bare root works as a quick invitation: Kain tayo! (Let's eat!)"
+    table:
+      head: [root, verb]
+      rows:
+        - [kain, kumain]
+        - [kaliwa, kumaliwa]
+        - [kanan, kumanan]
+    examples:
+      - [Kain tayo!, "Let's eat!"]
+      - [Kumain ako ng isda., I ate fish.]
+      - [Uminom siya ng kape., She drank coffee.]
+    notes:
+      - Dictionaries list verbs under their root, so spotting the root is how you look a verb up.
+    mistakes:
+      - [
+          Kain ako ng isda kahapon.,
+          "The bare root doesn't say when. A finished action adds -um-: Kumain ako ng isda kahapon.",
+        ]
+    drills:
+      frames:
+        - [___ si Ana ng tinapay ngayon., Ana is eating bread now., um, incompleted, kain]
+      choices:
+        - - ___ tayo!
+          - "Let's eat!"
+          - [Kain, Kakain, Kumakain]
+          - 0
+          - [
+              null,
+              "Kakain means “will eat”. A quick invitation uses the bare root.",
+              "Kumakain means “is eating”. A quick invitation uses the bare root.",
+            ]
+        - - ___ ako ng kanin kahapon.
+          - I ate rice yesterday.
+          - [Kumain, Kain, Kakain]
+          - 0
+          - [
+              null,
+              "Kain is the bare root. A finished action needs -um-: kumain.",
+              "Kakain means “will eat”, but this happened yesterday.",
+            ]
+
+  - id: um-aspect
+    title: "-um- verbs: past, present, future"
+    rule: "Put -um- before the first vowel of the root for the past: kain → kumain (ate). For the present, also repeat the root's first syllable: kumakain (is eating). For the future, leave out -um- and just repeat the first syllable: kakain (will eat). Tagalog grammar calls these the completed, incompleted and contemplated aspects."
+    table:
+      head: [past, present, future]
+      rows:
+        - [kumain, kumakain, kakain]
+        - [uminom, umiinom, iinom]
+        - [sumakay, sumasakay, sasakay]
+    examples:
+      - [Kumain ako ng kanin kahapon., I ate rice yesterday.]
+      - [Kumakain siya ng isda ngayon., "She's eating fish now."]
+      - [Iinom kami ng kape bukas., "We'll drink coffee tomorrow."]
+    notes:
+      - "The infinitive (to eat) and the past (ate) are the same word for -um- verbs: kumain."
+      - "Roots that start with a vowel take um- in front: inom → uminom, umiinom, iinom."
+    mistakes:
+      - [Kumain ako ng kanin bukas., "Bukas (tomorrow) needs the future: Kakain ako ng kanin bukas."]
+      - [
+          Kukain ako bukas.,
+          "The future repeats only the first consonant and vowel of the root, ka-kain: Kakain ako bukas.",
+        ]
+    requires: [roots]
+    drills:
+      frames:
+        - [___ kami ng isda bukas., "We'll eat fish tomorrow.", um, contemplated, kain]
+        - [___ ako ng kanin kahapon., I ate rice yesterday., um, completed, kain]
+        - [___ siya ng kape ngayon., "She's drinking coffee now.", um, incompleted, inom]
+        - [___ ka ba ng gatas kahapon?, Did you drink milk yesterday?, um, completed, inom]
+      transforms:
+        - [Kumain ako ng isda., I ate fish., "Make it future: “I will eat fish.”", [Kakain ako ng isda.]]
+        - [Umiinom siya ng tubig., "She's drinking water.", "Make it past: “She drank water.”", [Uminom siya ng tubig.]]
+        - [Kakain tayo., "We'll eat.", "Make it present: “We're eating.”", [Kumakain tayo.]]
+      choices:
+        - - ___ siya ng tubig kahapon.
+          - He drank water yesterday.
+          - [Uminom, Iinom, Umiinom]
+          - 0
+          - [
+              null,
+              "Iinom is the future (will drink), but this happened kahapon, yesterday.",
+              "Umiinom is the present (is drinking), but “drank” is the past.",
+            ]
+        - - ___ ako ng kanin bukas.
+          - "I'll eat rice tomorrow."
+          - [Kakain, Kumain, Kumakain]
+          - 0
+          - [
+              null,
+              "Kumain is the past (ate). Bukas (tomorrow) needs the future.",
+              "Kumakain is the present (is eating). For tomorrow, use the future.",
+            ]
+
+  - id: mag-aspect
+    title: "mag- verbs: past, present, future"
+    rule: "mag- verbs switch mag- to nag- once the action has started: nagluto (cooked), nagluluto (is cooking). The present and the future also repeat the root's first syllable, and the future keeps mag-: magluluto (will cook). ma- verbs such as matulog work the same way with na-: natulog, natutulog, matutulog."
+    table:
+      head: [infinitive, past, present, future]
+      rows:
+        - [magluto, nagluto, nagluluto, magluluto]
+        - [mag-aral, nag-aral, nag-aaral, mag-aaral]
+        - [matulog, natulog, natutulog, matutulog]
+    examples:
+      - [Nagluto si Tatay ng isda kahapon., Dad cooked fish yesterday.]
+      - [Nag-aaral ako ngayon., "I'm studying now."]
+      - [Magluluto si Lola bukas., Grandma will cook tomorrow.]
+    notes:
+      - "Roots that start with a vowel get a hyphen after the prefix: mag-aral, nag-aaral."
+      - "The infinitive keeps m-: magluto (to cook). The past and present switch to n-."
+    mistakes:
+      - [Magluto ako kahapon., "A finished action switches mag- to nag-: Nagluto ako kahapon."]
+      - [Nagluto ako bukas., "Bukas (tomorrow) needs the future, which keeps m-: Magluluto ako bukas."]
+    requires: [um-aspect]
+    drills:
+      frames:
+        - [___ kami bukas., "We'll play tomorrow.", mag, contemplated, laro]
+        - [___ si Lolo ngayon., Grandpa is sleeping now., ma, incompleted, tulog]
+        - [___ si Nanay ng isda kahapon., Mom cooked fish yesterday., mag, completed, luto]
+        - [___ ako ng Tagalog ngayon., "I'm studying Tagalog now.", mag, incompleted, aral]
+      transforms:
+        - [
+            Nagluto ako ng manok.,
+            I cooked chicken.,
+            "Make it future: “I will cook chicken.”",
+            [Magluluto ako ng manok.],
+          ]
+        - [Nag-aral siya., She studied., "Make it present: “She is studying.”", [Nag-aaral siya.]]
+        - [Natulog si Lolo., Grandpa slept., "Make it future: “Grandpa will sleep.”", [Matutulog si Lolo.]]
+      choices:
+        - - ___ si Lola ng manok kahapon.
+          - Grandma cooked chicken yesterday.
+          - [Nagluto, Magluto, Magluluto]
+          - 0
+          - [
+              null,
+              "Magluto is the infinitive (to cook). A finished action switches to n-: nagluto.",
+              "Magluluto is the future (will cook), but this was yesterday.",
+            ]
+        - - ___ ako ng Tagalog bukas.
+          - "I'll study Tagalog tomorrow."
+          - [Mag-aaral, Nag-aaral, Nag-aral]
+          - 0
+          - [
+              null,
+              "Nag-aaral is the present (is studying). The future keeps m-: mag-aaral.",
+              "Nag-aral is the past (studied), but this is tomorrow.",
+            ]
+
+  - id: find-the-root
+    title: "Finding the root"
+    rule: "To find a verb's root, peel off the affix (-um-, mag- or nag-, ma- or na-) and the repeated first syllable: nagluluto → luto, kumakain → kain. Once you know the root, you can recognise every form of the verb and look it up."
+    examples:
+      - [Nagluluto si Tatay., "Dad is cooking. (root: luto)"]
+      - [Kumakain si Ana., "Ana is eating. (root: kain)"]
+      - [Natutulog si Lolo., "Grandpa is sleeping. (root: tulog)"]
+    notes:
+      - "A repeated syllable is a clue: in nagluluto, lu-luto shows that the root is luto."
+      - "When the root starts with a vowel, only the vowel repeats: nag-aaral → aral."
+    mistakes:
+      - [luluto, "Luluto still repeats lu-. The root has it once: luto."]
+    requires: [roots]
+    drills:
+      choices:
+        - - ___ si Tatay ngayon.
+          - "Dad is cooking now. (root: luto)"
+          - [Nagluluto, Naglalaro, Natutulog]
+          - 0
+          - [null, "Naglalaro comes from the root laro (play).", "Natutulog comes from the root tulog (sleep)."]
+        - - ___ si Ate ngayon.
+          - "My older sister is studying now. (root: aral)"
+          - [Nag-aaral, Naglalaro, Nagluluto]
+          - 0
+          - [null, "Naglalaro comes from the root laro (play).", "Nagluluto comes from the root luto (cook)."]
+        - - "Kahapon, ___ si Kuya."
+          - "Yesterday, my older brother slept. (root: tulog)"
+          - [Natulog, Nag-aral, Uminom]
+          - 0
+          - [null, "Nag-aral comes from the root aral (study).", "Uminom comes from the root inom (drink)."]
+
+  - id: commands-mo-paki
+    title: "Commands: mo, ka and paki-"
+    rule: "To tell someone to do something to a thing, use the infinitive and mo (you), and mark the thing with ang: Isara mo ang pinto (Close the door). -um- verbs take ka instead: Umupo ka sa upuan (Sit on the chair). To soften a command, add po, or start the verb with paki- (please): Pakisara ang pinto."
+    table:
+      head: [verb, command]
+      rows:
+        - [isara, Isara mo ang pinto.]
+        - [buksan, Buksan mo ang bintana.]
+        - [patayin, Patayin mo ang ilaw.]
+        - [umupo, Umupo ka sa upuan.]
+    examples:
+      - [Isara mo ang pinto., Close the door.]
+      - [Umupo ka sa upuan., Sit on the chair.]
+      - [Patayin mo ang ilaw., Turn off the light.]
+    notes:
+      - "Paki- turns a verb into a polite request: Pakisara ang pinto (Please close the door). Add po for even more respect: Pakisara po ang pinto."
+      - "With elders, use ninyo instead of mo and add po: Isara ninyo po ang pinto."
+    mistakes:
+      - [Isara ka ang pinto., "When the thing is marked with ang, the command takes mo: Isara mo ang pinto."]
+      - [Umupo mo sa upuan., "-um- verbs take ka: Umupo ka sa upuan."]
+    requires: [um-aspect]
+    drills:
+      frames:
+        - [___ mo ang ilaw., Turn off the light., in, infinitive, patay]
+        - [___ ka sa upuan., Sit on the chair., um, infinitive, upo]
+        - [___ mo ang pinto., Open the door., an, infinitive, bukas]
+      transforms:
+        - [Isinara ko ang pinto., I closed the door., Tell someone to close the door, [Isara mo ang pinto.]]
+        - [Binuksan ko ang bintana., I opened the window., Tell someone to open the window, [Buksan mo ang bintana.]]
+      choices:
+        - - Isara ___ ang bintana.
+          - Close the window.
+          - [mo, ka, ako]
+          - 0
+          - [
+              null,
+              "Ka goes with -um- verbs like umupo. Isara, with ang bintana, takes mo.",
+              "Ako means “I”, but a command speaks to “you”.",
+            ]
+        - - Umupo ___ sa upuan.
+          - Sit on the chair.
+          - [ka, mo, ang]
+          - 0
+          - [
+              null,
+              "Mo goes with commands about a thing marked by ang, like Isara mo ang pinto.",
+              "Ang marks a noun. After umupo you need ka (you).",
+            ]
+        - - ___ mo ang bintana.
+          - Open the window.
+          - [Buksan, Binuksan, Bubuksan]
+          - 0
+          - [
+              null,
+              "Binuksan is the past (opened). A command uses the infinitive.",
+              "Bubuksan is the future (will open). A command uses the infinitive.",
+            ]

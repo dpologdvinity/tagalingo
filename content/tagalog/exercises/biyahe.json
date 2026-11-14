@@ -19,7 +19,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -34,7 +35,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -59,7 +61,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -74,7 +77,8 @@
             "translation": "Just at the corner, please."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -94,7 +98,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -106,7 +111,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -127,7 +133,11 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan",
+            "po-opo"
+          ]
         },
         {
           "type": "word_bank",
@@ -169,7 +179,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "speak",
@@ -178,7 +189,10 @@
             "translation": "Stop, please!"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "po-opo"
+          ]
         },
         {
           "type": "select_translation",
@@ -193,7 +207,8 @@
             "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -205,7 +220,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     },
@@ -227,7 +243,8 @@
             "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -242,7 +259,8 @@
             "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -267,7 +285,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -282,7 +301,8 @@
             "translation": "The airplane is big."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -302,7 +322,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -314,7 +335,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -335,7 +357,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -363,7 +386,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "speak",
@@ -372,7 +396,8 @@
             "translation": "The church is on the right."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "select_translation",
@@ -387,7 +412,8 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -399,7 +425,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     }

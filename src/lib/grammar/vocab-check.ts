@@ -11,13 +11,15 @@ import { analyse, type VerbTableData } from "./analyse";
 
 /**
  * Words every learner is assumed to have without a lesson: particles, pronouns and demonstratives.
- * Extend only by commit, with a comment saying why. `taga` is the origin prefix of "taga-Maynila".
+ * Extend only by commit, with a comment saying why. `taga` is the origin prefix of "taga-Maynila";
+ * `nasa` ("is at", sa fused with na) is the locative particle the course's own word examples use
+ * from Pamilya on (Nasa bahay si Nanay), and the nasa-nasaan-saan card teaches it.
  */
 export const FUNCTION_WORDS: ReadonlySet<string> = new Set(
   (
     "ang ng sa si ni kay mga ay ko mo ka ba na pa po opo naman lang at may wala hindi huwag din rin daw raw nga " +
     "ito iyan iyon dito diyan doon ako ikaw siya kami tayo kayo sila akin iyo kanya amin atin inyo kanila " +
-    "niya namin natin ninyo nila kita taga " +
+    "niya namin natin ninyo nila kita taga nasa " +
     // Contraction fragments left after splitting at the apostrophe: ba't, sa'yo, 'yan, 'yon, 'di, 'wag.
     "t yo yan yon di wag"
   ).split(" "),
