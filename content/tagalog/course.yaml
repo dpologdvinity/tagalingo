@@ -1083,7 +1083,7 @@ units:
         lessons:
           - title: Ate, eating, will eat
             words: [kumain, kumakain, kakain, uminom, iinom]
-            teaches: [roots, um-aspect]
+            teaches: [um-aspect, roots]
           - title: Cooked, studying, played
             words: [nagluto, magluluto, nag-aaral, naglaro, natulog]
             teaches: [mag-aspect, find-the-root]
@@ -1614,11 +1614,11 @@ grammar:
           - [kami, tayo, sila]
           - 0
           - [null, "Tayo would include the listeners, but they are the students.", "Sila means “they”, not “we”."]
-        - - Babae ___, ako at siya.
-          - "We're women, she and I. (said to a man)"
+        - - Hindi ka estudyante. Estudyante ___.
+          - "You're not a student. We are."
           - [kami, tayo, sila]
           - 0
-          - [null, "Tayo would include the man you're talking to.", "Sila means “they”, but you are one of the women."]
+          - [null, "Tayo would include you, but you aren't a student.", "Sila means “they”, not “we”."]
 
   - id: predicate-first
     title: "Description first: Guro ako"
@@ -1643,11 +1643,11 @@ grammar:
       choices:
         - - Siya ___ guro.
           - She is a teacher.
-          - [ay, ang, ako]
+          - [ay, ng, ako]
           - 0
           - [
               null,
-              "Ang marks a noun. Between siya and guro you need ay.",
+              "Ng marks the thing someone acts on, so it can't join siya to guro. Use ay.",
               "Ako means “I”, but the sentence is about siya.",
             ]
         - - Guro ___ lalaki.
@@ -1674,7 +1674,7 @@ grammar:
 
   - id: ng-object
     title: "Ng: the thing you eat"
-    rule: "Ng (said “nang”) goes before the thing someone eats, drinks or wants: Kumain ako ng kanin (I ate rice). Ang already marks who the sentence is about, so the food takes ng."
+    rule: "Ng (said “nang”) goes before the thing someone eats, drinks or wants: Kumain ako ng kanin (I ate rice). The doer (ako, siya, or a noun after ang) is who the sentence is about, so the food takes ng instead."
     examples:
       - [Kumain ako ng kanin., I ate rice.]
       - [Kumakain siya ng isda., "He's eating fish."]
@@ -1686,7 +1686,7 @@ grammar:
     mistakes:
       - [
           Kumain ako ang kanin.,
-          "Ang marks who the sentence is about, here ako. The food takes ng: Kumain ako ng kanin.",
+          "Ang marks who the sentence is about, and here that is already ako. The food takes ng: Kumain ako ng kanin.",
         ]
       - [Kumain ako sa kanin., "Sa marks a place, not the food: Kumain ako ng kanin."]
     requires: [ako-ka-siya]
@@ -1696,17 +1696,29 @@ grammar:
           - I ate fish.
           - [ng, ang, sa]
           - 0
-          - [null, "Ang marks who the sentence is about, and that is ako.", "Sa marks a place, not the food you eat."]
+          - [
+              null,
+              "Ang marks who the sentence is about, and here that is already ako.",
+              "Sa marks a place, not the food you eat.",
+            ]
         - - Kumakain siya ___ kanin.
           - She's eating rice.
           - [ng, ang, si]
           - 0
-          - [null, "Ang marks who the sentence is about, and that is siya.", "Si goes before people's names, not food."]
+          - [
+              null,
+              "Ang marks who the sentence is about, and here that is already siya.",
+              "Si goes before people's names, not food.",
+            ]
         - - Kakain kami ___ manok.
           - We'll eat chicken.
           - [ng, sa, ang]
           - 0
-          - [null, "Sa marks a place, not the food you eat.", "Ang marks who the sentence is about, and that is kami."]
+          - [
+              null,
+              "Sa marks a place, not the food you eat.",
+              "Ang marks who the sentence is about, and here that is already kami.",
+            ]
 
   - id: si-names
     title: "Si before names"
@@ -1729,7 +1741,7 @@ grammar:
           - 0
           - [
               null,
-              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              "Here Nanay is a name (Mom), so it takes si. Ang is for the ordinary noun: Guro ang nanay ko (My mother is a teacher).",
               "Ng marks the thing acted on, not who the sentence is about.",
             ]
         - - Kumain ___ Ana ng tinapay.
@@ -1881,7 +1893,11 @@ grammar:
           - Are you from Manila?
           - [ka, ikaw, ako]
           - 0
-          - [null, "Ikaw starts a sentence. After a word, “you” is ka.", "Ako would ask “Am I from Manila?”"]
+          - [
+              null,
+              "Ikaw starts a sentence. After a word, “you” is ka.",
+              "Ako is a longer pronoun, so it would come after ba: Taga-Maynila ba ako? (Am I from Manila?)",
+            ]
       transforms:
         - [Guro siya., "He's a teacher.", Make it a yes/no question, [Guro ba siya?]]
         - [Estudyante ka., "You're a student.", Make it a yes/no question, [Estudyante ka ba?]]
@@ -1951,8 +1967,6 @@ grammar:
           "The bare root doesn't say when. A finished action adds -um-: Kumain ako ng isda kahapon.",
         ]
     drills:
-      frames:
-        - [___ si Ana ng tinapay ngayon., Ana is eating bread now., um, incompleted, kain]
       choices:
         - - ___ tayo!
           - "Let's eat!"
@@ -1975,7 +1989,7 @@ grammar:
 
   - id: um-aspect
     title: "-um- verbs: past, present, future"
-    rule: "Put -um- before the first vowel of the root for the past: kain → kumain (ate). For the present, also repeat the root's first syllable: kumakain (is eating). For the future, leave out -um- and just repeat the first syllable: kakain (will eat). Tagalog grammar calls these the completed, incompleted and contemplated aspects."
+    rule: "Put -um- before the first vowel of the root (the core of the verb, like kain) for the past: kain → kumain (ate). For the present, also repeat the root's first syllable: kumakain (is eating). For the future, leave out -um- and just repeat the first syllable: kakain (will eat). Tagalog grammar calls these the completed, incompleted and contemplated aspects."
     table:
       head: [past, present, future]
       rows:
@@ -2114,7 +2128,7 @@ grammar:
 
   - id: commands-mo-paki
     title: "Commands: mo, ka and paki-"
-    rule: "To tell someone to do something to a thing, use the infinitive and mo (you), and mark the thing with ang: Isara mo ang pinto (Close the door). -um- verbs take ka instead: Umupo ka sa upuan (Sit on the chair). To soften a command, add po, or start the verb with paki- (please): Pakisara ang pinto."
+    rule: "To tell someone to do something to a thing, use the infinitive and mo (you), and mark the thing with ang: Isara mo ang pinto (Close the door). Verbs whose doer is the focus (-um-, mag- and ma- verbs) take ka instead: Umupo ka sa upuan (Sit on the chair), Matulog ka na (Go to sleep now). To soften a command, add po, or start the verb with paki- (please): Pakisara ang pinto."
     table:
       head: [verb, command]
       rows:
@@ -2128,10 +2142,10 @@ grammar:
       - [Patayin mo ang ilaw., Turn off the light.]
     notes:
       - "Paki- turns a verb into a polite request: Pakisara ang pinto (Please close the door). Add po for even more respect: Pakisara po ang pinto."
-      - "With elders, use ninyo instead of mo and add po: Isara ninyo po ang pinto."
+      - "With elders, add po and use ninyo instead of mo: Isara po ninyo ang pinto."
     mistakes:
       - [Isara ka ang pinto., "When the thing is marked with ang, the command takes mo: Isara mo ang pinto."]
-      - [Umupo mo sa upuan., "-um- verbs take ka: Umupo ka sa upuan."]
+      - [Umupo mo sa upuan., "-um-, mag- and ma- verbs take ka: Umupo ka sa upuan."]
     requires: [um-aspect]
     drills:
       frames:
@@ -2148,7 +2162,7 @@ grammar:
           - 0
           - [
               null,
-              "Ka goes with -um- verbs like umupo. Isara, with ang bintana, takes mo.",
+              "Ka goes with -um-, mag- and ma- verbs like umupo. Isara, with ang bintana, takes mo.",
               "Ako means “I”, but a command speaks to “you”.",
             ]
         - - Umupo ___ sa upuan.

@@ -84,7 +84,7 @@
           "type": "fill_blank",
           "payload": {
             "why": [
-              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              "Here Nanay is a name (Mom), so it takes si. Ang is for the ordinary noun: Guro ang nanay ko (My mother is a teacher).",
               null,
               "Ng marks the thing acted on, not who the sentence is about."
             ],
@@ -311,15 +311,13 @@
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "si-names"
-          ]
+          "patterns": []
         },
         {
           "type": "fill_blank",
           "payload": {
             "why": [
-              "Ang goes before ordinary nouns. Nanay is used as a name here, so it takes si.",
+              "Here Nanay is a name (Mom), so it takes si. Ang is for the ordinary noun: Guro ang nanay ko (My mother is a teacher).",
               "Ng marks the thing acted on, not who the sentence is about.",
               null
             ],

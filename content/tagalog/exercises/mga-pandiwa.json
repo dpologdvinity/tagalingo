@@ -21,7 +21,6 @@
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
           "patterns": [
-            "roots",
             "um-aspect"
           ]
         },
@@ -93,46 +92,46 @@
           "type": "fill_blank",
           "payload": {
             "why": [
-              "Kumakain means “is eating”. A quick invitation uses the bare root.",
+              "Umiinom is the present (is drinking), but “drank” is the past.",
               null,
-              "Kakain means “will eat”. A quick invitation uses the bare root."
+              "Iinom is the future (will drink), but this happened kahapon, yesterday."
             ],
             "options": [
-              "Kumakain",
-              "Kain",
-              "Kakain"
-            ],
-            "sentence": "___ tayo!",
-            "answerIndex": 1,
-            "translation": "Let's eat!"
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "roots"
-          ]
-        },
-        {
-          "type": "fill_blank",
-          "payload": {
-            "why": [
-              null,
-              "Iinom is the future (will drink), but this happened kahapon, yesterday.",
-              "Umiinom is the present (is drinking), but “drank” is the past."
-            ],
-            "options": [
+              "Umiinom",
               "Uminom",
-              "Iinom",
-              "Umiinom"
+              "Iinom"
             ],
             "sentence": "___ siya ng tubig kahapon.",
-            "answerIndex": 0,
+            "answerIndex": 1,
             "translation": "He drank water yesterday."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
           "patterns": [
             "um-aspect"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Kakain means “will eat”. A quick invitation uses the bare root.",
+              "Kumakain means “is eating”. A quick invitation uses the bare root.",
+              null
+            ],
+            "options": [
+              "Kakain",
+              "Kumakain",
+              "Kain"
+            ],
+            "sentence": "___ tayo!",
+            "answerIndex": 2,
+            "translation": "Let's eat!"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "roots"
           ]
         },
         {
@@ -143,28 +142,10 @@
             "root": "inom",
             "word": "umiinom",
             "options": [
-              "sakay",
               "inom",
-              "kaliwa"
+              "kanan",
+              "punta"
             ]
-          },
-          "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "roots"
-          ]
-        },
-        {
-          "type": "conjugate",
-          "payload": {
-            "form": "incompleted",
-            "root": "kain",
-            "affix": "um",
-            "answers": [
-              "kumakain"
-            ],
-            "sentence": "___ si Ana ng tinapay ngayon.",
-            "translation": "Ana is eating bread now."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
@@ -183,6 +164,24 @@
             ],
             "sentence": "___ kami ng isda bukas.",
             "translation": "We'll eat fish tomorrow."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "um-aspect"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "completed",
+            "root": "kain",
+            "affix": "um",
+            "answers": [
+              "kumain"
+            ],
+            "sentence": "___ ako ng kanin kahapon.",
+            "translation": "I ate rice yesterday."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",

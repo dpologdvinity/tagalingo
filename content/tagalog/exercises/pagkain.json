@@ -78,15 +78,13 @@
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "ng-object"
-          ]
+          "patterns": []
         },
         {
           "type": "fill_blank",
           "payload": {
             "why": [
-              "Ang marks who the sentence is about, and that is ako.",
+              "Ang marks who the sentence is about, and here that is already ako.",
               "Sa marks a place, not the food you eat.",
               null
             ],
@@ -111,7 +109,7 @@
             "why": [
               null,
               "Si goes before people's names, not food.",
-              "Ang marks who the sentence is about, and that is siya."
+              "Ang marks who the sentence is about, and here that is already siya."
             ],
             "options": [
               "ng",
@@ -133,7 +131,7 @@
           "payload": {
             "why": [
               "Sa marks a place, not the food you eat.",
-              "Ang marks who the sentence is about, and that is kami.",
+              "Ang marks who the sentence is about, and here that is already kami.",
               null
             ],
             "options": [

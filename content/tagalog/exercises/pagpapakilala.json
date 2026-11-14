@@ -364,9 +364,7 @@
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "ba-questions"
-          ]
+          "patterns": []
         },
         {
           "type": "fill_blank",

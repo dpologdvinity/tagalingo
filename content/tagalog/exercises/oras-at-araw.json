@@ -84,12 +84,12 @@
           "type": "fill_blank",
           "payload": {
             "why": [
-              "Ang marks a noun. Between siya and guro you need ay.",
+              "Ng marks the thing someone acts on, so it can't join siya to guro. Use ay.",
               "Ako means “I”, but the sentence is about siya.",
               null
             ],
             "options": [
-              "ang",
+              "ng",
               "ako",
               "ay"
             ],

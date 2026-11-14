@@ -276,9 +276,7 @@
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "kami-tayo"
-          ]
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -368,12 +366,12 @@
           "payload": {
             "why": [
               "Ako means “I”, but the sentence is about siya.",
-              "Ang marks a noun. Between siya and guro you need ay.",
+              "Ng marks the thing someone acts on, so it can't join siya to guro. Use ay.",
               null
             ],
             "options": [
               "ako",
-              "ang",
+              "ng",
               "ay"
             ],
             "sentence": "Siya ___ guro.",
@@ -414,17 +412,17 @@
           "payload": {
             "why": [
               null,
-              "Sila means “they”, but you are one of the women.",
-              "Tayo would include the man you're talking to."
+              "Sila means “they”, not “we”.",
+              "Tayo would include you, but you aren't a student."
             ],
             "options": [
               "kami",
               "sila",
               "tayo"
             ],
-            "sentence": "Babae ___, ako at siya.",
+            "sentence": "Hindi ka estudyante. Estudyante ___.",
             "answerIndex": 0,
-            "translation": "We're women, she and I. (said to a man)"
+            "translation": "You're not a student. We are."
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
@@ -538,7 +536,6 @@
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
           "patterns": [
-            "kami-tayo",
             "predicate-first"
           ]
         },
@@ -550,9 +547,7 @@
           },
           "source": "STUB",
           "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
-          "patterns": [
-            "kami-tayo"
-          ]
+          "patterns": []
         },
         {
           "type": "select_translation",
