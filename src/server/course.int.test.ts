@@ -5,6 +5,11 @@ import { getPathForUser, getSkillPage } from "./course";
 
 const SLUG = "t-course-";
 
+// The shipped course may already teach patterns and have verb tables, so every assertion below looks
+// only at the rows this file creates (all slugs, titles and roots start with SLUG).
+const title = (name: string) => `${SLUG}Pattern ${name}`;
+const mine = <T extends { root: string }>(tables: T[]) => tables.filter((t) => t.root.startsWith(SLUG));
+
 let user: User;
 let courseId: string;
 let n = 0;
@@ -23,7 +28,7 @@ async function pattern(name: string, lessonId: string, order: number) {
       courseId,
       slug: SLUG + name,
       order,
-      title: `Pattern ${name}`,
+      title: title(name),
       lessonId,
       card: {
         rule: `Rule ${name}`,
@@ -73,8 +78,9 @@ describe("grammar on the path and the skill page", () => {
 
     const path = await getPathForUser(user.id);
     const skills = path!.units.flatMap((u) => u.skills);
-    expect(skills.find((s) => s.id === lesson.skillId)!.patterns).toEqual(["Pattern a", "Pattern b"]);
-    expect(skills.filter((s) => s.id !== lesson.skillId).every((s) => s.patterns.length === 0)).toBe(true);
+    const ours = (s: (typeof skills)[number]) => s.patterns.filter((t) => t.startsWith(SLUG));
+    expect(ours(skills.find((s) => s.id === lesson.skillId)!)).toEqual([title("a"), title("b")]);
+    expect(skills.filter((s) => s.id !== lesson.skillId).every((s) => ours(s).length === 0)).toBe(true);
   });
 
   it("gives the skill page its patterns (cards only once unlocked) and the tables of its verb exercises", async () => {
@@ -117,23 +123,24 @@ describe("grammar on the path and the skill page", () => {
 
     const page = await getSkillPage(user.id, lesson.skill.slug);
     // Only this skill's pattern appears, with its card since the lesson is finished.
-    expect(page!.patterns).toEqual([
+    expect(page!.patterns.filter((p) => p.slug.startsWith(SLUG))).toEqual([
       expect.objectContaining({
         slug: `${SLUG}open`,
-        title: "Pattern open",
+        title: title("open"),
         unlocked: true,
         card: expect.objectContaining({ rule: "Rule open" }),
       }),
     ]);
     // Approved tables of the roots in approved verb exercises: not drafts, not other roots.
-    expect(page!.verbTables.map((t) => [t.root, t.affix])).toEqual([
+    expect(mine(page!.verbTables).map((t) => [t.root, t.affix])).toEqual([
       [root, "um"],
       [root, "mag"],
     ]);
 
     const elsewhere = await getSkillPage(user.id, elsewhereLesson.skill.slug);
-    expect(elsewhere!.patterns.map((p) => p.slug)).toEqual([`${SLUG}closed`]);
-    expect(elsewhere!.patterns[0]).toMatchObject({ unlocked: false, card: null });
+    const closed = elsewhere!.patterns.filter((p) => p.slug.startsWith(SLUG));
+    expect(closed.map((p) => p.slug)).toEqual([`${SLUG}closed`]);
+    expect(closed[0]).toMatchObject({ unlocked: false, card: null });
     expect(elsewhere!.verbTables).toEqual([]);
   });
 
@@ -172,14 +179,13 @@ describe("grammar on the path and the skill page", () => {
       });
 
     // The tables are the answers to the drills, so nothing shows before the learner has played them.
-    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables).toEqual([]);
+    const rootsShown = async () => mine((await getSkillPage(user.id, first.skill.slug))!.verbTables).map((t) => t.root);
+    expect(await rootsShown()).toEqual([]);
 
     await db.lessonProgress.create({ data: { userId: user.id, lessonId: first.id } });
-    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables.map((t) => t.root)).toEqual([early]);
+    expect(await rootsShown()).toEqual([early]);
 
     await db.lessonProgress.create({ data: { userId: user.id, lessonId: later.id } });
-    expect((await getSkillPage(user.id, first.skill.slug))!.verbTables.map((t) => t.root).sort()).toEqual(
-      [early, late].sort(),
-    );
+    expect((await rootsShown()).sort()).toEqual([early, late].sort());
   });
 });

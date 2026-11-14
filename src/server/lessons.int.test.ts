@@ -1,12 +1,17 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { parseExercise, type ExerciseType, type ParsedExercise } from "@/lib/content/schema";
+import { gradeAnswer, normalizeAnswer } from "@/lib/game/grading";
 import type { User } from "@/generated/prisma/client";
 import { completeAttempt, getLessonInfo, startAttempt, startPractice, submitAnswer } from "./lessons";
 import { getPathForUser } from "./course";
 import { getWeeklyLeaderboard } from "./leaderboard";
 
-/** A correct answer for any exercise, derived from its payload. */
+/**
+ * A correct answer for any exercise, derived from its payload. Every exercise type needs a case:
+ * the shipped lessons mix vocabulary and grammar drills, and a lesson is only played through if
+ * each of its exercises can be answered.
+ */
 function correctAnswer(ex: ParsedExercise): unknown {
   switch (ex.type) {
     case "select_translation":
@@ -21,18 +26,49 @@ function correctAnswer(ex: ParsedExercise): unknown {
     case "match_pairs":
       return { completed: true };
     case "type_translation":
+    case "conjugate":
       return { text: ex.payload.answers[0] };
+    case "find_root":
+      return ex.payload.mode === "choice"
+        ? { choice: ex.payload.options!.findIndex((o) => normalizeAnswer(o) === normalizeAnswer(ex.payload.root)) }
+        : { text: ex.payload.root };
+    case "transform":
+      return ex.payload.mode === "build"
+        ? { tokens: ex.payload.answers[0] }
+        : { text: ex.payload.answers[0].join(" ") };
+    case "paradigm":
+      return { cells: Object.fromEntries(ex.payload.cells.filter((c) => c.hidden).map((c) => [c.form, c.value])) };
+    default:
+      return ex satisfies never;
   }
 }
 
-const wrongAnswer = (ex: ParsedExercise): unknown =>
-  ex.type === "match_pairs"
-    ? {}
-    : ex.type === "type_translation"
-      ? { text: "zzz" }
-      : ex.type === "speak"
-        ? { transcript: "zzz" }
-        : { choice: -1, tokens: ["zzz"] };
+/** An answer that grades wrong for any exercise type (and is not a skip). */
+function wrongAnswer(ex: ParsedExercise): unknown {
+  switch (ex.type) {
+    case "select_translation":
+    case "fill_blank":
+    case "listen_select":
+    case "dialogue":
+    case "find_root":
+      return { choice: -1, text: "zzz" }; // out of range for the choice types, never the root for typed ones
+    case "speak":
+      return { transcript: "zzz" };
+    case "word_bank":
+      return { tokens: ["zzz"] };
+    case "match_pairs":
+      return {};
+    case "type_translation":
+    case "conjugate":
+      return { text: "zzz" };
+    case "transform":
+      return ex.payload.mode === "build" ? { tokens: ["zzz"] } : { text: "zzz" };
+    case "paradigm":
+      return { cells: {} };
+    default:
+      return ex satisfies never;
+  }
+}
 
 async function lessonExercises(lessonId: string) {
   const rows = await db.exercise.findMany({ where: { lessonId, status: "APPROVED" }, orderBy: { order: "asc" } });
@@ -46,6 +82,85 @@ async function firstLessons() {
   });
   return lessons;
 }
+
+/** One valid exercise of every type, to check the answer helpers above against the real grader. */
+const SAMPLES: ParsedExercise[] = (
+  [
+    ["select_translation", { prompt: "kain", promptLang: "tl", options: ["eat", "drink", "run"], answerIndex: 0 }],
+    ["word_bank", { prompt: "I eat.", promptLang: "en", answer: ["kumakain", "ako"], distractors: ["siya"] }],
+    [
+      "match_pairs",
+      {
+        pairs: [
+          { tl: "kain", en: "eat" },
+          { tl: "inom", en: "drink" },
+          { tl: "tulog", en: "sleep" },
+        ],
+      },
+    ],
+    ["fill_blank", { sentence: "___ ako.", translation: "I ate.", options: ["kumain", "kakain"], answerIndex: 0 }],
+    ["type_translation", { prompt: "kain", promptLang: "tl", answers: ["eat"] }],
+    ["listen_select", { audio: "kain", options: ["eat", "drink", "run"], answerIndex: 0 }],
+    ["speak", { text: "Kumain ako.", translation: "I ate." }],
+    [
+      "dialogue",
+      {
+        lines: [{ speaker: "A", tl: "Kumusta?", en: "How are you?" }],
+        options: ["Mabuti.", "Salamat."],
+        answerIndex: 0,
+        replyEn: "Fine.",
+      },
+    ],
+    [
+      "conjugate",
+      {
+        sentence: "___ ako.",
+        translation: "I ate.",
+        root: "kain",
+        affix: "um",
+        form: "completed",
+        answers: ["kumain"],
+      },
+    ],
+    ["find_root", { word: "kumain", mode: "choice", options: ["kain", "inom"], root: "kain", hint: "Drop the affix." }],
+    ["find_root", { word: "kumain", mode: "type", root: "kain", hint: "Drop the affix." }],
+    [
+      "transform",
+      {
+        source: "Kumain ako.",
+        sourceEn: "I ate.",
+        instruction: "Future.",
+        mode: "build",
+        answers: [["kakain", "ako"]],
+        distractors: [],
+      },
+    ],
+    [
+      "transform",
+      {
+        source: "Kumain ako.",
+        sourceEn: "I ate.",
+        instruction: "Future.",
+        mode: "type",
+        answers: [["kakain", "ako"]],
+        distractors: [],
+      },
+    ],
+    [
+      "paradigm",
+      {
+        root: "kain",
+        affix: "um",
+        en: "eat",
+        cells: [
+          { form: "completed", value: "kumain", hidden: true },
+          { form: "contemplated", value: "kakain", hidden: false },
+        ],
+        distractors: [],
+      },
+    ],
+  ] as [ExerciseType, unknown][]
+).map(([type, payload]) => parseExercise(type, payload));
 
 let user: User;
 let n = 0;
@@ -70,6 +185,19 @@ async function playPerfect(lessonId: string, u: User = user) {
   for (const { id, ex } of await lessonExercises(lessonId)) await submitAnswer(u.id, attemptId, id, correctAnswer(ex));
   return { attemptId, result: await completeAttempt(u.id, attemptId) };
 }
+
+describe("answer helpers", () => {
+  it("cover every exercise type: correctAnswer grades right, wrongAnswer grades wrong", () => {
+    expect(new Set(SAMPLES.map((e) => e.type)).size).toBe(12);
+    for (const ex of SAMPLES) {
+      const label = `${ex.type} ${JSON.stringify(ex.payload)}`;
+      expect(gradeAnswer(ex, correctAnswer(ex)).correct, label).toBe(true);
+      const wrong = gradeAnswer(ex, wrongAnswer(ex));
+      expect(wrong.correct, label).toBe(false);
+      expect(wrong.skipped, label).toBeFalsy();
+    }
+  });
+});
 
 describe("lesson loop", () => {
   it("only lets a new learner start the very first lesson", async () => {
@@ -382,8 +510,10 @@ describe("grammar patterns", () => {
     const used = await pattern("b", second.id, [e0.id], 901);
     await pattern("untagged", first.id, [], 902);
 
+    // The shipped lesson may carry real patterns and tags too; only this test's are checked.
+    const ours = (slug: string) => slug.startsWith(SLUG);
     const started = await startAttempt(user, first.id);
-    expect(started.cards).toEqual([
+    expect(started.cards.filter((c) => ours(c.slug))).toEqual([
       {
         slug: taught.slug,
         title: "Pattern a",
@@ -392,12 +522,12 @@ describe("grammar patterns", () => {
       },
       { slug: used.slug, title: "Pattern b", card: expect.objectContaining({ rule: "Rule b" }), isNew: false },
     ]);
-    expect(started.exercisePatterns[e0.id]).toEqual([taught.slug, used.slug]);
-    expect(started.exercisePatterns[e1.id]).toEqual([taught.slug]);
+    expect(started.exercisePatterns[e0.id].filter(ours)).toEqual([taught.slug, used.slug]);
+    expect(started.exercisePatterns[e1.id].filter(ours)).toEqual([taught.slug]);
 
     await playPerfect(first.id);
     const again = await startAttempt(user, first.id);
-    expect(again.cards.map((c) => c.isNew)).toEqual([false, false]);
+    expect(again.cards.filter((c) => ours(c.slug)).map((c) => c.isNew)).toEqual([false, false]);
   });
 
   it("first answer only updates PatternProgress", async () => {
@@ -473,15 +603,16 @@ describe("grammar patterns", () => {
 
   it("conjugate feedback names the wrong form", async () => {
     const [first] = await firstLessons();
+    // A made-up root, so the shipped kain/um table (if any) is neither used nor deleted.
     const forms = {
-      infinitive: ["kumain"],
-      completed: ["kumain"],
-      incompleted: ["kumakain"],
-      contemplated: ["kakain"],
+      infinitive: ["tgrkumain"],
+      completed: ["tgrkumain"],
+      incompleted: ["tgrkumakain"],
+      contemplated: ["tgrkakain"],
     };
     await db.verbTable.upsert({
-      where: { courseId_root_affix: { courseId, root: "kain", affix: "um" } },
-      create: { courseId, root: "kain", affix: "um", en: "eat", forms, status: "APPROVED" },
+      where: { courseId_root_affix: { courseId, root: "tgrkain", affix: "um" } },
+      create: { courseId, root: "tgrkain", affix: "um", en: "eat", forms, status: "APPROVED" },
       update: { forms, status: "APPROVED" },
     });
     const ex = await db.exercise.create({
@@ -492,10 +623,10 @@ describe("grammar patterns", () => {
         payload: {
           sentence: "___ ako kahapon.",
           translation: "I ate yesterday.",
-          root: "kain",
+          root: "tgrkain",
           affix: "um",
           form: "completed",
-          answers: ["kumain"],
+          answers: ["tgrkumain"],
         },
         status: "APPROVED",
         source: "HUMAN",
@@ -503,15 +634,15 @@ describe("grammar patterns", () => {
     });
     try {
       const { attemptId } = await startAttempt(user, first.id);
-      const feedback = await submitAnswer(user.id, attemptId, ex.id, { text: "kumakain" });
+      const feedback = await submitAnswer(user.id, attemptId, ex.id, { text: "tgrkumakain" });
       expect(feedback).toMatchObject({
         correct: false,
-        explanation: "That's the present form (kumakain). The past is kumain.",
+        explanation: "That's the present form (tgrkumakain). The past is tgrkumain.",
         wrongCells: null,
       });
     } finally {
       await db.exercise.delete({ where: { id: ex.id } });
-      await db.verbTable.deleteMany({ where: { courseId, root: "kain", affix: "um" } });
+      await db.verbTable.deleteMany({ where: { courseId, root: "tgrkain", affix: "um" } });
     }
   });
 });

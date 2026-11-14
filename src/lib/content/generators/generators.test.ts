@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { loadCourseFile, lessonRequest } from "../course";
-import { lintExercise, parseExercise } from "../schema";
+import { lintExercise, parseExercise, type ExerciseType } from "../schema";
 import { StubGenerator } from "./stub";
 import { ClaudeGenerator, type MessagesClient } from "./claude";
 import { selectGenerator } from "./index";
@@ -11,11 +11,23 @@ import type { TaggedExercise } from "./types";
 import type { VerbTableData } from "@/lib/grammar/analyse";
 import { conjugate, type VerbEntry } from "@/lib/grammar/morphology";
 import type { CoursePattern, Frame } from "../grammar-schema";
+import { loadApprovedVerbs } from "@/lib/grammar/verbs-file";
 
 const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
-const allRequests = course.units.flatMap((u) =>
+/** Every lesson of the shipped course as the generators see it, grammar patterns included (if it has any). */
+const realRequests = course.units.flatMap((u) =>
   u.skills.flatMap((s) => s.lessons.map((_, i) => lessonRequest(course, s, i))),
 );
+
+/** The request with the grammar the lesson teaches or uses taken away: the vocabulary lesson on its own. */
+const withoutGrammar = (req: (typeof realRequests)[number]) => ({
+  ...req,
+  grammar: { ...req.grammar, teaches: [], uses: [] },
+});
+
+// The vocabulary tests below hold whatever grammar the course ships, because they stop at the vocabulary
+// recipe; the grammar drills of the real lessons are checked on their own ("grammar drills in the real course").
+const allRequests = realRequests.map(withoutGrammar);
 
 describe("StubGenerator", () => {
   const stub = new StubGenerator();
@@ -488,12 +500,37 @@ describe("grammar drills", () => {
   });
 
   it("tags no vocabulary drill, whatever tables are passed", async () => {
-    for (const req of allRequests) {
+    const grammarTypes: ExerciseType[] = ["fill_blank", "conjugate", "find_root", "transform", "paradigm"];
+    for (const req of realRequests) {
       const { exercises } = await stub.generate(req, [kain]);
-      expect(
-        exercises.every((e) => e.patterns.length === 0),
-        req.lesson.title,
-      ).toBe(true);
+      const own = new Set([...req.grammar.teaches, ...req.grammar.uses].map((p) => p.id));
+      for (const e of exercises.filter((x) => x.patterns.length)) {
+        expect(grammarTypes, `${req.lesson.title}: ${e.type}`).toContain(e.type);
+        expect(
+          e.patterns.every((id) => own.has(id)),
+          req.lesson.title,
+        ).toBe(true);
+      }
+      // A lesson with no grammar has nothing to tag.
+      if (own.size === 0)
+        expect(
+          exercises.every((e) => e.patterns.length === 0),
+          req.lesson.title,
+        ).toBe(true);
+    }
+  });
+
+  it("builds only checked, capped, correctly tagged grammar drills for the real lessons", async () => {
+    // Holds for whatever patterns and approved tables the course ships (none yet is a pass).
+    const tables = loadApprovedVerbs();
+    for (const req of realRequests) {
+      const { exercises } = await stub.generate(req, tables);
+      const tagged = exercises.filter((e) => e.patterns.length);
+      expect(tagged.length, req.lesson.title).toBeLessThanOrEqual(MAX_GRAMMAR_DRILLS);
+      for (const e of tagged) {
+        expect(() => parseExercise(e.type, e.payload), req.lesson.title).not.toThrow();
+        expect(checkDrill(e, req, tables), `${req.lesson.title}: ${e.type}`).toBeNull();
+      }
     }
   });
 
@@ -504,7 +541,9 @@ describe("grammar drills", () => {
     ) as Record<string, unknown[]>;
     const requests = new Map<string, (typeof allRequests)[number]>(
       course.units.flatMap((u) =>
-        u.skills.flatMap((s) => s.lessons.map((_, i) => [`${s.slug}#${i}`, lessonRequest(course, s, i)] as const)),
+        u.skills.flatMap((s) =>
+          s.lessons.map((_, i) => [`${s.slug}#${i}`, withoutGrammar(lessonRequest(course, s, i))] as const),
+        ),
       ),
     );
     expect(Object.keys(fixture)).toHaveLength(2);

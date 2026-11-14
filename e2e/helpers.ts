@@ -36,13 +36,32 @@ export async function logInAsDemo(page: Page) {
 
 type ExerciseRow = { id: string; type: string; payload: Record<string, unknown> };
 
+/** The button that dismisses a grammar card shown before a pattern's first drill. */
+const gotItButton = (page: Page) => page.getByRole("button", { name: "Got it — let's try" });
+
+/**
+ * Wait for the next step of a lesson or practice session, which is an exercise, a grammar card or
+ * (when `finished` is given and the session is over) the results text. Grammar cards can appear before
+ * any drill that practises a pattern the learner has not seen, so waiting for `[data-exercise-id]`
+ * alone times out on them.
+ */
+export async function waitForNextStep(page: Page, finished?: string | RegExp) {
+  const next = page.locator("[data-exercise-id]").or(gotItButton(page));
+  await expect(finished ? next.or(page.getByText(finished)) : next).toBeVisible();
+}
+
+/** If a grammar card is showing, dismiss it, so the exercise behind it is the one on screen. */
+export async function dismissGrammarCard(page: Page) {
+  await waitForNextStep(page);
+  const gotIt = gotItButton(page);
+  if (await gotIt.isVisible()) await gotIt.click();
+  await expect(page.locator("[data-exercise-id]")).toBeVisible();
+}
+
 /** Answer whatever exercise is on screen (dismissing a grammar card first). `wrong` deliberately answers incorrectly (not for match pairs). */
 export async function answerCurrent(page: Page, { wrong = false } = {}) {
+  await dismissGrammarCard(page);
   const host = page.locator("[data-exercise-id]");
-  const gotIt = page.getByRole("button", { name: "Got it — let's try" });
-  await expect(host.or(gotIt)).toBeVisible();
-  if (await gotIt.isVisible()) await gotIt.click();
-  await expect(host).toBeVisible();
   const id = await host.getAttribute("data-exercise-id");
   const [ex] = await query<ExerciseRow>(`select id, type, payload from "Exercise" where id = $1`, [id]);
   const p = ex.payload as Record<string, never>;

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createGrammarFixture, FIXTURE, removeGrammarFixture } from "./grammar-fixture";
-import { answerCurrent, query, signUpFreshLearner } from "./helpers";
+import { answerCurrent, query, signUpFreshLearner, waitForNextStep } from "./helpers";
 
 /** A fresh learner on the fixture lesson (the first lesson of the course, so already unlocked). */
 async function openGrammarLesson(page: Page) {
@@ -10,6 +10,9 @@ async function openGrammarLesson(page: Page) {
 
 const cardHeading = (page: Page) => page.getByRole("heading", { name: FIXTURE.patternTitle });
 const gotIt = (page: Page) => page.getByRole("button", { name: "Got it — let's try" });
+/** The fixture pattern's entry on the grammar page; real patterns have entries of their own. */
+const fixtureEntry = (page: Page) =>
+  page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: FIXTURE.patternTitle }) });
 
 test.describe("grammar player", () => {
   test.beforeAll(createGrammarFixture);
@@ -30,7 +33,7 @@ test.describe("grammar player", () => {
     while (!(await page.getByText("Lesson complete!").isVisible())) {
       seen.push(await answerCurrent(page));
       await page.getByRole("button", { name: "Continue" }).click();
-      await expect(page.locator("[data-exercise-id]").or(page.getByText("Lesson complete!"))).toBeVisible();
+      await waitForNextStep(page, "Lesson complete!");
     }
     expect(seen).toEqual(["conjugate", "paradigm", "find_root", "transform"]);
 
@@ -85,18 +88,19 @@ test.describe("grammar browsing and word lookup", () => {
     await expect(page.getByRole("heading", { name: "Grammar", level: 1 })).toBeVisible();
 
     // Nothing is unlocked yet: the pattern is a title with its unlocking skill, and the weak button waits.
-    await expect(page.getByRole("heading", { name: FIXTURE.patternTitle })).toBeVisible();
-    await expect(page.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toBeVisible();
-    await expect(page.getByText("Put -um- after the first consonant")).toHaveCount(0);
+    const entry = fixtureEntry(page);
+    await expect(entry.getByRole("heading", { name: FIXTURE.patternTitle })).toBeVisible();
+    await expect(entry.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toBeVisible();
+    await expect(entry.getByText("Put -um- after the first consonant")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Practise your weakest grammar" })).toBeDisabled();
     await expect(page.getByText("Answer a few grammar drills first.")).toBeVisible();
 
     await finishGrammarLesson(email);
     await page.reload();
-    await expect(page.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toHaveCount(0);
-    await expect(page.getByText("Put -um- after the first consonant")).toBeVisible();
-    await expect(page.getByRole("cell", { name: "kumakain" })).toBeVisible();
-    await page.getByRole("link", { name: "Practise this" }).click();
+    await expect(entry.getByText(`Unlocks in ${FIXTURE.skillTitle}`)).toHaveCount(0);
+    await expect(entry.getByText("Put -um- after the first consonant")).toBeVisible();
+    await expect(entry.getByRole("cell", { name: "kumakain" })).toBeVisible();
+    await entry.getByRole("link", { name: "Practise this" }).click();
     await page.waitForURL(`**/practice?pattern=${FIXTURE.patternSlug}`);
     await expect(page.locator("[data-exercise-id]")).toBeVisible();
   });
@@ -116,10 +120,12 @@ test.describe("grammar browsing and word lookup", () => {
     await reply.getByRole("button", { name: "Look up makilala" }).click();
     const sheet = page.getByRole("dialog");
     await expect(sheet.getByRole("heading", { name: "makilala" })).toBeVisible();
-    await expect(sheet.getByText(/infinitive of kilala/)).toBeVisible();
-    await expect(sheet.getByRole("table", { name: /kilala/ })).toBeVisible();
+    // A real kilala table may also list "makilala"; the fixture's own table is the one checked here.
+    await expect(sheet.getByText(new RegExp(`infinitive of ${FIXTURE.lookupRoot}`))).toBeVisible();
+    const table = sheet.getByRole("table", { name: new RegExp(FIXTURE.lookupRoot) });
+    await expect(table).toBeVisible();
     for (const form of ["nakilala", "nakikilala", "makikilala", "kakikilala"])
-      await expect(sheet.getByRole("cell", { name: form })).toBeVisible();
+      await expect(table.getByRole("cell", { name: form })).toBeVisible();
     await sheet.getByRole("button", { name: "Close" }).click();
     await expect(sheet).toBeHidden();
   });
@@ -128,7 +134,7 @@ test.describe("grammar browsing and word lookup", () => {
     const email = await signUpFreshLearner(page);
     // Verb tables answer the skill's drills, so they stay hidden until the lesson is finished.
     await page.goto(`/skills/${FIXTURE.skillSlug}`);
-    await expect(page.getByRole("region", { name: "kain verb table" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: `${FIXTURE.verbRoot} verb table` })).toHaveCount(0);
 
     await finishGrammarLesson(email);
     await page.goto(`/skills/${FIXTURE.skillSlug}`);
@@ -136,10 +142,10 @@ test.describe("grammar browsing and word lookup", () => {
     await expect(page.getByRole("heading", { name: "Grammar", level: 2 })).toBeVisible();
     await expect(page.getByRole("heading", { name: FIXTURE.patternTitle })).toBeVisible();
     await expect(page.getByRole("link", { name: "Practise this", exact: true })).toBeVisible();
-    // The verb table of the skill's exercises (kain), not every table in the course.
-    const table = page.getByRole("region", { name: "kain verb table" });
+    // The verb table of the skill's exercises (e2ekain), not every table in the course.
+    const table = page.getByRole("region", { name: `${FIXTURE.verbRoot} verb table` });
     await expect(table.getByRole("cell", { name: "kumakain" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "kilala verb table" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: `${FIXTURE.lookupRoot} verb table` })).toHaveCount(0);
 
     // The path placard lists the pattern on the skill's stop.
     await page.goto("/learn");

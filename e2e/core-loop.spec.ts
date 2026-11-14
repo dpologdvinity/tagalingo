@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { answerCurrent, logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner, waitForNextStep } from "./helpers";
 
 test.describe("core loop", () => {
   test("a new learner signs up, finishes the first lesson and earns XP", async ({ page }) => {
@@ -11,6 +11,7 @@ test.describe("core loop", () => {
     const seen = new Set<string>();
     let firstWrongDone = false;
     while (!(await page.getByText("Lesson complete!").isVisible())) {
+      await dismissGrammarCard(page); // a grammar card can come before the next drill
       // Make one deliberate mistake on the first non-matching exercise to exercise the re-queue.
       const noPenalty =
         (await page.getByText("Match the pairs").isVisible()) ||
@@ -22,8 +23,8 @@ test.describe("core loop", () => {
         firstWrongDone = true;
       }
       await page.getByRole("button", { name: "Continue" }).click();
-      // Next exercise, or (after a short save) the results screen.
-      await expect(page.locator("[data-exercise-id]").or(page.getByText("Lesson complete!"))).toBeVisible();
+      // Next exercise or grammar card, or (after a short save) the results screen.
+      await waitForNextStep(page, "Lesson complete!");
     }
 
     expect(seen.size).toBeGreaterThanOrEqual(4); // mixed exercise types
@@ -112,9 +113,7 @@ test.describe("richer lessons", () => {
     while (!(await page.getByText(/Lesson complete!|Practice complete!/).isVisible())) {
       await answerCurrent(page);
       await page.getByRole("button", { name: "Continue" }).click();
-      await expect(
-        page.locator("[data-exercise-id]").or(page.getByText(/Lesson complete!|Practice complete!/)),
-      ).toBeVisible();
+      await waitForNextStep(page, /Lesson complete!|Practice complete!/);
     }
   }
 

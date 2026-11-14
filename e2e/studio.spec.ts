@@ -16,8 +16,8 @@ test.describe("studio grammar review", () => {
     await page.getByRole("link", { name: /^All \(/ }).click();
     await page.waitForURL("**/studio/verbs?status=all");
 
-    const card = page.getByRole("region", { name: "kain, mag" });
-    await expect(card.getByRole("heading", { name: "kain · mag" })).toBeVisible();
+    const card = page.getByRole("region", { name: `${FIXTURE.verbRoot}, mag` });
+    await expect(card.getByRole("heading", { name: `${FIXTURE.verbRoot} · mag` })).toBeVisible();
     await expect(card.getByText("Draft", { exact: true })).toBeVisible();
     await expect(card.getByLabel("past")).toHaveValue("nagkain");
 

@@ -1,11 +1,15 @@
 /**
  * E2E fixture for the grammar player: one unit/skill/lesson at the start of the course, one grammar
- * pattern taught by that lesson, two approved verb tables (kain/um, which the exercises drill, and
- * kilala/ma, so Tala's stub reply "makilala" is a known verb form), one DRAFT table (kain/mag, for
- * the Studio review specs) and four approved exercises (conjugate, paradigm, find_root, transform)
- * tagged with the pattern. Everything is inserted with SQL under
- * `e2e-grammar-` ids, because the dev database has no grammar content. `removeGrammarFixture`
- * deletes the unit (cascading to skill, lesson, exercises, pattern and tags) and the verb table, so
+ * pattern taught by that lesson, two approved verb tables (e2ekain/um, which the exercises drill, and
+ * e2ekilala/ma, so Tala's stub reply "makilala" is a known verb form), one DRAFT table (e2ekain/mag,
+ * for the Studio review specs) and four approved exercises (conjugate, paradigm, find_root, transform)
+ * tagged with the pattern. Everything is inserted with SQL under `e2e-grammar-` ids and made-up
+ * `e2e...` verb roots, so it can sit next to the course's real grammar content without colliding with
+ * it (verb tables are unique on course + root + affix) and removing it leaves the real rows alone.
+ * The tables spell their forms like real ones (kumain...), so the specs read naturally, but their roots
+ * are the fixture's: scope every locator to the fixture pattern, skill or root, because a real card or
+ * table may show the same text. `removeGrammarFixture`
+ * deletes the unit (cascading to skill, lesson, exercises, pattern and tags) and the verb tables, so
  * it is safe to call from `afterAll` even after a failed run.
  *
  * The unit goes first, not last: the path unlocks skills strictly in order and a "coming soon" skill
@@ -27,7 +31,11 @@ export const FIXTURE = {
   patternSlug: `${P}pattern`,
   skillSlug: `${P}skill`,
   skillTitle: "E2E verbs",
-  /** The DRAFT kain/mag table; the Studio specs approve it. */
+  /** The root the exercises drill (verb table e2ekain/um) and the DRAFT table (e2ekain/mag). */
+  verbRoot: "e2ekain",
+  /** The root whose table makes Tala's "makilala" a known verb form. */
+  lookupRoot: "e2ekilala",
+  /** The DRAFT e2ekain/mag table; the Studio specs approve it. */
   draftTableId: `${P}verb-draft`,
   /** Exercise ids in lesson order. */
   exercises: {
@@ -83,7 +91,7 @@ const EXERCISES = [
     {
       sentence: "___ ako ng kanin kahapon.",
       translation: "I ate rice yesterday.",
-      root: "kain",
+      root: FIXTURE.verbRoot,
       affix: "um",
       form: "completed",
       answers: ["kumain"],
@@ -93,7 +101,7 @@ const EXERCISES = [
     FIXTURE.exercises.paradigm,
     "paradigm",
     {
-      root: "kain",
+      root: FIXTURE.verbRoot,
       affix: "um",
       en: "to eat",
       cells: [
@@ -112,8 +120,8 @@ const EXERCISES = [
       word: "kumakain",
       translation: "eating",
       mode: "choice",
-      options: ["kain", "kuma", "akain"],
-      root: "kain",
+      options: [FIXTURE.verbRoot, "kuma", "akain"],
+      root: FIXTURE.verbRoot,
       hint: "Drop -um- and the repeated ka: kumakain is kain.",
     },
   ],
@@ -157,16 +165,16 @@ export async function createGrammarFixture(): Promise<void> {
     [`${P}pattern`, course.id, FIXTURE.patternTitle, JSON.stringify(CARD), FIXTURE.lessonId],
   );
   await query(
-    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kain', 'um', 'to eat', $3, 'APPROVED')`,
-    [`${P}verb`, course.id, JSON.stringify(VERB_FORMS)],
+    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, $3, 'um', 'to eat', $4, 'APPROVED')`,
+    [`${P}verb`, course.id, FIXTURE.verbRoot, JSON.stringify(VERB_FORMS)],
   );
   await query(
-    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kilala', 'ma', 'to know (someone)', $3, 'APPROVED')`,
-    [`${P}verb-kilala`, course.id, JSON.stringify(KILALA_FORMS)],
+    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, $3, 'ma', 'to know (someone)', $4, 'APPROVED')`,
+    [`${P}verb-kilala`, course.id, FIXTURE.lookupRoot, JSON.stringify(KILALA_FORMS)],
   );
   await query(
-    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, 'kain', 'mag', 'to feed', $3, 'DRAFT')`,
-    [FIXTURE.draftTableId, course.id, JSON.stringify(DRAFT_FORMS)],
+    `insert into "VerbTable" (id, "courseId", root, affix, en, forms, status) values ($1, $2, $3, 'mag', 'to feed', $4, 'DRAFT')`,
+    [FIXTURE.draftTableId, course.id, FIXTURE.verbRoot, JSON.stringify(DRAFT_FORMS)],
   );
   for (const [i, [id, type, payload]] of EXERCISES.entries()) {
     await query(
