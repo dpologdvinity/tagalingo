@@ -3,7 +3,8 @@
  *
  *  1. Course structure, word lists and grammar patterns from content/tagalog/course.yaml.
  *  2. Reviewed verb tables from content/tagalog/grammar/verbs.json (skipped when the file is absent).
- *  3. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED).
+ *  3. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED). Imported tables and
+ *     exercises have no reviewer account; their review note says who reviewed them.
  *     Skills without a reviewed file get stub-generated DRAFTs, waiting in /studio.
  *  4. A demo account (also a reviewer) with a 7-day streak and partial progress, plus 24
  *     other learners so the weekly leaderboard looks alive.
@@ -239,9 +240,11 @@ async function main() {
   await wipe();
   await syncCourseStructure(prisma, course);
 
-  const demo = withDemo ? await seedDemoLearner(now, timezone) : null;
-  const verbTables = await importVerbTables(prisma, course, CONTENT_DIR, demo?.id);
-  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR, demo?.id);
+  if (withDemo) await seedDemoLearner(now, timezone);
+  // Reviewed content is imported without a reviewer: the files keep no reviewer, each row's
+  // reviewNote says who reviewed it, and the demo learner must not show up as its reviewer.
+  const verbTables = await importVerbTables(prisma, course, CONTENT_DIR);
+  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR);
 
   // Anything without reviewed content starts life as stub drafts in the Studio review queue.
   const stub = new StubGenerator();
