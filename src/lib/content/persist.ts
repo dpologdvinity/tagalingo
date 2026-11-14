@@ -160,6 +160,7 @@ export async function generateDraftsForLesson(
     if (options.grammarOnly) {
       const present = new Set(existing.map((e) => `${e.type}:${canonicalJson(e.payload)}`));
       exercises = exercises.filter((e) => !present.has(`${e.type}:${canonicalJson(e.payload)}`));
+      // The position counts the lesson's rows of any status (drafts and rejected ones too), not just approved ones.
       after = existing[Math.min(GRAMMAR_AFTER, existing.length) - 1]?.order ?? 0;
       if (exercises.length)
         await tx.exercise.updateMany({

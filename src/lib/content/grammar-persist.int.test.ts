@@ -536,7 +536,7 @@ describe("generateDraftsForLesson with grammarOnly", () => {
     expect((await scratchLessonRows()).map((e) => e.id)).toEqual(after.map((e) => e.id));
   });
 
-  it("appends after the last exercise when the lesson has fewer than four", async () => {
+  it("starts at the top of a lesson that has no exercises yet", async () => {
     const def = onlyCourse();
     await syncCourseStructure(prisma, def);
     const target = { skillSlug: SCRATCH_SKILL, lessonOrder: 1 };
@@ -545,5 +545,32 @@ describe("generateDraftsForLesson with grammarOnly", () => {
     });
     expect(result.created).toBe(3);
     expect((await scratchLessonRows()).map((e) => e.order)).toEqual([1, 2, 3]);
+  });
+
+  it("appends after the last exercise when the lesson has one to three", async () => {
+    const def = onlyCourse();
+    await syncCourseStructure(prisma, def);
+    const lesson = await prisma.lesson.findFirstOrThrow({ where: { skill: { slug: SCRATCH_SKILL }, order: 1 } });
+    await prisma.exercise.createMany({
+      data: [1, 2].map((order) => ({
+        lessonId: lesson.id,
+        order,
+        type: "speak" as const,
+        payload: { text: `Salamat po ${order}.`, translation: "Thank you." },
+        status: "APPROVED" as const,
+        source: "HUMAN" as const,
+      })),
+    });
+    const before = await scratchLessonRows();
+
+    const target = { skillSlug: SCRATCH_SKILL, lessonOrder: 1 };
+    const result = await generateDraftsForLesson(prisma, new StubGenerator(), def, target, undefined, {
+      grammarOnly: true,
+    });
+    expect(result.created).toBe(3);
+    const after = await scratchLessonRows();
+    expect(after.map((e) => e.order)).toEqual([1, 2, 3, 4, 5]);
+    expect(after.slice(0, 2).map((e) => e.id)).toEqual(before.map((e) => e.id));
+    expect(after.slice(2).every((e) => e.status === "DRAFT" && e.patterns.length === 1)).toBe(true);
   });
 });

@@ -36,6 +36,9 @@ export async function logInAsDemo(page: Page) {
 
 type ExerciseRow = { id: string; type: string; payload: Record<string, unknown> };
 
+/** More cards than this before one exercise means the player is stuck, not that there is a lot to read. */
+const MAX_CARDS_IN_A_ROW = 5;
+
 /** The button that dismisses a grammar card shown before a pattern's first drill. */
 const gotItButton = (page: Page) => page.getByRole("button", { name: "Got it — let's try" });
 
@@ -50,11 +53,17 @@ export async function waitForNextStep(page: Page, finished?: string | RegExp) {
   await expect(finished ? next.or(page.getByText(finished)) : next).toBeVisible();
 }
 
-/** If a grammar card is showing, dismiss it, so the exercise behind it is the one on screen. */
+/**
+ * Dismiss any grammar cards showing, so the exercise behind them is the one on screen. An exercise
+ * tagged with two newly taught patterns is preceded by two cards in a row, so keep clicking (bounded).
+ */
 export async function dismissGrammarCard(page: Page) {
-  await waitForNextStep(page);
   const gotIt = gotItButton(page);
-  if (await gotIt.isVisible()) await gotIt.click();
+  await waitForNextStep(page);
+  for (let cards = 0; cards < MAX_CARDS_IN_A_ROW && (await gotIt.isVisible()); cards++) {
+    await gotIt.click();
+    await waitForNextStep(page);
+  }
   await expect(page.locator("[data-exercise-id]")).toBeVisible();
 }
 
