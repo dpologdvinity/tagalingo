@@ -138,8 +138,10 @@ test.describe("richer lessons", () => {
   test("skill pages show original tips, flashcards and conversations", async ({ page }) => {
     await logInAsDemo(page); // conversations appear once the lesson is finished
     await page.goto("/skills/pagbati");
-    await expect(page.getByRole("heading", { name: "Tips" })).toBeVisible();
-    await expect(page.getByText(/Add po to a sentence/)).toBeVisible();
+    const tipsHeading = page.getByRole("heading", { name: "Tips" });
+    await expect(tipsHeading).toBeVisible();
+    // Scoped to the Tips card: the skill's grammar cards may also talk about po.
+    await expect(tipsHeading.locator("..").getByText(/Add po to a sentence/)).toBeVisible();
     const card = page.getByRole("button", { name: /Tap to show the meaning/ });
     await card.click();
     await expect(page.getByRole("button", { name: /Meaning:/ })).toBeVisible();
