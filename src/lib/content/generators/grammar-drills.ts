@@ -85,15 +85,23 @@ function taughtTables(req: GenerationRequest, tables: readonly VerbTableData[]):
 }
 
 /**
- * Taught tables with `affix`, those whose root or forms are lesson words first (a stable sort, so
- * course order otherwise decides).
+ * `tables` with those whose root or forms are lesson words first (a stable sort, so course order
+ * otherwise decides).
  */
-function tablesWithAffix(req: GenerationRequest, taught: readonly VerbTableData[], affix: Affix): VerbTableData[] {
+function lessonVerbsFirst(req: GenerationRequest, tables: readonly VerbTableData[]): VerbTableData[] {
   const lessonWords = new Set(req.words.map((w) => normalizeAnswer(w.tl)));
   const inLesson = (t: VerbTableData) =>
     lessonWords.has(normalizeAnswer(t.root)) ||
     VERB_FORMS.some((f) => cellOf(t, f).some((c) => lessonWords.has(normalizeAnswer(c))));
-  return taught.filter((t) => t.affix === affix).sort((a, b) => Number(inLesson(b)) - Number(inLesson(a)));
+  return [...tables].sort((a, b) => Number(inLesson(b)) - Number(inLesson(a)));
+}
+
+/** Taught tables with `affix`, the lesson's own verbs first. */
+function tablesWithAffix(req: GenerationRequest, taught: readonly VerbTableData[], affix: Affix): VerbTableData[] {
+  return lessonVerbsFirst(
+    req,
+    taught.filter((t) => t.affix === affix),
+  );
 }
 
 /**
@@ -175,11 +183,16 @@ function transformDrill(
   };
 }
 
-/** Name the root of an inflected form, choosing among the roots of the lesson's other verbs. */
+/**
+ * Name the root of an inflected form, choosing among the roots of the lesson's other verbs. The verb
+ * is one of the lesson's own words when it has any (with the pattern's affixes, if it is about some).
+ */
 function findRootDrill(p: CoursePattern, req: GenerationRequest, taught: readonly VerbTableData[], rand: () => number) {
   if (!ROOT_PATTERNS.has(p.id)) return null;
   const affixes = patternAffixes(p);
-  const table = (affixes.length ? affixes.flatMap((a) => tablesWithAffix(req, taught, a)) : taught)[0];
+  const table = (
+    affixes.length ? affixes.flatMap((a) => tablesWithAffix(req, taught, a)) : lessonVerbsFirst(req, taught)
+  )[0];
   const word = table && (cellOf(table, "incompleted")[0] ?? cellOf(table, "completed")[0]);
   if (!table || !word) return null;
   const others = [...new Set(taught.map((t) => t.root).filter((r) => r !== table.root))];

@@ -312,6 +312,27 @@ describe("grammar drills", () => {
     expect(q.payload.hint).not.toContain(q.payload.root);
   });
 
+  it("asks for the root of a verb the lesson itself teaches, not just the first approved table", async () => {
+    const roots: CoursePattern = { ...umAspect, id: "roots", drills: { frames: [], transforms: [], choices: [] } };
+    const lutoEntry: VerbEntry = { ...kainEntry, root: "luto", glottal: true };
+    const luto: VerbTableData = { root: "luto", affix: "um", en: "to cook", forms: conjugate(lutoEntry, "um") };
+    const base = lessonWith([roots]);
+    const lutoWord = {
+      tl: "luluto",
+      en: "will cook",
+      accept: [],
+      pos: "verb" as const,
+      ex: ["Luluto ako.", "I will cook."] as [string, string],
+      exAccept: [],
+    };
+    const req = { ...base, words: [lutoWord], grammar: { ...base.grammar, verbs: [kainEntry, lutoEntry] } };
+    // kain's table comes first, but only luto is a word of this lesson.
+    const { exercises } = await stub.generate(req, [kain, luto]);
+    const q = exercises.find((e) => e.type === "find_root");
+    if (q?.type !== "find_root") throw new Error("no find_root");
+    expect(q.payload.root).toBe("luto");
+  });
+
   it("skips drills that need forms no approved table covers yet, rejecting nothing", async () => {
     // No table is approved: conjugate and paradigm are not built, and the choice and transform
     // (whose words are the unapproved forms kumain, kakain...) wait for review instead of failing.
