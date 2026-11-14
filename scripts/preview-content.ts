@@ -5,14 +5,17 @@
 import path from "node:path";
 import { loadCourseFile, lessonRequest } from "../src/lib/content/course";
 import { StubGenerator } from "../src/lib/content/generators/stub";
+import { loadApprovedVerbs } from "../src/lib/grammar/verbs-file";
 const course = loadCourseFile(path.resolve("content/tagalog/course.yaml"));
+// The approved verb tables, so conjugate, paradigm, find_root and transform drills show up too.
+const tables = loadApprovedVerbs();
 const only = process.argv.slice(2);
 (async () => {
   for (const u of course.units)
     for (const s of u.skills) {
       if (only.length && !only.includes(s.slug)) continue;
       for (let i = 0; i < s.lessons.length; i++) {
-        const { exercises } = await new StubGenerator().generate(lessonRequest(course, s, i));
+        const { exercises } = await new StubGenerator().generate(lessonRequest(course, s, i), tables);
         console.log(`\n## ${s.slug} L${i + 1}`);
         for (const e of exercises) {
           // Grammar drills carry the patterns they are tagged with.

@@ -16,7 +16,7 @@
 import type { VerbTableData } from "@/lib/grammar/analyse";
 import type { CourseWord, GenerationRequest } from "../course";
 import { parseExercise, type ExerciseType } from "../schema";
-import { buildGrammarDrills } from "./grammar-drills";
+import { buildGrammarDrills, GRAMMAR_AFTER } from "./grammar-drills";
 import type { ExerciseGenerator, GenerationResult, TaggedExercise } from "./types";
 import { hash, rng, shuffle } from "@/lib/random";
 
@@ -328,9 +328,6 @@ const RECIPE: Slot[] = [
   { make: (b, w) => b.fillBlank(w), word: 5 },
   { make: (b, w) => b.typeToTl(w), word: 2 },
 ];
-
-/** Grammar drills are inserted after this many exercises of the recipe. */
-const GRAMMAR_AFTER = 4;
 
 export class StubGenerator implements ExerciseGenerator {
   readonly provider = "stub" as const;

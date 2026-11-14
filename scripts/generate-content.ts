@@ -3,10 +3,15 @@
  *
  *   npm run content:generate -- --skill pamimili            # every lesson of a skill
  *   npm run content:generate -- --skill pamimili --lesson 2
+ *   npm run content:generate -- --skill pagkain --grammar-only   # only the grammar drills
  *   CONTENT_GENERATOR=claude ANTHROPIC_API_KEY=... npm run content:generate -- --skill mga-kulay
  *
  * The generator follows the same env rules as the app (see src/lib/content/generators/index.ts).
  * Drafts never reach learners until a reviewer approves them.
+ *
+ * `--grammar-only` keeps a lesson's existing exercises (approved ones included) and adds only the
+ * tagged grammar drills as DRAFTs, after the lesson's 4th exercise. Drills already in the lesson are
+ * skipped, so it is safe to run again.
  */
 import "dotenv/config";
 import { parseArgs } from "node:util";
@@ -19,8 +24,15 @@ import { generateDraftsForLesson, syncCourseStructure } from "../src/lib/content
 import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
 
 async function main() {
-  const { values } = parseArgs({ options: { skill: { type: "string" }, lesson: { type: "string" } } });
-  if (!values.skill) throw new Error("Usage: npm run content:generate -- --skill <slug> [--lesson <n>]");
+  const { values } = parseArgs({
+    options: {
+      skill: { type: "string" },
+      lesson: { type: "string" },
+      "grammar-only": { type: "boolean", default: false },
+    },
+  });
+  if (!values.skill)
+    throw new Error("Usage: npm run content:generate -- --skill <slug> [--lesson <n>] [--grammar-only]");
 
   const prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || LOCAL_DATABASE_URL }),
@@ -34,9 +46,18 @@ async function main() {
     const generator = selectGenerator();
     console.log(`Generator: ${generator.provider} (${generator.model})`);
     for (const lessonOrder of lessons) {
-      const r = await generateDraftsForLesson(prisma, generator, course, { skillSlug: skill.slug, lessonOrder });
+      const r = await generateDraftsForLesson(
+        prisma,
+        generator,
+        course,
+        { skillSlug: skill.slug, lessonOrder },
+        undefined,
+        { grammarOnly: values["grammar-only"] },
+      );
       console.log(
-        `  ${skill.slug} lesson ${lessonOrder}: ${r.created} drafts${r.rejected ? `, ${r.rejected} rejected` : ""}`,
+        `  ${skill.slug} lesson ${lessonOrder}: ${r.created} drafts` +
+          (r.skipped ? `, ${r.skipped} already there` : "") +
+          (r.rejected ? `, ${r.rejected} rejected` : ""),
       );
     }
     console.log("Review them at /studio.");

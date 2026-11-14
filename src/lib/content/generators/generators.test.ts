@@ -423,6 +423,63 @@ describe("grammar drills", () => {
     expect(new Set(tagged.flatMap((e) => e.patterns))).toEqual(new Set(["um-aspect", "um-again"]));
   });
 
+  describe("reaching three drills for a taught pattern", () => {
+    /** A pattern with no verb frames: its drills are only the authored choices and transforms. */
+    const choice = (n: number): CoursePattern["drills"]["choices"][number] => [
+      `Siya ang ___ ${n}.`,
+      "English.",
+      ["ako", "siya", "kami"],
+      1,
+      ["Ako is I.", null, "Kami is we."],
+    ];
+    const transform = (n: number): CoursePattern["drills"]["transforms"][number] => [
+      `Ako ang ${n}.`,
+      "English.",
+      "Change the subject.",
+      [`Siya ang ${n}.`],
+    ];
+    const plain = (choices: number, transforms: number, id = "ng-object"): CoursePattern => ({
+      ...umAspect,
+      id,
+      drills: {
+        frames: [],
+        choices: Array.from({ length: choices }, (_, i) => choice(i + 1)),
+        transforms: Array.from({ length: transforms }, (_, i) => transform(i + 1)),
+      },
+    });
+    const drillsOf = async (teaches: CoursePattern[]) => {
+      const { exercises, rejected } = await stub.generate(lessonWith(teaches), [kain]);
+      expect(rejected).toEqual([]);
+      return exercises.filter((e) => e.patterns.length);
+    };
+
+    it("takes a further choice when the first choice and transform make only two", async () => {
+      const tagged = await drillsOf([plain(3, 2)]);
+      expect(tagged.map((e) => e.type).sort()).toEqual(["fill_blank", "fill_blank", "transform"]);
+    });
+
+    it("takes a further transform when the pattern has only one choice", async () => {
+      const tagged = await drillsOf([plain(1, 3)]);
+      expect(tagged.map((e) => e.type).sort()).toEqual(["fill_blank", "transform", "transform"]);
+    });
+
+    it("stops at three and leaves a pattern that already has three alone", async () => {
+      expect(await drillsOf([plain(5, 5)])).toHaveLength(3);
+      const rich = await drillsOf([umAspect]); // conjugations, choice, transform and paradigm: 5 drills
+      expect(rich.filter((e) => e.type === "fill_blank")).toHaveLength(1);
+    });
+
+    it("gives what it has when a pattern cannot reach three", async () => {
+      expect(await drillsOf([plain(1, 1)])).toHaveLength(2);
+    });
+
+    it("still shares the cap between patterns", async () => {
+      const tagged = await drillsOf([plain(3, 3, "ng-object"), plain(3, 3, "si-names")]);
+      expect(tagged).toHaveLength(MAX_GRAMMAR_DRILLS);
+      expect(new Set(tagged.flatMap((e) => e.patterns))).toEqual(new Set(["ng-object", "si-names"]));
+    });
+  });
+
   it("practises a pattern the lesson only uses with a single drill", async () => {
     const { exercises } = await stub.generate(lessonWith([], [umAspect]), [kain]);
     const tagged = exercises.filter((e) => e.patterns.length);

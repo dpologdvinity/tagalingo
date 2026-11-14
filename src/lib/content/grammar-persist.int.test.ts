@@ -445,3 +445,107 @@ describe("generateDraftsForLesson with grammar", () => {
     expect(runs[0].error).toMatch(/no-such-pattern/);
   });
 });
+
+describe("generateDraftsForLesson with grammarOnly", () => {
+  const SCRATCH_SKILL = "tgr-grammar-only";
+  const PATTERN = "tgr-only";
+
+  afterEach(async () => {
+    // Dropping the scratch pattern first lets its skill (lessons, exercises, runs and tags) go too.
+    await syncCourseStructure(prisma, shipped);
+    await prisma.skill.deleteMany({ where: { slug: SCRATCH_SKILL } });
+  });
+
+  /**
+   * The shipped course plus a scratch skill (a copy of the first skill's words) whose first lesson
+   * teaches a scratch pattern with three multiple-choice questions. Nothing in the real course is touched.
+   */
+  function scratchCourse(): CourseDefinition {
+    const def = structuredClone(shipped);
+    const skill = structuredClone(def.units[0].skills[0]);
+    skill.slug = SCRATCH_SKILL;
+    skill.verbs = [];
+    for (const lesson of skill.lessons) Object.assign(lesson, { teaches: [], uses: [] });
+    skill.lessons[0].teaches = [PATTERN];
+    def.units[0].skills.push(skill);
+    const choice = (n: number): CoursePattern["drills"]["choices"][number] => [
+      `Siya ang ___ ${n}.`,
+      "English.",
+      ["ako", "siya", "kami"],
+      1,
+      ["Ako is I.", null, "Kami is we."],
+    ];
+    def.grammar = [
+      ...shipped.grammar,
+      { ...pattern(PATTERN, "Scratch"), drills: { frames: [], transforms: [], choices: [1, 2, 3].map(choice) } },
+    ];
+    return def;
+  }
+
+  /** The stub without its grammar drills: what a lesson looked like before grammar content existed. */
+  const vocabularyOnly: ExerciseGenerator = {
+    provider: "stub",
+    model: "stub",
+    generate: async (request, tables) => {
+      const result = await new StubGenerator().generate(request, tables);
+      return { ...result, exercises: result.exercises.filter((e) => e.patterns.length === 0) };
+    },
+  };
+
+  const lessonRows = async () => {
+    const skill = await prisma.skill.findUniqueOrThrow({ where: { slug: SCRATCH_SKILL } });
+    const lesson = await prisma.lesson.findUniqueOrThrow({ where: { skillId_order: { skillId: skill.id, order: 1 } } });
+    return prisma.exercise.findMany({
+      where: { lessonId: lesson.id },
+      orderBy: { order: "asc" },
+      include: { patterns: { include: { pattern: true } } },
+    });
+  };
+
+  it("adds only tagged DRAFT grammar drills after the 4th exercise and does it once", async () => {
+    const def = scratchCourse();
+    await syncCourseStructure(prisma, def);
+    const target = { skillSlug: SCRATCH_SKILL, lessonOrder: 1 };
+    await generateDraftsForLesson(prisma, vocabularyOnly, def, target);
+    const before = await lessonRows();
+    expect(before.length).toBeGreaterThan(4);
+    expect(before.map((e) => e.order)).toEqual(before.map((_, i) => i + 1));
+
+    const result = await generateDraftsForLesson(prisma, new StubGenerator(), def, target, undefined, {
+      grammarOnly: true,
+    });
+    expect(result).toMatchObject({ created: 3, skipped: 0, rejected: 0 });
+
+    const after = await lessonRows();
+    expect(after.map((e) => e.order)).toEqual(after.map((_, i) => i + 1));
+    // The vocabulary exercises keep their order; the grammar drills sit between the 4th and the 5th.
+    const added = after.slice(4, 7);
+    expect(after.filter((e) => !added.includes(e)).map((e) => e.id)).toEqual(before.map((e) => e.id));
+    for (const e of added) {
+      expect(e.status).toBe("DRAFT");
+      expect(e.type).toBe("fill_blank");
+      expect(e.patterns.map((t) => t.pattern.slug)).toEqual([PATTERN]);
+    }
+    expect(after.filter((e) => e.patterns.length === 0)).toHaveLength(before.length);
+
+    // Running it again (even after a reviewer acted on a drill) adds nothing and moves nothing.
+    await prisma.exercise.update({ where: { id: added[0].id }, data: { status: "APPROVED" } });
+    await prisma.exercise.update({ where: { id: added[1].id }, data: { status: "REJECTED" } });
+    const again = await generateDraftsForLesson(prisma, new StubGenerator(), def, target, undefined, {
+      grammarOnly: true,
+    });
+    expect(again).toMatchObject({ created: 0, skipped: 3, rejected: 0 });
+    expect((await lessonRows()).map((e) => e.id)).toEqual(after.map((e) => e.id));
+  });
+
+  it("appends after the last exercise when the lesson has fewer than four", async () => {
+    const def = scratchCourse();
+    await syncCourseStructure(prisma, def);
+    const target = { skillSlug: SCRATCH_SKILL, lessonOrder: 1 };
+    const result = await generateDraftsForLesson(prisma, new StubGenerator(), def, target, undefined, {
+      grammarOnly: true,
+    });
+    expect(result.created).toBe(3);
+    expect((await lessonRows()).map((e) => e.order)).toEqual([1, 2, 3]);
+  });
+});

@@ -16,6 +16,7 @@ import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { lessonRequest, type CourseDefinition } from "./course";
 import { loadApprovedVerbTables, syncGrammar } from "./grammar-persist";
+import { GRAMMAR_AFTER } from "./generators/grammar-drills";
 import type { ExerciseGenerator } from "./generators/types";
 import { EXERCISE_TYPES, parseExercise } from "./schema";
 
@@ -80,12 +81,34 @@ export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefin
   return course;
 }
 
+/** `value` as JSON with object keys sorted, so two payloads that mean the same compare equal as strings. */
+function canonicalJson(value: unknown): string {
+  const sorted = (v: unknown): unknown =>
+    Array.isArray(v)
+      ? v.map(sorted)
+      : v && typeof v === "object"
+        ? Object.fromEntries(
+            Object.entries(v)
+              .sort(([a], [b]) => (a < b ? -1 : 1))
+              .map(([k, x]) => [k, sorted(x)]),
+          )
+        : v;
+  return JSON.stringify(sorted(value));
+}
+
 /**
  * Generate DRAFT exercises for one lesson and append them after its existing exercises.
  * The course's APPROVED verb tables are handed to the generator for grammar drills, and every
  * draft that drills a grammar pattern is tagged with it (`ExercisePattern`). Returns the
  * GenerationRun id, how many drafts were created and how many generated items were rejected
  * (vocabulary and grammar alike), with the reasons (also kept on the GenerationRun).
+ *
+ * With `grammarOnly` only the generator's tagged (grammar) drills are kept, so the lesson's existing
+ * exercises, approved ones included, are never duplicated: a drill whose type and payload already
+ * exist in the lesson, in any status (a reviewer's rejection is respected), is skipped and counted
+ * in `skipped`, which makes re-running idempotent for a deterministic generator. The new drills are
+ * inserted after the lesson's `GRAMMAR_AFTER`th exercise, where the stub generator puts them, and
+ * the later exercises are renumbered to make room.
  */
 export async function generateDraftsForLesson(
   prisma: PrismaClient,
@@ -93,6 +116,7 @@ export async function generateDraftsForLesson(
   def: CourseDefinition,
   target: { skillSlug: string; lessonOrder: number },
   requestedById?: string,
+  options: { grammarOnly?: boolean } = {},
 ) {
   const skillDef = def.units.flatMap((u) => u.skills).find((s) => s.slug === target.skillSlug);
   if (!skillDef) throw new Error(`Skill "${target.skillSlug}" is not in course.yaml`);
@@ -108,6 +132,7 @@ export async function generateDraftsForLesson(
   try {
     const tables = await loadApprovedVerbTables(prisma, skill.unit.courseId);
     result = await generator.generate(lessonRequest(def, skillDef, target.lessonOrder - 1), tables);
+    if (options.grammarOnly) result = { ...result, exercises: result.exercises.filter((e) => e.patterns.length > 0) };
     patternIds = new Map(
       (await prisma.grammarPattern.findMany({ where: { courseId: skill.unit.courseId } })).map((p) => [p.slug, p.id]),
     );
@@ -121,11 +146,28 @@ export async function generateDraftsForLesson(
     throw e;
   }
 
-  const { exercises, rejected } = result;
+  const { rejected } = result;
   // One transaction: the run, the drafts and their pattern tags land together or not at all.
-  const runId = await prisma.$transaction(async (tx) => {
-    const last = await tx.exercise.aggregate({ where: { lessonId: lesson.id }, _max: { order: true } });
-    const start = (last._max.order ?? 0) + 1;
+  const { runId, exercises } = await prisma.$transaction(async (tx) => {
+    const existing = await tx.exercise.findMany({
+      where: { lessonId: lesson.id },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      select: { order: true, type: true, payload: true },
+    });
+    let exercises = result.exercises;
+    // Where the new drills start: after the lesson's last exercise, or in grammar-only mode after its 4th.
+    let after = existing.at(-1)?.order ?? 0;
+    if (options.grammarOnly) {
+      const present = new Set(existing.map((e) => `${e.type}:${canonicalJson(e.payload)}`));
+      exercises = exercises.filter((e) => !present.has(`${e.type}:${canonicalJson(e.payload)}`));
+      after = existing[Math.min(GRAMMAR_AFTER, existing.length) - 1]?.order ?? 0;
+      if (exercises.length)
+        await tx.exercise.updateMany({
+          where: { lessonId: lesson.id, order: { gt: after } },
+          data: { order: { increment: exercises.length } },
+        });
+    }
+    const start = after + 1;
     const run = await tx.generationRun.create({
       data: {
         skillId: skill.id,
@@ -155,11 +197,12 @@ export async function generateDraftsForLesson(
         exercises[order - start].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
       ),
     });
-    return run.id;
+    return { runId: run.id, exercises };
   });
   return {
     runId,
     created: exercises.length,
+    skipped: result.exercises.length - exercises.length,
     rejected: rejected.length,
     rejectedReasons: rejected.map((r) => r.reason),
   };

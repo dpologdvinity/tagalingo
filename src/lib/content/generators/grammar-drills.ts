@@ -27,6 +27,12 @@ import type { GenerationResult, TaggedExercise } from "./types";
 /** Cap on grammar drills added to one lesson, so grammar never crowds out the vocabulary practice. */
 export const MAX_GRAMMAR_DRILLS = 5;
 
+/** A taught pattern that has produced fewer drills than this takes further choices and transforms. */
+const MIN_DRILLS_PER_PATTERN = 3;
+
+/** Grammar drills go after this many exercises of the lesson (the stub's vocabulary opening). */
+export const GRAMMAR_AFTER = 4;
+
 /** Pattern ids that get a find-the-root question (they have no frames to hang one on). */
 const ROOT_PATTERNS = new Set(["roots", "find-the-root"]);
 
@@ -101,9 +107,9 @@ function patternAffixes(p: CoursePattern): Affix[] {
   return prefixed ? [prefixed] : [];
 }
 
-/** The authored multiple-choice question, with options shuffled and `why` kept aligned to them. */
-function fillBlankDrill(p: CoursePattern, rand: () => number): RawDrill | null {
-  const choice = p.drills.choices[0];
+/** The authored multiple-choice question `index` (the first by default), options shuffled and `why` kept aligned. */
+function fillBlankDrill(p: CoursePattern, rand: () => number, index = 0): RawDrill | null {
+  const choice = p.drills.choices[index];
   if (!choice) return null;
   const [sentence, translation, options, answerIndex, why] = choice;
   const order = shuffle(
@@ -140,12 +146,17 @@ function conjugateDrills(p: CoursePattern, req: GenerationRequest, taught: reado
 }
 
 /**
- * Rewrite drill in build mode. Distractor tiles are the other forms of the verb in the first answer,
+ * Rewrite drill `index` (the first by default) in build mode. Distractor tiles are the other forms of the verb in the first answer,
  * so the learner has to choose the right aspect, not just reorder words. The verb is found by
  * analysing the answer's words against the approved tables.
  */
-function transformDrill(p: CoursePattern, req: GenerationRequest, taught: readonly VerbTableData[]): RawDrill | null {
-  const transform = p.drills.transforms[0];
+function transformDrill(
+  p: CoursePattern,
+  req: GenerationRequest,
+  taught: readonly VerbTableData[],
+  index = 0,
+): RawDrill | null {
+  const transform = p.drills.transforms[index];
   if (!transform) return null;
   const [source, sourceEn, instruction, accepted] = transform;
   const answers = accepted.map((a) => answerTiles(a, req, taught));
@@ -263,8 +274,21 @@ function vet(raw: RawDrill, req: GenerationRequest, tables: readonly VerbTableDa
 }
 
 /**
+ * Further drills for a pattern that came up short: its second, third... multiple-choice and transform,
+ * taken alternately (choice, transform, choice...).
+ */
+function extraDrills(p: CoursePattern, req: GenerationRequest, taught: readonly VerbTableData[], rand: () => number) {
+  const extras: (RawDrill | null)[] = [];
+  const rounds = Math.max(p.drills.choices.length, p.drills.transforms.length);
+  for (let i = 1; i < rounds; i++) extras.push(fillBlankDrill(p, rand, i), transformDrill(p, req, taught, i));
+  return extras.filter((d) => d !== null);
+}
+
+/**
  * Builds the lesson's grammar drills. A taught pattern offers (in this order) its multiple-choice,
- * one conjugation per frame, its transform, a find-the-root and a paradigm; a pattern the lesson
+ * one conjugation per frame, its transform, a find-the-root and a paradigm; when fewer than
+ * `MIN_DRILLS_PER_PATTERN` of those pass the automatic checks it takes further choices and
+ * transforms round-robin until it has that many. A pattern the lesson
  * only `uses` offers one drill (conjugation, else multiple-choice, else transform). Drills that
  * pass `checkDrill` are dealt round-robin across the patterns up to the cap, then ordered from
  * recognition to production.
@@ -276,9 +300,22 @@ export function buildGrammarDrills(
 ): { drills: TaggedExercise[]; rejected: Rejected[] } {
   const taught = taughtTables(req, tables);
   const rejected: Rejected[] = [];
-  const offers: RawDrill[][] = [];
+  const uncovered = uncoveredForms(req, taught);
+  /** Vets raw drills in order, keeping the accepted ones (at most `limit`) and recording the rejects. */
+  const vetAll = (raws: readonly RawDrill[], limit = Infinity): TaggedExercise[] => {
+    const accepted: TaggedExercise[] = [];
+    for (const raw of raws) {
+      if (accepted.length >= limit) break;
+      const result = vet(raw, req, taught, uncovered);
+      if ("rejected" in result) rejected.push(result.rejected);
+      if ("drill" in result) accepted.push(result.drill);
+    }
+    return accepted;
+  };
+
+  const accepted: TaggedExercise[][] = [];
   for (const p of req.grammar.teaches) {
-    offers.push(
+    const base = vetAll(
       [
         fillBlankDrill(p, rand),
         ...conjugateDrills(p, req, taught),
@@ -287,6 +324,8 @@ export function buildGrammarDrills(
         paradigmDrill(p, req, taught, rand),
       ].filter((d) => d !== null),
     );
+    const missing = MIN_DRILLS_PER_PATTERN - base.length;
+    accepted.push(missing > 0 ? [...base, ...vetAll(extraDrills(p, req, taught, rand), missing)] : base);
   }
   for (const p of req.grammar.uses) {
     const options = [
@@ -294,17 +333,9 @@ export function buildGrammarDrills(
       fillBlankDrill(p, rand),
       transformDrill(p, req, taught),
     ];
-    offers.push(options.filter((d) => d !== null).slice(0, 1));
+    accepted.push(vetAll(options.filter((d) => d !== null).slice(0, 1)));
   }
 
-  const uncovered = uncoveredForms(req, taught);
-  const accepted = offers.map((offer) =>
-    offer.flatMap((raw) => {
-      const result = vet(raw, req, taught, uncovered);
-      if ("rejected" in result) rejected.push(result.rejected);
-      return "drill" in result ? [result.drill] : [];
-    }),
-  );
   const drills: TaggedExercise[] = [];
   for (let round = 0; drills.length < MAX_GRAMMAR_DRILLS && accepted.some((a) => a.length > round); round++)
     for (const a of accepted) if (a[round] && drills.length < MAX_GRAMMAR_DRILLS) drills.push(a[round]);
