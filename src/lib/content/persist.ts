@@ -11,11 +11,11 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { lessonRequest, type CourseDefinition } from "./course";
 import type { ExerciseGenerator } from "./generators/types";
-import { EXERCISE_TYPES, parseExercise } from "./schema";
+import { parseExercise } from "./schema";
+import { exportFileSchema, type ExportFile } from "./shipped";
 
 /** Insert or update course → units → skills → lessons → words to match course.yaml. */
 export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefinition) {
@@ -133,25 +133,6 @@ export async function generateDraftsForLesson(
   });
   return { runId: run.id, created: result.exercises.length, rejected: result.rejected.length };
 }
-
-const exportFileSchema = z.object({
-  skill: z.string(),
-  lessons: z.array(
-    z.object({
-      order: z.number().int().positive(),
-      title: z.string(),
-      exercises: z.array(
-        z.object({
-          type: z.enum(EXERCISE_TYPES),
-          payload: z.unknown(),
-          source: z.enum(["HUMAN", "CLAUDE", "STUB"]),
-          reviewNote: z.string().nullish(),
-        }),
-      ),
-    }),
-  ),
-});
-export type ExportFile = z.infer<typeof exportFileSchema>;
 
 const exercisesDir = (contentDir: string) => path.join(contentDir, "exercises");
 
