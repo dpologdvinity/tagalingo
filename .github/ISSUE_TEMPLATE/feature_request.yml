@@ -1,0 +1,22 @@
+# Feature request form: an idea for a lesson type, game mechanic or tool.
+name: Feature request
+description: A new exercise type, game mechanic, skill or tool
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should exist, and what would a learner do with it?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it helps
+      description: The learning problem it solves, or what makes it more fun.
+  - type: textarea
+    id: refs
+    attributes:
+      label: References
+      description: Screenshots or links to apps that do it well.
