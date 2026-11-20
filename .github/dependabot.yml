@@ -1,0 +1,27 @@
+# Dependabot: weekly grouped updates for npm and the pinned GitHub Actions.
+# Security fixes arrive as soon as an advisory lands, outside this schedule.
+# The npm minor-and-patch group is auto-merged once CI passes (dependabot-automerge.yml);
+# majors and the Actions group wait for a human.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    ignore:
+      # @types/node tracks the Node major the app runs on (24), not the latest release.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+    groups:
+      # One PR for every minor and patch bump keeps the queue short.
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, ci]
+    groups:
+      actions:
+        patterns: ["*"]
