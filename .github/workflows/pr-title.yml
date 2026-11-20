@@ -1,0 +1,27 @@
+# PR titles follow Conventional Commits (AGENTS.md), because squash merges use the title as the
+# commit message on master. This fails a PR whose title doesn't match, e.g.
+# `feat(lessons): add listening exercises`.
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The title goes through an env var, never into the script text.
+      - env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          re='^(feat|fix|refactor|test|chore|docs|perf|ci|build|revert|style|content)(\([a-z0-9-]+\))?!?: .+'
+          if [[ ! "$TITLE" =~ $re ]]; then
+            echo "::error title=PR title::\"$TITLE\" is not a Conventional Commit title, for example: fix(lessons): keep hearts at zero"
+            exit 1
+          fi
