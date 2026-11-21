@@ -49,6 +49,8 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
       - name: Check shipped course content
+        # `shell: bash` adds pipefail, so the step fails with the report instead of through tee.
+        shell: bash
         run: npm run -s content:check | tee -a "$GITHUB_STEP_SUMMARY"
       - run: npm run test:coverage
       - name: Coverage summary
@@ -136,17 +138,22 @@ jobs:
   # Publishes the e2e screenshots to the `screenshots` branch (one folder per open PR, kept as a
   # single orphan commit so the branch never grows) and keeps one comment on the PR up to date.
   # Runs no PR code: it only handles the PNG artifact, so it can hold a write token. Fork PRs get
-  # a read-only token, so they are skipped.
+  # a read-only token, and Dependabot PRs change no screens, so both are skipped.
   screenshots:
     name: PR screenshots
     needs: e2e
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
-    # One writer at a time; a queued run waits rather than racing the force-push.
+    # One writer at a time; a queued run waits rather than racing the force-push. GitHub keeps only
+    # the newest pending run per group, so when several PRs push at once an older pending run can
+    # end "cancelled"; that PR's comment catches up on its next push.
     concurrency:
       group: screenshots-branch
       cancel-in-progress: false
@@ -164,20 +171,28 @@ jobs:
         run: |
           set -euo pipefail
           url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-          if git ls-remote --exit-code --heads "$url" screenshots > /dev/null; then
+          # Exit code 2 means "no such branch" (first run); anything else is a real failure and must
+          # not fall through to a fresh branch that would overwrite every other PR's screenshots.
+          status=0
+          git ls-remote --exit-code --heads "$url" screenshots > /dev/null || status=$?
+          if [ "$status" -eq 0 ]; then
             git clone --quiet --depth 1 --branch screenshots "$url" site
-          else
+          elif [ "$status" -eq 2 ]; then
             git init --quiet -b screenshots site
             git -C site remote add origin "$url"
+          else
+            echo "::error::git ls-remote failed with exit code $status"
+            exit "$status"
           fi
           cd site
-          # Drop folders of PRs that are no longer open.
+          # Drop folders of PRs that are closed or merged. An API error keeps the folder: a rate
+          # limit must not delete an open PR's screenshots.
           for dir in pr-*/; do
             [ -d "$dir" ] || continue
             number="${dir#pr-}"
             number="${number%/}"
-            state="$(gh pr view "$number" --repo "$REPO" --json state --jq .state 2> /dev/null || echo GONE)"
-            [ "$state" = OPEN ] || rm -rf "$dir"
+            state="$(gh pr view "$number" --repo "$REPO" --json state --jq .state 2> /dev/null || echo UNKNOWN)"
+            case "$state" in CLOSED | MERGED) rm -rf "$dir" ;; esac
           done
           rm -rf "pr-${PR}"
           mkdir -p "pr-${PR}"
