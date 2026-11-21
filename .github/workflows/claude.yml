@@ -37,10 +37,9 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # One run per issue or PR; a second request waits instead of cancelling work in progress.
-    concurrency:
-      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
-      cancel-in-progress: false
+    # No concurrency group: GitHub keeps only one pending run per group, so a third request would
+    # silently cancel a second one that is still waiting. Every request runs; Claude works on its
+    # own branch, so parallel runs on one issue are rare and visible if they clash.
     env:
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
     steps:
