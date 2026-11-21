@@ -14,6 +14,11 @@ updates:
       prefix: "fix(deps)"
       prefix-development: "chore(deps-dev)"
     ignore:
+      # typescript-eslint (via eslint-config-next) has to support a new TypeScript major first:
+      # TypeScript 7 fails `npm run lint` with "typescript-eslint does not support TS 7.0".
+      # Revisit when typescript-eslint announces support.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
       # @types/node tracks the Node major the app runs on (24), not the latest release.
       - dependency-name: "@types/node"
         update-types: [version-update:semver-major]
