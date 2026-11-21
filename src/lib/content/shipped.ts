@@ -100,7 +100,14 @@ export function checkShippedContent(course: CourseDefinition, files: RawContentF
     }
     shippedIn.set(file.skill, name);
 
+    const seenOrders = new Set<number>();
     for (const lesson of file.lessons) {
+      // The seed would import both copies into one lesson with clashing exercise orders.
+      if (seenOrders.has(lesson.order)) {
+        errors.push(`${name} › lesson ${lesson.order}: listed more than once`);
+        continue;
+      }
+      seenOrders.add(lesson.order);
       if (lesson.order > skill.lessons) {
         errors.push(
           `${name} › lesson ${lesson.order}: "${file.skill}" only has ${skill.lessons} lessons in course.yaml`,
