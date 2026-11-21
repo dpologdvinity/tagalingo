@@ -8,6 +8,7 @@
 import fs from "node:fs";
 import YAML from "yaml";
 import { z } from "zod";
+import { AA_TEXT_CONTRAST, contrastRatio } from "@/lib/color";
 
 const text = z.string().trim().min(1);
 
@@ -104,7 +105,13 @@ const courseSchema = z.object({
         slug: z.string().regex(/^[a-z0-9-]+$/),
         title: text,
         subtitle: text,
-        color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+        // Unit headers put white text on this colour, so it has to reach WCAG AA contrast.
+        color: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .refine((c) => contrastRatio(c, "#ffffff") >= AA_TEXT_CONTRAST, {
+            message: `needs at least ${AA_TEXT_CONTRAST}:1 contrast with white text (pick a darker shade)`,
+          }),
         skills: z.array(skillSchema).min(1),
       }),
     )

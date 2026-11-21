@@ -10,7 +10,7 @@ const course = parseCourse({
       slug: "u1",
       title: "U1",
       subtitle: "s",
-      color: "#13A3A9",
+      color: "#0F8287",
       skills: [
         {
           slug: "pagbati",
