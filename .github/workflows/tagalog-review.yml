@@ -1,0 +1,78 @@
+# A Tagalog language review for every pull request that changes course content. Claude reads the
+# changed word lists and exercises the way a fluent Filipino teacher would and comments on
+# anything wrong or unnatural. It helps reviewers; it does not replace the fluent-speaker check
+# CONTRIBUTING.md asks for.
+#
+# Runs when a content PR is opened, reopened or marked ready. Needs the CLAUDE_CODE_OAUTH_TOKEN
+# secret; without it the job logs a notice and passes. Drafts and fork PRs are skipped.
+name: Tagalog review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [master]
+    paths: ["content/**"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: tagalog-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    env:
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+    steps:
+      - name: Skip without a Claude token
+        if: env.HAS_CLAUDE_TOKEN != 'true'
+        run: echo "::notice title=Tagalog review skipped::Add the CLAUDE_CODE_OAUTH_TOKEN repository secret to turn it on."
+      - uses: actions/checkout@v7
+        if: env.HAS_CLAUDE_TOKEN == 'true'
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
+        if: env.HAS_CLAUDE_TOKEN == 'true'
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allow_fork_prs: "false"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            You are a fluent Tagalog speaker and Filipino language teacher reviewing course content
+            for English-speaking beginners. The PR branch is checked out. Read the content diff
+            (`gh pr diff`) for content/tagalog/course.yaml (word lists, glosses, example sentences,
+            tips, dialogues) and content/tagalog/exercises/*.json (approved exercises; the payload
+            formats are documented in src/lib/content/schema.ts). Use the rest of course.yaml for
+            context on what learners have seen so far.
+
+            Check every changed item for:
+            - Correct, natural Tagalog as spoken in Metro Manila today, not textbook-stiff or
+              word-for-word from English. Flag Taglish only where a learner would be misled.
+            - Glosses and translations that match the Tagalog exactly, including politeness (po/opo)
+              and number (mga).
+            - Verbs: aspect (completed, ongoing, contemplated) matching the English tense, and focus
+              (actor vs object focus, ang/ng/sa marking) matching who does what.
+            - Particles and spelling: ng vs nang, din/rin, daw/raw, the linker -ng/na, enclitic order
+              (e.g. "Kumain na ba siya?"), and consistent spelling across the course.
+            - Exercises: is the marked answer actually correct; are there other correct answers a
+              learner could reasonably give that `answers` / `alternates` should accept (with or
+              without po, natural word-order variants); is any distractor also a correct answer;
+              does every word_bank answer use only its tiles.
+            - Tips and notes that are accurate and not over-generalised.
+
+            Report only real problems, each with the corrected Tagalog and a one-line reason. Use
+            `mcp__github_inline_comment__create_inline_comment` (with `confirmed: true`) on the exact
+            line, then post one summary with `gh pr comment`: how many items you checked, the problems
+            ranked by how much they would mislead a learner, and a reminder that a fluent speaker
+            should still sign off. If everything is right, say so in one line. Only post GitHub comments.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
