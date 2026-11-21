@@ -86,6 +86,17 @@ describe("checkShippedContent", () => {
     expect(report.errors).toEqual([expect.stringMatching(/lesson 3.*only has 2 lessons/)]);
   });
 
+  it("rejects a lesson listed twice in one file", () => {
+    const report = checkShippedContent(course, [
+      file([
+        { order: 1, title: "L1", exercises: [select] },
+        { order: 1, title: "L1 again", exercises: [typed] },
+      ]),
+    ]);
+    expect(report.errors).toEqual([expect.stringMatching(/pagbati\.json › lesson 1: listed more than once/)]);
+    expect(report.skills[0].exercises).toBe(1);
+  });
+
   it("rejects a file that does not match the export format", () => {
     const report = checkShippedContent(course, [{ name: "pagbati.json", raw: { skill: "pagbati" } }]);
     expect(report.errors).toEqual([expect.stringMatching(/pagbati\.json: .*lessons/)]);
