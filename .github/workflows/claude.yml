@@ -41,7 +41,14 @@ jobs:
     concurrency:
       group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
       cancel-in-progress: false
+    env:
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
     steps:
+      - name: Stop without a Claude token
+        if: env.HAS_CLAUDE_TOKEN != 'true'
+        run: |
+          echo "::error title=Claude is not set up::Add the CLAUDE_CODE_OAUTH_TOKEN repository secret (see docs/agents/STEPS-FOR-OWNER.md)."
+          exit 1
       - uses: actions/checkout@v7
         with:
           fetch-depth: 1
