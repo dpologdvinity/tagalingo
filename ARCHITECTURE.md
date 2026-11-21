@@ -93,6 +93,16 @@ content/tagalog/course.yaml ─► ExerciseGenerator ─► DRAFT rows ─► /s
 - `selectGenerator()` picks Claude when `ANTHROPIC_API_KEY` is set, otherwise the stub.
 - Only `APPROVED` exercises are ever served. A lesson with none blocks the path ("in review").
 
+## Verification
+
+Answer secrecy is checked at three levels, from the narrowest to the whole app: unit tests on
+`toClientExercise`, integration tests on what `startAttempt` / `startPractice` return, and an
+end-to-end test that records the real network responses while a lesson and a practice session
+load (`e2e/answer-secrecy.spec.ts`). Shipped content is validated without a database by
+`checkShippedContent` (`src/lib/content/shipped.ts`), using the same rules the seed import
+applies. Accessibility (axe-core, WCAG 2.2 AA), page-weight budgets and schema drift are gated in
+CI; see "Continuous integration" in README.md.
+
 ## Auth
 
 Auth.js v5, Credentials provider (bcrypt hashes), JWT sessions. `auth.config.ts` is DB-free and
