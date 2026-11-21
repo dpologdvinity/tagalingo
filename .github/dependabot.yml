@@ -1,5 +1,6 @@
-# Dependabot: weekly grouped updates for npm and the pinned GitHub Actions.
-# Security fixes arrive as soon as an advisory lands, outside this schedule.
+# Dependabot: weekly grouped updates for npm and the pinned GitHub Actions. With Dependabot
+# security updates enabled in the repo settings, security fixes arrive as soon as an advisory
+# lands, outside this schedule. Commit prefixes keep PR titles Conventional (pr-title.yml).
 # The npm minor-and-patch group is auto-merged once CI passes (dependabot-automerge.yml);
 # majors and the Actions group wait for a human.
 version: 2
@@ -9,6 +10,9 @@ updates:
     schedule:
       interval: weekly
     labels: [dependencies]
+    commit-message:
+      prefix: "fix(deps)"
+      prefix-development: "chore(deps-dev)"
     ignore:
       # @types/node tracks the Node major the app runs on (24), not the latest release.
       - dependency-name: "@types/node"
@@ -22,6 +26,8 @@ updates:
     schedule:
       interval: weekly
     labels: [dependencies, ci]
+    commit-message:
+      prefix: "ci"
     groups:
       actions:
         patterns: ["*"]
