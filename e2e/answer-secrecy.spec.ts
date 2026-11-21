@@ -9,12 +9,14 @@
  *     `distractors`, `replyEn`), or
  *   - a withheld value, serialised the way a leak would serialise it: the accepted typed
  *     translations (as the whole array and one by one), the word-bank answer, alternates and
- *     distractor lists, and a dialogue reply's English. Values that are legitimately visible in
- *     some exercise's client view are skipped, as are single strings under four characters
- *     ("oo", "no"), which collide with unrelated props; arrays catch those instead.
+ *     distractor lists, and a dialogue reply's English. Values a learner legitimately sees in
+ *     another exercise are skipped, as are single strings under four characters ("oo", "no"),
+ *     which collide with unrelated props; arrays catch those instead.
+ *
+ * What counts as visible is spelled out per exercise type below (`publicValues`), independently
+ * of `toClientExercise`: deriving it from the code under test would let a leak whitelist itself.
  */
 import { expect, test, type Page, type Response } from "@playwright/test";
-import { toClientExercise } from "../src/lib/content/client-view";
 import { parseExercise, type ExerciseType, type ParsedExercise } from "../src/lib/content/schema";
 import { logInAsDemo, query, signUpFreshLearner } from "./helpers";
 
@@ -65,14 +67,33 @@ function recordResponses(page: Page) {
   };
 }
 
-/** Every string and string-array in a value, so values a learner may legitimately see can be excluded. */
-function visibleValues(value: unknown, out = new Set<string>()): Set<string> {
-  if (typeof value === "string") out.add(JSON.stringify(value));
-  else if (Array.isArray(value)) {
-    if (value.every((v) => typeof v === "string")) out.add(JSON.stringify(value));
-    value.forEach((v) => visibleValues(v, out));
-  } else if (value && typeof value === "object") Object.values(value).forEach((v) => visibleValues(v, out));
-  return out;
+/**
+ * The fields a learner is meant to see before answering, per exercise type, as JSON strings: each
+ * string, plus whole option lists. Word-bank tiles are public one by one, but only as a shuffled
+ * mix, so the answer and distractor lists stay secret.
+ */
+function publicValues(ex: ParsedExercise): string[] {
+  const values: (string | string[])[] = (() => {
+    switch (ex.type) {
+      case "select_translation":
+        return [ex.payload.prompt, ex.payload.options, ...ex.payload.options];
+      case "fill_blank":
+        return [ex.payload.sentence, ex.payload.translation, ex.payload.options, ...ex.payload.options];
+      case "word_bank":
+        return [ex.payload.prompt, ...ex.payload.answer, ...ex.payload.distractors];
+      case "match_pairs":
+        return ex.payload.pairs.flatMap((p) => [p.tl, p.en]);
+      case "type_translation":
+        return [ex.payload.prompt];
+      case "listen_select":
+        return [ex.payload.audio, ex.payload.options, ...ex.payload.options];
+      case "speak":
+        return [ex.payload.text, ex.payload.translation];
+      case "dialogue":
+        return [...ex.payload.lines.flatMap((l) => [l.tl, l.en]), ex.payload.options, ...ex.payload.options];
+    }
+  })();
+  return values.map((v) => JSON.stringify(v));
 }
 
 /** Values the server knows but deliberately never sends before grading. */
@@ -81,7 +102,12 @@ function withheld(ex: ParsedExercise): (string | string[])[] {
     case "type_translation":
       return [ex.payload.answers, ...ex.payload.answers];
     case "word_bank":
-      return [ex.payload.answer, ex.payload.distractors, ...(ex.payload.alternates ?? [])].filter((a) => a.length);
+      // Without distractors the tiles are just the answer reshuffled, so its order is all that's secret
+      // and the shuffle may reproduce it; only look for the answer list when distractors exist.
+      return [
+        ...(ex.payload.distractors.length ? [ex.payload.answer, ex.payload.distractors] : []),
+        ...(ex.payload.alternates ?? []),
+      ];
     case "dialogue":
       return [ex.payload.replyEn];
     default:
@@ -116,11 +142,10 @@ async function expectNoLeaks(
   // An abandoned prefetch has no body to check; every other session response must be readable.
   const unread = onSession.filter((c) => c.body === null && !c.prefetch).map((c) => c.url);
   expect(unread, "responses for the session page that could not be read").toEqual([]);
-  const parsed = exercises.map((e) => ({ id: e.id, ex: parseExercise(e.type as ExerciseType, e.payload) }));
-  const visible = new Set<string>();
-  for (const { id, ex } of parsed) visibleValues(toClientExercise(id, ex), visible);
+  const parsed = exercises.map((e) => parseExercise(e.type as ExerciseType, e.payload));
+  const visible = new Set(parsed.flatMap(publicValues));
   const secrets = new Map<string, string | string[]>();
-  for (const { ex } of parsed) {
+  for (const ex of parsed) {
     for (const value of withheld(ex)) {
       const json = JSON.stringify(value);
       if (!visible.has(json) && distinctive(value)) secrets.set(json, value);
