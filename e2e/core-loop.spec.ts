@@ -141,9 +141,10 @@ test.describe("richer lessons", () => {
     await page.goto("/skills/pagbati");
     await expect(page.getByRole("heading", { name: "Tips" })).toBeVisible();
     await expect(page.getByText(/Add po to a sentence/)).toBeVisible();
-    const card = page.getByRole("button", { name: /Tap to show the meaning/ });
+    // The card's accessible name is its visible text, front and back.
+    const card = page.getByRole("button", { name: /Tap to see the meaning/ });
     await card.click();
-    await expect(page.getByRole("button", { name: /Meaning:/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Tap to see the Tagalog/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conversations" })).toBeVisible();
   });
 
