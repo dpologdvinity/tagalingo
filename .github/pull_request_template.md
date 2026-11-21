@@ -1,4 +1,4 @@
-<!-- The PR title becomes the squash commit on master: use a Conventional Commit title,
+<!-- A squash merge uses the PR title as the commit message: use a Conventional Commit title,
      e.g. `feat(lessons): add listening exercises`. -->
 
 ## What and why
