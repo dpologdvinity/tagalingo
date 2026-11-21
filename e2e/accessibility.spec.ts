@@ -40,6 +40,7 @@ test.describe("accessibility", () => {
   });
 
   test("signed-in pages", async ({ page }, testInfo) => {
+    test.slow(); // eight pages, each loaded and scanned
     await logInAsDemo(page);
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const paths = [

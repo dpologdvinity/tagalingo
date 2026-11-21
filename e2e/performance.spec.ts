@@ -65,6 +65,7 @@ test.describe("page weight", () => {
   test.skip(({ isMobile }) => isMobile, "desktop only");
 
   test("key screens stay within their JavaScript budgets", async ({ browser }, testInfo) => {
+    test.slow(); // seven cold browser contexts, five of them signed in
     const [lesson] = await query<{ id: string }>(
       `select l.id from "Lesson" l join "Skill" s on s.id = l."skillId" where s.slug = 'pagbati' and l."order" = 1`,
     );
@@ -88,7 +89,12 @@ test.describe("page weight", () => {
       body: JSON.stringify(results, null, 2),
       contentType: "application/json",
     });
-    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summaryTable(results));
+    // Only the last attempt writes the summary, so a retry doesn't print the table twice.
+    const lastAttempt = testInfo.retry === testInfo.project.retries;
+    const passed = results.every((r) => r.jsKb <= r.budgetKb);
+    if (process.env.GITHUB_STEP_SUMMARY && (passed || lastAttempt)) {
+      fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summaryTable(results));
+    }
     for (const r of results) {
       expect.soft(r.jsKb, `${r.label} (${r.path}) loads ${r.jsKb} KB of JavaScript`).toBeLessThanOrEqual(r.budgetKb);
     }

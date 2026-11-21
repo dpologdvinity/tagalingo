@@ -35,7 +35,8 @@ function asJson(value: string | string[]): RegExp {
   return new RegExp(`\\[${value.map(jsonStringSource).join(",")}\\]`);
 }
 
-type Captured = { url: string; body: string | null };
+/** `prefetch` marks Next's speculative route fetches, which the browser may abandon unread. */
+type Captured = { url: string; body: string | null; prefetch: boolean };
 
 /** How long to wait for a body. Route prefetches the browser abandons never finish streaming. */
 const BODY_TIMEOUT_MS = 10_000;
@@ -52,8 +53,9 @@ function recordResponses(page: Page) {
     if (!["document", "fetch", "xhr"].includes(response.request().resourceType())) return;
     if (response.status() >= 300 && response.status() < 400) return; // redirects have no body
     const url = response.url();
+    const prefetch = response.request().headers()["next-router-prefetch"] !== undefined;
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), BODY_TIMEOUT_MS));
-    pending.push(Promise.race([response.text().catch(() => null), timeout]).then((body) => ({ url, body })));
+    pending.push(Promise.race([response.text().catch(() => null), timeout]).then((body) => ({ url, body, prefetch })));
   };
   page.on("response", onResponse);
   return async () => {
@@ -111,7 +113,8 @@ async function expectNoLeaks(
 ) {
   const onSession = captured.filter((c) => pageKey(c.url) === sessionPath);
   expect(onSession.length, `no responses were recorded for ${sessionPath}`).toBeGreaterThan(0);
-  const unread = onSession.filter((c) => c.body === null).map((c) => c.url);
+  // An abandoned prefetch has no body to check; every other session response must be readable.
+  const unread = onSession.filter((c) => c.body === null && !c.prefetch).map((c) => c.url);
   expect(unread, "responses for the session page that could not be read").toEqual([]);
   const parsed = exercises.map((e) => ({ id: e.id, ex: parseExercise(e.type as ExerciseType, e.payload) }));
   const visible = new Set<string>();
