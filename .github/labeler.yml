@@ -1,0 +1,40 @@
+# Area labels applied to pull requests by .github/workflows/labeler.yml, from the files changed.
+"area: content":
+  - changed-files:
+      - any-glob-to-any-file: ["content/**", "src/lib/content/**", "scripts/*content*.ts"]
+"area: game":
+  - changed-files:
+      - any-glob-to-any-file:
+          ["src/lib/game/**", "src/server/lessons.ts", "src/server/learner.ts", "src/server/leaderboard.ts"]
+"area: lessons":
+  - changed-files:
+      - any-glob-to-any-file:
+          ["src/app/lesson/**", "src/app/practice/**", "src/components/player/**", "src/app/actions/lesson.ts"]
+"area: studio":
+  - changed-files:
+      - any-glob-to-any-file: ["src/app/(app)/studio/**", "src/server/studio.ts", "src/app/actions/studio.ts"]
+"area: auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          ["src/auth.ts", "src/auth.config.ts", "src/proxy.ts", "src/app/(auth)/**", "src/server/session.ts"]
+"area: ui":
+  - changed-files:
+      - any-glob-to-any-file: ["src/components/**", "src/app/**/*.tsx", "src/app/globals.css", "public/**"]
+"area: database":
+  - changed-files:
+      - any-glob-to-any-file: ["prisma/**", "prisma.config.ts"]
+"area: speech":
+  - changed-files:
+      - any-glob-to-any-file: ["src/lib/speech/**", "src/app/api/tts/**", "src/components/speak-button.tsx"]
+"area: tutor":
+  - changed-files:
+      - any-glob-to-any-file: ["src/lib/chat/**", "src/app/(app)/chat/**"]
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file: [".github/**"]
+"area: tests":
+  - changed-files:
+      - any-glob-to-any-file: ["e2e/**", "**/*.test.ts", "vitest*.ts", "playwright.config.ts"]
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ["**/*.md", "docs/**"]
