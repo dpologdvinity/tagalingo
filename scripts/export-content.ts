@@ -3,7 +3,8 @@
  * table to content/tagalog/grammar/verbs.json so reviewed content is version-controlled and loaded
  * by the seed on any machine.
  *
- *   npm run content:export
+ *   npm run content:export             (refuses to empty an existing verbs.json when no tables are approved)
+ *   npm run content:export -- --force  (empty it anyway)
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -19,7 +20,7 @@ async function main() {
   });
   try {
     const files = await exportApprovedExercises(prisma, CONTENT_DIR);
-    const verbs = await exportVerbTables(prisma, CONTENT_DIR);
+    const verbs = await exportVerbTables(prisma, CONTENT_DIR, { force: process.argv.includes("--force") });
     if (verbs) files.push(verbs);
     console.log(files.length ? `Wrote:\n  ${files.join("\n  ")}` : "No approved exercises or verb tables to export.");
   } finally {

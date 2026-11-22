@@ -351,6 +351,44 @@ describe("verb tables", () => {
     expect(fs.existsSync(path.join(tmp, "grammar"))).toBe(false);
   });
 
+  describe("export over an existing verbs.json", () => {
+    const existing = {
+      verbs: [
+        {
+          root: "tgrkain",
+          affix: "um",
+          en: "eat",
+          forms: conjugate(KAIN, "um"),
+          irregular: [],
+          reviewNote: "",
+        },
+      ],
+    };
+    const file = () => path.join(tmp, "grammar", "verbs.json");
+    const writeExisting = () => {
+      fs.mkdirSync(path.dirname(file()));
+      fs.writeFileSync(file(), JSON.stringify(existing));
+    };
+
+    it("refuses to replace reviewed tables with an empty list unless forced", async () => {
+      writeExisting();
+      await expect(exportVerbTables(prisma, tmp)).rejects.toThrow(/no approved verb tables[\s\S]*--force/);
+      expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual(existing);
+
+      expect(await exportVerbTables(prisma, tmp, { force: true })).toBe(file());
+      expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual({ verbs: [] });
+    });
+
+    it("overwrites a file that is already empty or unreadable without being forced", async () => {
+      fs.mkdirSync(path.dirname(file()));
+      fs.writeFileSync(file(), JSON.stringify({ verbs: [] }));
+      expect(await exportVerbTables(prisma, tmp)).toBe(file());
+      fs.writeFileSync(file(), "{ not json");
+      expect(await exportVerbTables(prisma, tmp)).toBe(file());
+      expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual({ verbs: [] });
+    });
+  });
+
   describe("import", () => {
     const def = courseWithVerbs(verb("tgrkain", ["um"]));
     const writeFile = (irregular: string[], completed: string[]) => {

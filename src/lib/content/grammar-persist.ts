@@ -128,12 +128,31 @@ export async function loadApprovedVerbTables(
 /**
  * Write the APPROVED tables to `<contentDir>/grammar/verbs.json`, sorted by root then affix, and
  * return the path. Writes nothing (returns null) when nothing is approved and no file exists yet,
- * so an empty course doesn't gain a placeholder file.
+ * so an empty course doesn't gain a placeholder file. When nothing is approved but the file already
+ * lists tables it throws instead of emptying it (a sign of the wrong database), unless `force` is set.
  */
-export async function exportVerbTables(prisma: PrismaClient, contentDir: string): Promise<string | null> {
+export async function exportVerbTables(
+  prisma: PrismaClient,
+  contentDir: string,
+  { force = false }: { force?: boolean } = {},
+): Promise<string | null> {
   const rows = await prisma.verbTable.findMany({ where: { status: "APPROVED" } });
   const file = verbsFilePath(contentDir);
   if (!rows.length && !fs.existsSync(file)) return null;
+  if (!rows.length && !force) {
+    // An unreadable file has nothing worth protecting; `readVerbFile` throws on it.
+    let existing = 0;
+    try {
+      existing = readVerbFile(contentDir).length;
+    } catch {
+      existing = 0;
+    }
+    if (existing)
+      throw new Error(
+        `The database has no approved verb tables, but ${file} lists ${existing}. ` +
+          `Exporting would empty it. Check that DATABASE_URL points at the reviewed database, or pass --force.`,
+      );
+  }
 
   const verbs = rows
     .map((r) => ({
