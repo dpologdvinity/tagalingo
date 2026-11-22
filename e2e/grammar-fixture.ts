@@ -50,13 +50,26 @@ const CARD = {
   rule: "Put -um- after the first consonant to say what someone did.",
   table: {
     head: ["Root", "Past", "Present", "Future"],
-    rows: [["kain", "kumain", "kumakain", "kakain"]],
+    rows: [
+      ["kain", "kumain", "kumakain", "kakain"],
+      ["basa", "bumasa", "bumabasa", "babasa"],
+      ["inom", "uminom", "umiinom", "iinom"],
+      ["lakad", "lumakad", "lumalakad", "lalakad"],
+    ],
   },
+  // Long on purpose: the specs check that a tall card opens at its title on a phone, not at its button.
   examples: [
     ["Kumain ako ng kanin.", "I ate rice."],
     ["Kumakain siya ngayon.", "He is eating now."],
+    ["Kakain kami bukas.", "We will eat tomorrow."],
   ],
-  notes: ["Roots that start with a vowel take um- in front."],
+  notes: [
+    "Roots that start with a vowel take um- in front.",
+    "The past and the infinitive look the same, so the sentence tells you which one you are reading.",
+    "The present repeats the first syllable of the root after the um- has gone in.",
+    "The future repeats the first syllable of the root and drops the um- altogether.",
+    "Say the three forms aloud a few times; the rhythm of the repeated syllable is what makes the present and future easy to hear.",
+  ],
   mistakes: [],
 };
 

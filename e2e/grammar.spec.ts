@@ -48,6 +48,56 @@ test.describe("grammar player", () => {
     await expect(cardHeading(page)).toHaveCount(0);
   });
 
+  test("a long card opens at its title on a phone, in the lesson and in the help dialog", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openGrammarLesson(page);
+
+    // The card step: the page is taller than the screen, but it must not open scrolled to the button.
+    await expect(cardHeading(page)).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeGreaterThan(844);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(cardHeading(page)).toBeFocused();
+    await expect(gotIt(page)).not.toBeInViewport();
+
+    // Enter still dismisses it.
+    await page.keyboard.press("Enter");
+    await expect(page.locator("[data-exercise-id]")).toHaveAttribute("data-exercise-id", FIXTURE.exercises.conjugate);
+
+    // The help dialog opens at the title too, and Enter closes it.
+    await page.getByRole("button", { name: `Grammar help: ${FIXTURE.patternTitle}` }).click();
+    await expect(cardHeading(page)).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Back to the exercise" })).not.toBeInViewport();
+    await page.keyboard.press("Enter");
+    await expect(cardHeading(page)).toHaveCount(0);
+    await expect(page.getByText("Correct answer:")).toHaveCount(0); // the Enter did not also check the answer
+  });
+
+  test("Enter on the help chip and digit keys behind the dialog leave the answer alone", async ({ page }) => {
+    await openGrammarLesson(page);
+    await answerCurrent(page); // conjugate (dismisses the card first)
+    await page.getByRole("button", { name: "Continue" }).click();
+    await answerCurrent(page); // paradigm
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    // find_root, choice mode: pick the first option, then tab-style focus the chip and press Enter.
+    const options = page.getByRole("radio");
+    await expect(options.first()).toBeVisible();
+    await options.first().click();
+    const chip = page.getByRole("button", { name: `Grammar help: ${FIXTURE.patternTitle}` });
+    await chip.focus();
+    await page.keyboard.press("Enter");
+    await expect(cardHeading(page)).toBeVisible(); // the dialog opened: Enter reached the chip, not the player
+    await expect(page.getByText("Correct answer:")).toHaveCount(0);
+
+    // Digits do nothing to the exercise behind the open dialog.
+    await page.keyboard.press("3");
+    await page.keyboard.press("Enter"); // closes the dialog
+    await expect(cardHeading(page)).toHaveCount(0);
+    await expect(options.first()).toHaveAttribute("aria-checked", "true");
+    await expect(options.nth(2)).toHaveAttribute("aria-checked", "false");
+    await expect(page.getByText("Correct answer:")).toHaveCount(0);
+  });
+
   test("conjugate feedback names the wrong form", async ({ page }) => {
     await openGrammarLesson(page);
     await gotIt(page).click();
@@ -128,6 +178,17 @@ test.describe("grammar browsing and word lookup", () => {
       await expect(table.getByRole("cell", { name: form })).toBeVisible();
     await sheet.getByRole("button", { name: "Close" }).click();
     await expect(sheet).toBeHidden();
+  });
+
+  test("a locked pattern's line stays inline on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await signUpFreshLearner(page);
+    await page.goto(`/skills/${FIXTURE.skillSlug}`);
+    const title = page.locator("strong", { hasText: FIXTURE.patternTitle });
+    await expect(title).toBeVisible();
+    // A flex row squeezed the title into a narrow column of its own, so it wrapped onto several lines.
+    const box = await title.boundingBox();
+    expect(box!.height).toBeLessThan(28);
   });
 
   test("the skill page shows the pattern and its verb table", async ({ page }) => {
