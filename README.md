@@ -7,7 +7,8 @@ refill over time. The mascot is Tala, a Philippine tarsier.
 
 Lesson content is generated from a hand-written word list — by Claude when an API key is set,
 or by an offline template generator otherwise — and every exercise is **reviewed by hand** in
-the built-in content Studio before learners ever see it.
+the built-in content Studio before learners ever see it. Verb forms come from a rule-based
+morphology engine, and every verb table is reviewed by hand before a drill may use it.
 
 ## What's in version 1
 
@@ -22,8 +23,7 @@ the built-in content Studio before learners ever see it.
 - **Hearts:** 5 maximum. A wrong answer costs one, and one comes back every 30 minutes.
 - **Content Studio** (`/studio`, reviewers only): generate drafts, preview each exercise as a
   learner sees it with lint warnings, then edit, approve or reject. Grammar has its own review
-  pages: `/studio/verbs` (edit, approve or reject each drafted verb table) and `/studio/grammar`
-  (every grammar card as learners read it, with flags), and each exercise shows its pattern tags.
+  pages (see [Reviewing grammar](#reviewing-grammar)).
 
 ### Added in 1.1: richer lessons
 
@@ -36,12 +36,36 @@ the built-in content Studio before learners ever see it.
 - **Practice:** review any finished skill, or a whole unit. It works with 0 hearts, never costs
   hearts, and wins one back.
 - **Skill pages:** original grammar tips, flip-card flashcards with audio, and the skill's
-  conversations to read, plus the skill's grammar patterns and verb tables.
-- **Grammar:** a page listing every grammar pattern with its card and strength, a "Practise this"
-  button per pattern and a shortcut to your weakest ones. Locked patterns show where they unlock.
+  conversations to read.
 - **"Sounds of Tagalog"** pronunciation guide, linked from the first unit.
 - **Chat with Tala:** a beginner conversation partner, using Claude with a key or an offline
-  scripted tutor without one. Verb forms in Tala's lines are underlined; tap one for its verb table.
+  scripted tutor without one.
+
+### Added in 1.2: the grammar engine
+
+Grammar is taught and drilled, not only noted. 15 patterns (po and opo, the pronouns, ng objects,
+linkers, nasa/nasaan/saan, ba-questions, how um- and mag- verbs change with aspect and more) each
+have a short card, and 18 verb tables list each verb's forms by aspect.
+
+- **Grammar cards in lessons:** the first time a lesson drills a pattern you haven't met, a card
+  appears with the rule, a table and examples. It isn't graded and costs no hearts. You see each
+  card once; a lesson you quit halfway leaves it unseen.
+- **"?" help chip:** every exercise on a pattern you've seen has a small **?** that reopens its
+  card without affecting your answer.
+- **Four new drill types:** _conjugate_ (fill the verb in a sentence), _find the root_, _transform_
+  a sentence (build or type the changed version) and _paradigm_ (complete a verb table; the
+  current course doesn't use it yet). Verb answers are strict: only the listed forms count, with
+  no typo forgiveness. A wrong answer says why, for example "That's the past form (kumain). The future is kakain."
+- **Grammar page** (`/grammar`): every pattern in course order with its card, a strength meter
+  (new, learning, solid or mastered) and a **Practise this** button, plus **Practise your weakest
+  grammar** at the top. Strength rises with correct first answers and fades about 21 days after
+  you last practised, so the meter shows what you'd still remember. Patterns unlock when you
+  finish the lesson that teaches them; locked ones show only where they unlock.
+- **Skill pages:** a Grammar section with the skill's pattern cards and, once you've finished the
+  lesson that drills them, its verb tables. The learning path lists the patterns each skill
+  teaches.
+- **Word lookup in chat:** verb forms in Tala's replies are underlined. Tap one for its root,
+  affix and full verb table. Only verbs with a reviewed table are underlined.
 
 See [PLAN.md](PLAN.md) for the data model, screens and what's deliberately left out, and
 [ARCHITECTURE.md](ARCHITECTURE.md) for how it fits together.
@@ -97,8 +121,36 @@ override, create `.env` (it's git-ignored) with any of:
    ```
 3. Review in `/studio`: approve, reject (with a note) or edit each draft. Only approved
    exercises reach learners.
-4. `npm run content:export` writes approved exercises to `content/tagalog/exercises/*.json`.
-   Commit those files; the seed loads them on every machine.
+4. `npm run content:export` writes approved exercises to `content/tagalog/exercises/*.json` and
+   approved verb tables to `content/tagalog/grammar/verbs.json`. Commit those files; the seed
+   loads them on every machine. It refuses to empty a non-empty `verbs.json` when the database has
+   no approved tables (usually the wrong `DATABASE_URL`); `-- --force` overrides that.
+
+### Grammar content
+
+Grammar patterns (cards and drill ingredients), each skill's `verbs:` and each lesson's
+`teaches:` / `uses:` live in `course.yaml` too. Verb tables are drafted from the engine's rules:
+
+```bash
+npm run grammar:draft                                    # draft a table for every verb x affix that has none
+CONTENT_GENERATOR=stub npm run content:generate -- --skill pagkain --grammar-only   # add only the grammar drills
+```
+
+`--grammar-only` keeps the lesson's existing exercises and adds the new grammar drills as drafts;
+run it again and nothing is duplicated. Drills are built from the stub generator and only from
+_approved_ verb tables, so review the tables first. The Claude generator writes vocabulary
+drills only. [CONTRIBUTING.md](CONTRIBUTING.md) has the full workflow.
+
+### Reviewing grammar
+
+- `/studio/verbs`: one card per verb and affix. Correct any wrong cell (a comma separates accepted
+  spellings; the first is the one learners see), then approve or reject. Learners only ever see
+  approved tables.
+- `/studio/grammar`: every grammar card as learners read it, a **Flag a problem** note on each
+  and the open flags gathered at the top. Card text is fixed in `course.yaml` with a normal commit.
+- `/studio/skills/…`: each exercise shows its pattern tags (editable) and warnings. Verb drills
+  are re-checked against the approved tables, so correcting a table warns on any drill that no
+  longer matches.
 
 ## Scripts
 
@@ -113,8 +165,9 @@ override, create `.env` (it's git-ignored) with any of:
 | `npm test`                   | Unit tests (Vitest)                                         |
 | `npm run test:integration`   | Server tests on a real Postgres (`tagalingo_test` database) |
 | `npm run test:e2e`           | Playwright, desktop + mobile, against `next start`          |
-| `npm run content:generate`   | Draft exercises from the word list                          |
-| `npm run content:export`     | Save approved exercises to the repo                         |
+| `npm run content:generate`   | Draft exercises from the word list (`-- --grammar-only`)    |
+| `npm run content:export`     | Save approved exercises and verb tables to the repo         |
+| `npm run grammar:draft`      | Draft verb tables from the course's `verbs:` for review     |
 | `npm run user:make-reviewer` | Give an account Studio access (`-- --email …`)              |
 
 ## Deploying
@@ -136,7 +189,8 @@ and pull request to `master`. Pushing a `v*` tag drafts a GitHub release.
 
 ## Content status
 
-The shipped exercises for Units 1–3 (227 of them), plus the dialogues, tips and pronunciation
-guide, were written or generated during the build and reviewed by Claude only. **They still need
-a review by a native Tagalog speaker.** Unit 4 (Sa Palengke) is left as drafts on purpose so the
+The shipped exercises for Units 1–3 (274 of them, 47 of which are grammar drills), plus the
+dialogues, tips, pronunciation guide, 15 grammar cards and 18 verb tables, were written or
+generated during the build and reviewed by Claude only. **They still need a review by a native
+Tagalog speaker.** Unit 4 (Sa Palengke) is left as drafts on purpose so the
 Studio review queue has real work in it. All lesson content is original to Tagalingo.

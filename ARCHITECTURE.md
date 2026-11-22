@@ -13,16 +13,17 @@ Browser ──► proxy.ts (session cookie check) ──► Server Components (p
 
 ## Module boundaries
 
-| Path                      | Responsibility                                                                                                                      | May import               |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | nothing app-specific     |
-| `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, Prisma types |
-| `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                                                 | —                        |
-| `src/server/*`            | Use-cases that combine rules with the database (`server-only`): lessons, path, grammar progress, learner stats, leaderboard, studio | `lib/*`                  |
-| `src/app/actions/*`       | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                                      | `server/*`, `lib/*`      |
-| `src/app/**/page.tsx`     | Server-rendered screens                                                                                                             | `server/*`, components   |
-| `src/components/*`        | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                                  | `lib/*` types            |
-| `prisma/`, `scripts/`     | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                                              | `lib/*`                  |
+| Path                      | Responsibility                                                                                                                      | May import                              |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | nothing app-specific                    |
+| `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, `lib/grammar`, Prisma types |
+| `src/lib/grammar/*`       | Pure grammar engine: verb morphology, word analysis, vocabulary and drill checks, the `verbs.json` file format, chat tokeniser      | `lib/content` (course types, helpers)   |
+| `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                                                 | —                                       |
+| `src/server/*`            | Use-cases that combine rules with the database (`server-only`): lessons, path, grammar progress, learner stats, leaderboard, studio | `lib/*`                                 |
+| `src/app/actions/*`       | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                                      | `server/*`, `lib/*`                     |
+| `src/app/**/page.tsx`     | Server-rendered screens                                                                                                             | `server/*`, components                  |
+| `src/components/*`        | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                                  | `lib/*` types                           |
+| `prisma/`, `scripts/`     | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                                              | `lib/*`                                 |
 
 The rules in `src/lib/game` are deliberately pure functions with unit tests; everything that
 touches the database is covered by integration tests (`*.int.test.ts`) and Playwright.
@@ -36,6 +37,13 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
 
 `Exercise.payload` is JSON whose shape depends on `Exercise.type`; it is always validated by
 `parseExercise` (zod) when written _and_ when read.
+
+Grammar adds `GrammarPattern` (a course.yaml pattern: its card as JSON and the one lesson that
+teaches it), `ExercisePattern` (which patterns an exercise drills), `PatternProgress` (a learner's
+attempts, strength and `seenAt` per pattern), `VerbTable` (the forms of one root with one affix,
+with a review status) and `CardFlag` (a reviewer's note on a card). `LessonAttempt.patternId`
+scopes a practice attempt to one pattern. Deleting a pattern cascades to all of these, learners'
+pattern-practice attempts included.
 
 ## Lesson lifecycle
 
@@ -68,14 +76,74 @@ Exercise`, with `Word` rows hanging off `Skill`. Learner state is `User` (hearts
 - **Chat:** `ChatTutor` (`src/lib/chat/tutor.ts`): `ClaudeTutor` (forced tool call → reply,
   translation, optional correction and hint) or the offline `StubTutor`. The conversation stays in
   the browser; the server action only sees the last 12 turns.
-- **Word lookup:** `lookupWords` (`src/server/grammar.ts`) analyses words against the approved verb
-  tables, grouped by table. `TagalogText` (`src/components/verb-sheet.tsx`) tokenises a line
-  (`src/lib/grammar/tokenize.ts`), makes one batch `lookupWordsAction` call and turns known verb
+- **Word lookup:** see [Grammar engine](#grammar-engine-v12) below.
+- **Content:** `course.yaml` also holds emoji pictures (flashcard decoration only), hand-written dialogues (with wrong
+  replies) and tips. They're synced into `Word.pic`, `Skill.dialogues` and `Skill.tips`.
+
+## Grammar engine (v1.2)
+
+Grammar content is authored in `course.yaml`, drafted by rules, reviewed in the Studio and loaded
+from files, like exercises. Verb tables are the one piece of data the rest depends on, so they get
+their own review step.
+
+| Module                                           | Responsibility                                                                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lib/grammar/morphology.ts`                      | Draft the aspect forms of a root + affix from rules (15 affixes). Irregulars are `forms` overrides in `course.yaml`, fixed by review.            |
+| `lib/grammar/analyse.ts`                         | `analyse`: which verb forms could a typed word be, against approved tables. `diffFromRule`: which cells a reviewer changed from the rules.       |
+| `lib/grammar/vocab-check.ts`                     | `grammarVocabIssues`: every Tagalog word in a card or drill must be a course word taught by then, a `FUNCTION_WORDS` entry, or an approved form. |
+| `lib/grammar/drill-check.ts`                     | `verbDrillIssues`: conjugate, paradigm and find_root drills must still match the approved tables.                                                |
+| `lib/grammar/verbs-file.ts`                      | The `content/<lang>/grammar/verbs.json` format and its loaders (`readVerbFile`, `loadApprovedVerbs`); no database needed.                        |
+| `lib/grammar/tokenize.ts`, `forms-input.ts`      | Split chat text into words and gaps; convert verb-table cells to and from the Studio's one-line-per-form text.                                   |
+| `lib/content/grammar-schema.ts`                  | Zod schemas for `grammar` patterns, `verbs` and the stored card; `clientCard` drops `mistakes`.                                                  |
+| `lib/content/grammar-persist.ts`                 | `syncGrammar`, `draftVerbTables`, `exportVerbTables`, `importVerbTables`, `loadApprovedVerbTables`.                                              |
+| `lib/content/generators/grammar-drills.ts`       | Stub-only drills from pattern ingredients and approved tables; each passes `checkDrill` and is tagged with its pattern.                          |
+| `lib/game/strength.ts`                           | Pure pattern strength: an EWMA of first answers, decayed on read (21-day half-life), and its label.                                              |
+| `server/grammar.ts`                              | Unlock state, strength, the cards an attempt shows, weakest patterns, `lookupWords`.                                                             |
+| `server/lessons.ts`                              | Grading context (approved tables, pattern `mistakes`), `PatternProgress` updates, `seenAt`, pattern and weak-grammar practice scopes.            |
+| `server/studio.ts`                               | Verb-table review (`saveVerbTable`, `reviewVerbTable`), card flags, pattern tags, and `verbDrillIssues` as exercise warnings.                    |
+| `components/player/steps.ts`, `grammar-card.tsx` | The player's step queue with cards interleaved; the card and the "?" chip. `grammar-exercises.tsx` holds the four new drill inputs.              |
+| `components/verb-sheet.tsx`, `pattern-entry.tsx` | Verb tables, the tap-a-word sheet and tappable text; a pattern's card with strength and a practise link (grammar and skill pages).               |
+
+### Data flows
+
+```
+course.yaml grammar ──syncGrammar──► GrammarPattern (card JSON, teaching lesson)
+course.yaml verbs   ──grammar:draft──► VerbTable (DRAFT) ──/studio/verbs──► APPROVED ──content:export──► grammar/verbs.json
+grammar/verbs.json  ──seed: importVerbTables──► VerbTable (APPROVED)
+VerbTable (APPROVED) ──► stub generator (--grammar-only or Generate drafts) ──► DRAFT drills + ExercisePattern tags
+```
+
+- **Seed and sync.** `syncCourseStructure` mirrors `course.yaml`, ending with `syncGrammar`
+  (patterns that disappear from it are deleted, with their progress, tags, flags and
+  pattern-practice attempts).
+  The seed then runs `importVerbTables`, which rejects any cell that differs from the rules unless
+  the row lists it as `irregular`, so an unreviewed typo can't ship.
+- **Drills come only from approved tables.** `generateDraftsForLesson` loads the course's
+  `APPROVED` tables and hands them to the stub, which skips a drill whose verb has none. Claude
+  produces vocabulary drills only. `--grammar-only` adds just the tagged drills after the lesson's
+  4th exercise and skips any whose type and payload already exist in the lesson, in any status.
+- **Review safety nets.** `getSkillForReview` adds `verbDrillIssues` to each exercise's warnings, and
+  editing or un-approving a table tells the reviewer how many approved drills use it.
+  `course.test.ts` runs the same check, the vocabulary check and the irregular-marking check
+  against the shipped files in CI.
+- **Player.** `startAttempt` and `startPractice` return the cards of the tagged patterns
+  (`attemptGrammar`; new only in a lesson that teaches the pattern the learner hasn't unlocked) and
+  an `exercisePatterns` map. `steps.ts` inserts each new card before the first exercise tagged with
+  it and turns on a "?" chip for patterns already shown. Cards are sent through `clientCard`, so a
+  pattern's `mistakes` stay on the server.
+- **Grading.** Verb drills grade strictly against the table forms; `explain` names the form a wrong
+  word actually is, then to the exercise's or pattern's `mistakes`, then a per-option `why`, then
+  the find_root hint. Answers never reach the client: the four new types have `toClientExercise` cases and
+  leak tests.
+- **Progress.** On the first real answer to an exercise in an attempt, `submitAnswer` updates
+  `PatternProgress` for each linked pattern inside the learner lock; `completeAttempt` sets `seenAt`
+  for the patterns the lesson teaches. A pattern is unlocked when `seenAt` is set or its lesson is
+  completed.
+- **Word lookup.** `lookupWords` analyses words against the approved tables, grouped by table.
+  `TagalogText` tokenises a line, makes one batch `lookupWordsAction` call and turns known verb
   forms into buttons that open a `VerbSheet`; unknown words and failed lookups stay plain text.
   It is used for Tala's chat lines only; the grammar page (`/grammar`) and skill pages show verb
   tables directly (`VerbTableView`).
-- **Content:** `course.yaml` also holds emoji pictures (flashcard decoration only), hand-written dialogues (with wrong
-  replies) and tips. They're synced into `Word.pic`, `Skill.dialogues` and `Skill.tips`.
 
 ## Time-based rules
 
