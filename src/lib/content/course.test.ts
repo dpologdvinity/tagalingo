@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
 import path from "node:path";
-import { loadApprovedVerbs } from "../grammar/verbs-file";
+import { verbDrillIssues } from "../grammar/drill-check";
+import { loadApprovedVerbs, readVerbFile } from "../grammar/verbs-file";
 import { grammarVocabIssues } from "../grammar/vocab-check";
 import { knownWordsUpTo, loadCourseFile, lessonRequest, parseCourse } from "./course";
+import { unmarkedIrregulars } from "./grammar-persist";
+import { EXERCISE_TYPES, parseExercise } from "./schema";
 
 const minimal = {
   course: { slug: "tl-en", title: "T", fromLang: "en", toLang: "tl" },
@@ -61,6 +65,36 @@ describe("the shipped Tagalog course", () => {
   it("shipped grammar content uses only known words", () => {
     const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
     expect(grammarVocabIssues(course, loadApprovedVerbs())).toEqual([]);
+  });
+
+  it("shipped verb drills match verbs.json", () => {
+    const contentDir = path.join(process.cwd(), "content/tagalog");
+    const tables = loadApprovedVerbs(contentDir);
+    const dir = path.join(contentDir, "exercises");
+    const issues: string[] = [];
+    let checked = 0;
+    for (const name of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+      const file = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")) as {
+        lessons: { order: number; exercises: { type: string; payload: unknown }[] }[];
+      };
+      for (const lesson of file.lessons) {
+        for (const [i, e] of lesson.exercises.entries()) {
+          if (!(EXERCISE_TYPES as readonly string[]).includes(e.type)) continue;
+          const found = verbDrillIssues(parseExercise(e.type as (typeof EXERCISE_TYPES)[number], e.payload), tables);
+          checked += ["conjugate", "paradigm", "find_root"].includes(e.type) ? 1 : 0;
+          issues.push(...found.map((m) => `${name} lesson ${lesson.order} #${i + 1}: ${m}`));
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+    expect(issues).toEqual([]);
+  });
+
+  it("shipped verbs.json marks every cell that differs from the rules as irregular", () => {
+    const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
+    const rows = readVerbFile(path.join(process.cwd(), "content/tagalog"));
+    expect(rows.length).toBeGreaterThan(0);
+    expect(unmarkedIrregulars(course, rows)).toEqual([]);
   });
 });
 

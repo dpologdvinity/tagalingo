@@ -13,7 +13,8 @@ import type { CourseDefinition } from "@/lib/content/course";
 import { courseVerbs, entryFor } from "@/lib/content/grammar-persist";
 import { patternCardSchema, type PatternCard } from "@/lib/content/grammar-schema";
 import { lintExercise, safeParseExercise, type ExerciseType, type ParsedExercise } from "@/lib/content/schema";
-import { diffFromRule } from "@/lib/grammar/analyse";
+import { diffFromRule, type VerbTableData } from "@/lib/grammar/analyse";
+import { verbDrillIssues } from "@/lib/grammar/drill-check";
 import { AFFIXES, type Affix, type FormTable } from "@/lib/grammar/types";
 import { verbFileEntrySchema } from "@/lib/grammar/verbs-file";
 import type { ExerciseSource, ExerciseStatus } from "@/generated/prisma/enums";
@@ -81,11 +82,47 @@ export type ReviewExercise = {
   patterns: { slug: string; title: string }[];
 };
 
+/**
+ * The course's APPROVED tables for drill checks. Unlike `loadApprovedVerbTables` a row that no
+ * longer parses is skipped, so one hand-edited row cannot take a review page down; the drills on
+ * it then warn "no approved table".
+ */
+async function approvedTablesFor(courseId: string): Promise<VerbTableData[]> {
+  const rows = await db.verbTable.findMany({ where: { courseId, status: "APPROVED" } });
+  return rows.flatMap(({ root, affix, en, forms }) => {
+    const parsed = formsSchema.safeParse(forms);
+    return parsed.success ? [{ root, affix, en, forms: parsed.data }] : [];
+  });
+}
+
+/** The verb drill types whose answers come from a verb table. */
+const VERB_DRILL_TYPES = ["conjugate", "paradigm", "find_root"] as const;
+
+/**
+ * " 3 approved drills use this table; check them." for a table that is (or was) live, or "" when
+ * none do. conjugate and paradigm drills match on root and affix; find_root names only the root.
+ */
+async function drillsUsingNote(row: { root: string; affix: Affix; status: ExerciseStatus }): Promise<string> {
+  if (row.status !== "APPROVED") return "";
+  const candidates = await db.exercise.findMany({
+    where: { status: "APPROVED", type: { in: [...VERB_DRILL_TYPES] }, payload: { path: ["root"], equals: row.root } },
+    select: { type: true, payload: true },
+  });
+  const count = candidates.filter((e) => {
+    const parsed = safeParseExercise(e.type as ExerciseType, e.payload);
+    if (parsed?.type === "conjugate" || parsed?.type === "paradigm") return parsed.payload.affix === row.affix;
+    return parsed?.type === "find_root";
+  }).length;
+  if (!count) return "";
+  const [uses, them] = count === 1 ? ["drill uses", "it"] : ["drills use", "them"];
+  return ` ${count} approved ${uses} this table; check ${them} against the new forms.`;
+}
+
 export async function getSkillForReview(skillId: string) {
   const skill = await db.skill.findUnique({
     where: { id: skillId },
     include: {
-      unit: { select: { title: true } },
+      unit: { select: { title: true, courseId: true } },
       words: { orderBy: { tagalog: "asc" } },
       generationRuns: { orderBy: { createdAt: "desc" }, take: 5 },
       lessons: {
@@ -107,6 +144,7 @@ export async function getSkillForReview(skillId: string) {
     },
   });
   if (!skill) return null;
+  const tables = await approvedTablesFor(skill.unit.courseId);
   const patternOptions = await db.grammarPattern.findMany({
     orderBy: [{ order: "asc" }, { slug: "asc" }],
     select: { slug: true, title: true },
@@ -129,7 +167,9 @@ export async function getSkillForReview(skillId: string) {
           parsed,
           rawPayload: e.payload,
           type: e.type as ExerciseType,
-          warnings: parsed ? lintExercise(parsed) : ["Payload no longer passes validation. Fix it before approving."],
+          warnings: parsed
+            ? [...lintExercise(parsed), ...verbDrillIssues(parsed, tables)]
+            : ["Payload no longer passes validation. Fix it before approving."],
           reviewNote: e.reviewNote,
           reviewedBy: e.reviewedBy?.name ?? null,
           reviewedAt: e.reviewedAt,
@@ -204,7 +244,7 @@ export async function saveVerbTable(
   const parsed = formsSchema.safeParse(json);
   if (!parsed.success) return fail(`Check the forms. ${issueSummary(parsed.error)}`);
 
-  const row = await db.verbTable.findUnique({ where: { id }, select: { root: true, affix: true } });
+  const row = await db.verbTable.findUnique({ where: { id }, select: { root: true, affix: true, status: true } });
   if (!row) return fail("That verb table no longer exists.");
   let irregular: string[];
   try {
@@ -216,7 +256,7 @@ export async function saveVerbTable(
     where: { id },
     data: { forms: parsed.data, irregular, reviewedById: userId, reviewedAt: new Date() },
   });
-  return ok("Saved.");
+  return ok(`Saved.${await drillsUsingNote(row)}`);
 }
 
 const tableStatus = z.enum(["APPROVED", "REJECTED", "DRAFT"]);
@@ -246,7 +286,10 @@ export async function reviewVerbTable(
       reviewNote: note?.trim() ? note.trim().slice(0, 500) : row.reviewNote,
     },
   });
-  return ok(next.data === "APPROVED" ? "Approved." : next.data === "REJECTED" ? "Rejected." : "Moved back to drafts.");
+  const message =
+    next.data === "APPROVED" ? "Approved." : next.data === "REJECTED" ? "Rejected." : "Moved back to drafts.";
+  // Leaving APPROVED strands the drills built on the table; saying so beats a silent change.
+  return ok(next.data === "APPROVED" ? message : message + (await drillsUsingNote(row)));
 }
 
 export type ReviewFlag = { id: string; note: string; by: string; createdAt: Date; resolvedAt: Date | null };

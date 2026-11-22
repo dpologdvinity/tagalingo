@@ -170,6 +170,23 @@ export function entryFor(
 }
 
 /**
+ * One message per row of verbs.json whose cells differ from the engine's rule output in a form the
+ * row does not list as `irregular` (an unreviewed typo). Throws, like `entryFor`, for a row whose
+ * verb or affix is not in course.yaml. Pure, so CI can check the shipped file without a database.
+ */
+export function unmarkedIrregulars(def: CourseDefinition, rows: readonly VerbFileEntry[]): string[] {
+  const verbs = courseVerbs(def);
+  return rows.flatMap((row) => {
+    const unmarked = diffFromRule(entryFor(verbs, row), row.affix, row.forms).filter((f) => !row.irregular.includes(f));
+    return unmarked.length
+      ? [
+          `verbs.json: ${row.root} (${row.affix}) differs from the rules in ${unmarked.join(", ")} but is not marked irregular`,
+        ]
+      : [];
+  });
+}
+
+/**
  * Upsert every table in `<contentDir>/grammar/verbs.json` as APPROVED and return how many were
  * imported (0 when the file is absent). A cell that differs from the engine's rule output must be
  * named in the row's `irregular` list, otherwise it is an unreviewed typo: the whole import is then
@@ -183,14 +200,8 @@ export async function importVerbTables(
   reviewedById?: string,
 ): Promise<number> {
   const rows = readVerbFile(contentDir);
-  const verbs = courseVerbs(def);
-  for (const row of rows) {
-    const unmarked = diffFromRule(entryFor(verbs, row), row.affix, row.forms).filter((f) => !row.irregular.includes(f));
-    if (unmarked.length)
-      throw new Error(
-        `verbs.json: ${row.root} (${row.affix}) differs from the rules in ${unmarked.join(", ")} but is not marked irregular`,
-      );
-  }
+  const unmarked = unmarkedIrregulars(def, rows);
+  if (unmarked.length) throw new Error(unmarked[0]);
   if (!rows.length) return 0;
 
   const course = await prisma.course.findUniqueOrThrow({ where: { slug: def.course.slug } });

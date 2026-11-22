@@ -97,6 +97,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  await db.exercise.deleteMany({ where: { id: { startsWith: P } } });
   await db.verbTable.deleteMany({ where: { id: { startsWith: P } } });
   await db.grammarPattern.deleteMany({ where: { slug: { startsWith: P } } });
   await db.user.deleteMany({ where: { id: { startsWith: P } } });
@@ -182,6 +183,67 @@ describe("reviewVerbTable", () => {
     const rows = await getVerbTablesForReview("DRAFT");
     expect(rows.find((r) => r.id === a.id)?.forms).toEqual(ruleForms);
     expect(rows.find((r) => r.id === broken.id)).toMatchObject({ forms: null, formsError: expect.any(String) });
+  });
+});
+
+/** A conjugate drill on the fixture verb, stored APPROVED in the first lesson of the first skill. */
+async function verbDrill(answers: string[], status: "DRAFT" | "APPROVED" = "APPROVED") {
+  const lesson = await db.lesson.findFirstOrThrow({ orderBy: [{ skillId: "asc" }, { order: "asc" }] });
+  return db.exercise.create({
+    data: {
+      id: `${P}drill-${n++}`,
+      lessonId: lesson.id,
+      order: 9000,
+      type: "conjugate",
+      status,
+      source: "HUMAN",
+      payload: {
+        sentence: "___ ako kahapon.",
+        translation: "I tested yesterday.",
+        root: verb.root,
+        affix: "um",
+        form: "completed",
+        answers,
+      },
+    },
+  });
+}
+
+describe("verb drills against approved tables", () => {
+  const warningsOf = async (lessonId: string, exerciseId: string) => {
+    const { skillId } = await db.lesson.findUniqueOrThrow({ where: { id: lessonId }, select: { skillId: true } });
+    const skill = await getSkillForReview(skillId);
+    return skill!.lessons.flatMap((l) => l.exercises).find((e) => e.id === exerciseId)!.warnings;
+  };
+
+  it("warns on the review page when the table is missing, not approved, or no longer has the answer", async () => {
+    const drill = await verbDrill([ruleForms.completed[0]]);
+    expect((await warningsOf(drill.lessonId, drill.id)).join(" ")).toMatch(/no approved table/i);
+
+    const t = await table({ status: "DRAFT" });
+    expect((await warningsOf(drill.lessonId, drill.id)).join(" ")).toMatch(/no approved table/i);
+
+    await reviewVerbTable(reviewer.id, t.id, "APPROVED");
+    expect(await warningsOf(drill.lessonId, drill.id)).toEqual([]);
+
+    const edited = { ...ruleForms, completed: ["tinumestuhan"] };
+    expect((await saveVerbTable(def, reviewer.id, t.id, JSON.stringify(edited))).ok).toBe(true);
+    expect((await warningsOf(drill.lessonId, drill.id)).join(" ")).toMatch(/not in the approved completed form/);
+
+    await reviewVerbTable(reviewer.id, t.id, "REJECTED");
+    expect((await warningsOf(drill.lessonId, drill.id)).join(" ")).toMatch(/no approved table/i);
+  });
+
+  it("says how many approved drills use a table when it is saved or rejected", async () => {
+    const t = await table({ status: "APPROVED" });
+    await verbDrill([ruleForms.completed[0]]);
+    await verbDrill([ruleForms.completed[0]], "DRAFT"); // drafts are not counted
+    const saved = await saveVerbTable(def, reviewer.id, t.id, JSON.stringify(ruleForms));
+    expect(saved.message).toMatch(/1 approved drill uses this table/);
+    const rejected = await reviewVerbTable(reviewer.id, t.id, "REJECTED");
+    expect(rejected.message).toMatch(/1 approved drill uses this table/);
+    // A table that is not approved has no live drills to warn about.
+    expect((await reviewVerbTable(reviewer.id, t.id, "DRAFT")).message).toBe("Moved back to drafts.");
   });
 });
 
