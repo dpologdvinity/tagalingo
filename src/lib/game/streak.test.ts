@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, applyLessonToStreak, dayKey, visibleStreak } from "./streak";
+import { addDays, applyLessonToStreak, dayKey, dayKeyDaysAgo, visibleStreak } from "./streak";
 
 describe("dayKey", () => {
   it("uses the user's timezone to decide the calendar day", () => {
@@ -18,6 +18,31 @@ describe("addDays", () => {
   it("moves across month boundaries", () => {
     expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
     expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+});
+
+describe("dayKeyDaysAgo", () => {
+  it("is today's key at zero days ago", () => {
+    const now = new Date("2026-11-07T20:30:00Z");
+    expect(dayKeyDaysAgo(now, 0, "Asia/Manila")).toBe("2026-11-08");
+  });
+
+  it("steps back by calendar days when the clocks go back, even late in the evening", () => {
+    // 23:30 EST on Nov 14, 2026: DST ended Nov 1, a 25-hour day, so 13 and 14 "24-hour days" ago
+    // both fall on Nov 1 local time.
+    const now = new Date("2026-11-15T04:30:00Z");
+    expect(dayKey(now, "America/New_York")).toBe("2026-11-14");
+    const keys = Array.from({ length: 21 }, (_, daysAgo) => dayKeyDaysAgo(now, daysAgo, "America/New_York"));
+    expect(new Set(keys).size).toBe(keys.length);
+    keys.forEach((key, daysAgo) => expect(key).toBe(addDays("2026-11-14", -daysAgo)));
+  });
+
+  it("steps back by calendar days when the clocks go forward", () => {
+    // 00:30 EDT on Mar 20, 2026: DST began Mar 8, a 23-hour day.
+    const now = new Date("2026-03-20T04:30:00Z");
+    const keys = Array.from({ length: 21 }, (_, daysAgo) => dayKeyDaysAgo(now, daysAgo, "America/New_York"));
+    expect(new Set(keys).size).toBe(keys.length);
+    keys.forEach((key, daysAgo) => expect(key).toBe(addDays("2026-03-20", -daysAgo)));
   });
 });
 

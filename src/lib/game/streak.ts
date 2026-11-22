@@ -24,6 +24,14 @@ export function addDays(day: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Calendar day `daysAgo` days before today's, in `timeZone`. Steps back by calendar days rather than
+ * by 24-hour spans, which land on the same (or a skipped) local date around a DST change.
+ */
+export function dayKeyDaysAgo(now: Date, daysAgo: number, timeZone: string): string {
+  return addDays(dayKey(now, timeZone), -daysAgo);
+}
+
 /** New streak state after completing a lesson on `today`. */
 export function applyLessonToStreak(state: StreakState, today: string): StreakState & { extended: boolean } {
   if (state.lastStreakDay === today) return { ...state, extended: false };
