@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { patternCardSchema, patternSchema, verbEntrySchema } from "./grammar-schema";
+import { clientCard, patternCardSchema, patternSchema, verbEntrySchema } from "./grammar-schema";
 
 const pattern = {
   id: "um-aspect",
@@ -148,5 +148,24 @@ describe("verbEntrySchema", () => {
   it("accepts overrides with variants", () => {
     const forms = { in: { infinitive: ["kunin"], completed: ["kinuha", "kinuha rin"] } };
     expect(verbEntrySchema.parse({ ...verb, forms }).forms).toEqual(forms);
+  });
+});
+
+describe("clientCard", () => {
+  it("drops the mistakes, which only grading reads, and keeps what learners see", () => {
+    const card = {
+      title: "T",
+      rule: "A rule",
+      table: { head: ["a", "b"], rows: [["c", "d"]] },
+      examples: [
+        ["a", "b"],
+        ["c", "d"],
+      ] as [string, string][],
+      notes: ["note"],
+      mistakes: [["wrong", "Right: a."]] as [string, string][],
+    };
+    const shown = clientCard(card);
+    expect(shown).not.toHaveProperty("mistakes");
+    expect(shown).toEqual({ title: "T", rule: "A rule", table: card.table, examples: card.examples, notes: ["note"] });
   });
 });

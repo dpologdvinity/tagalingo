@@ -16,7 +16,6 @@ const card = (slug: string, isNew: boolean): LessonCard => ({
       ["c", "d"],
     ],
     notes: [],
-    mistakes: [],
   },
 });
 

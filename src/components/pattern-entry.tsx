@@ -5,7 +5,7 @@
 import type { Route } from "next";
 import { GrammarCardView } from "@/components/player/grammar-card";
 import { ButtonLink } from "@/components/ui";
-import type { PatternCard } from "@/lib/content/grammar-schema";
+import type { ClientCard } from "@/lib/content/grammar-schema";
 import type { StrengthLabel } from "@/lib/game/strength";
 
 const LABEL_TEXT: Record<StrengthLabel, string> = {
@@ -46,7 +46,7 @@ export function PatternEntry({
 }: {
   slug: string;
   title: string;
-  card: PatternCard;
+  card: ClientCard;
   label: StrengthLabel;
   effective?: number;
   headingLevel?: 2 | 3;

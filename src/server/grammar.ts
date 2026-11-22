@@ -10,7 +10,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
-import { patternCardSchema, type PatternCard } from "@/lib/content/grammar-schema";
+import { clientCard, patternCardSchema, type ClientCard, type PatternCard } from "@/lib/content/grammar-schema";
 import { effectiveStrength, strengthLabel, type StrengthLabel } from "@/lib/game/strength";
 import { analyse, type Analysis, type VerbTableData } from "@/lib/grammar/analyse";
 import { LOOKUP_MAX_WORDS } from "@/lib/grammar/tokenize";
@@ -18,7 +18,7 @@ import { normalizeAnswer } from "@/lib/normalize";
 import type { Prisma } from "@/generated/prisma/client";
 
 /** A pattern card as the lesson player receives it; `isNew` means "introduce it in this lesson". */
-export type LessonCard = { slug: string; title: string; card: PatternCard; isNew: boolean };
+export type LessonCard = { slug: string; title: string; card: ClientCard; isNew: boolean };
 
 /** One row of the grammar page. Locked patterns show their title only, so `card` is null for them. */
 export type GrammarOverviewItem = {
@@ -26,7 +26,7 @@ export type GrammarOverviewItem = {
   title: string;
   order: number;
   unlocked: boolean;
-  card: PatternCard | null;
+  card: ClientCard | null;
   label: StrengthLabel;
   /** Strength after time decay, 0-1. */
   effective: number;
@@ -79,7 +79,7 @@ export async function attemptGrammar(
     (exercisePatterns[exerciseId] ??= []).push(pattern.slug);
     if (cards.has(pattern.slug)) continue;
     const isNew = pattern.lessonId === lessonId && !isUnlocked(pattern.progress[0], lessonDone);
-    cards.set(pattern.slug, { slug: pattern.slug, title: pattern.title, card: cardOf(pattern), isNew });
+    cards.set(pattern.slug, { slug: pattern.slug, title: pattern.title, card: clientCard(cardOf(pattern)), isNew });
   }
   return { cards: [...cards.values()], exercisePatterns };
 }
@@ -113,7 +113,7 @@ export async function getGrammarOverview(userId: string, now: Date): Promise<Gra
     title: pattern.title,
     order: pattern.order,
     unlocked,
-    card: unlocked ? cardOf(pattern) : null,
+    card: unlocked ? clientCard(cardOf(pattern)) : null,
     label: strengthLabel(effective, attempts),
     effective,
     skillId: pattern.lesson.skill.id,

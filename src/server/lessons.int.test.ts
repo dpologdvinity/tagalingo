@@ -522,6 +522,8 @@ describe("grammar patterns", () => {
       },
       { slug: used.slug, title: "Pattern b", card: expect.objectContaining({ rule: "Rule b" }), isNew: false },
     ]);
+    // The stored card has mistakes (grading uses them); the client's copy has none.
+    for (const c of started.cards.filter((c) => ours(c.slug))) expect(c.card).not.toHaveProperty("mistakes");
     expect(started.exercisePatterns[e0.id].filter(ours)).toEqual([taught.slug, used.slug]);
     expect(started.exercisePatterns[e1.id].filter(ours)).toEqual([taught.slug]);
 

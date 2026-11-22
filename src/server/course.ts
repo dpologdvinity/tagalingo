@@ -5,7 +5,7 @@ import "server-only";
 import type { Route } from "next";
 import { db } from "@/lib/db";
 import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
-import type { PatternCard } from "@/lib/content/grammar-schema";
+import type { ClientCard } from "@/lib/content/grammar-schema";
 import { buildPath, type LessonState, type SkillState } from "@/lib/game/path";
 import type { StrengthLabel } from "@/lib/game/strength";
 import type { VerbTableData } from "@/lib/grammar/analyse";
@@ -158,7 +158,7 @@ export type SkillPageData = {
   completedLessons: number;
   totalLessons: number;
   /** Grammar patterns the skill's lessons teach; the card is withheld until the learner unlocks it. */
-  patterns: { slug: string; title: string; card: PatternCard | null; unlocked: boolean; label: StrengthLabel }[];
+  patterns: { slug: string; title: string; card: ClientCard | null; unlocked: boolean; label: StrengthLabel }[];
   /** Approved tables for the verbs drilled in the skill's finished lessons (roots of their conjugate, paradigm and find_root exercises). */
   verbTables: VerbTableData[];
 };

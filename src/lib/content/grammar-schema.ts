@@ -114,6 +114,19 @@ export type Choice = z.infer<typeof choiceSchema>;
 /** The card shown to learners; the only part of a pattern that client components may import. */
 export type PatternCard = Pick<CoursePattern, "title" | "rule" | "table" | "examples" | "notes" | "mistakes">;
 
+/**
+ * The card as sent to the browser: without `mistakes`. Their explanations quote the correct
+ * sentence, no learner screen shows them, and grading reads them from the database.
+ */
+export type ClientCard = Omit<PatternCard, "mistakes">;
+
+/** Strip a card down to what learners see; every card that leaves the server goes through this. */
+export function clientCard(card: PatternCard): ClientCard {
+  const shown: ClientCard & { mistakes?: unknown } = { ...card };
+  delete shown.mistakes;
+  return shown;
+}
+
 /** Lower-case roots, optionally hyphenated (e.g. "pa-bili"); no padding or capitals. */
 const rootSchema = z.string().regex(/^[a-z]+(-[a-z]+)?$/);
 

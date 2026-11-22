@@ -37,7 +37,7 @@ async function pattern(name: string, lessonId: string, tagged: string[] = [], or
           ["c", "d"],
         ],
         notes: [],
-        mistakes: [],
+        mistakes: [["wrong", "Right: a."]],
       },
     },
   });
@@ -89,6 +89,8 @@ describe("grammar overview", () => {
       }),
       expect.objectContaining({ slug: `${SLUG}later`, unlocked: false, card: null }),
     ]);
+    // Common mistakes are for grading; the page never shows them, so they stay on the server.
+    expect(mine[0].card).not.toHaveProperty("mistakes");
   });
 
   it("refuses a stored card that doesn't match the card schema", async () => {
