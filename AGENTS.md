@@ -33,7 +33,7 @@ Verify before claiming a task is done:
 npm run format:check && npm run lint && npm run typecheck && npm test
 npm run content:check                  # shipped-content report (npm test covers it too)
 npm run test:integration               # needs the Docker DB; uses a separate tagalingo_test DB
-npm run build && npm run test:e2e      # for UI changes; needs `npm run setup` first
+npm run build && npm run test:e2e      # for UI changes; needs the environment below
 ```
 
 The e2e suite is more than the core loop: axe-core WCAG 2.2 AA scans of every screen
@@ -41,10 +41,18 @@ The e2e suite is more than the core loop: axe-core WCAG 2.2 AA scans of every sc
 JavaScript budgets per screen (`performance.spec.ts`). `screenshots.spec.ts` only runs when
 `SCREENSHOTS_DIR` is set.
 
-If the owner's dev server already holds port 3000, run e2e on another port and database so you
-don't clobber their data: `PORT=3100 E2E_BASE_URL=http://localhost:3100` plus a `DATABASE_URL`
-pointing at your own database (e.g. `…/tagalingo_<task>`; `prisma migrate deploy` and
-`npm run db:seed` with the same URL). Drop the database when you're done.
+`next start` runs in production mode, so e2e needs a real `AUTH_SECRET`, an explicit
+`DATABASE_URL` (the helpers read answers from it too) and `DEMO_CAN_REVIEW=true` for the Studio
+tests; CI sets the same. If the owner's dev server holds port 3000 or you shouldn't touch their
+data, use your own port and database, and drop the database when you're done:
+
+```bash
+docker exec tagalingo-db-1 createdb -U tagalingo tagalingo_mytask
+export DATABASE_URL=postgresql://tagalingo:tagalingo@localhost:5433/tagalingo_mytask \
+  AUTH_SECRET="$(openssl rand -base64 32)" DEMO_CAN_REVIEW=true CONTENT_GENERATOR=stub \
+  PORT=3100 E2E_BASE_URL=http://localhost:3100
+npx prisma migrate deploy && npm run db:seed && npm run build && npm run test:e2e
+```
 
 ## Framework notes
 
