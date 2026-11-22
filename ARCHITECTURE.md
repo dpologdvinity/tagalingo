@@ -15,7 +15,7 @@ Browser ──► proxy.ts (session cookie check) ──► Server Components (p
 
 | Path                      | Responsibility                                                                                                                      | May import                              |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | nothing app-specific                    |
+| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | `lib/grammar` (pure, for grading)       |
 | `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, `lib/grammar`, Prisma types |
 | `src/lib/grammar/*`       | Pure grammar engine: verb morphology, word analysis, vocabulary and drill checks, the `verbs.json` file format, chat tokeniser      | `lib/content` (course types, helpers)   |
 | `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                                                 | —                                       |

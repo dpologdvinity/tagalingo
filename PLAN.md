@@ -215,7 +215,10 @@ own, see how well they know each one, and look up any verb form. The full design
   unreviewed table.
 - **Four exercise types:** `conjugate`, `find_root`, `transform` and `paradigm`, graded strictly
   (no typo tolerance) with explained feedback: the form a wrong word actually is, a known mistake,
-  or a per-option `why`. 47 approved drills ship, 3-5 per teaching lesson.
+  or a per-option `why`. 13 drills of these types ship (7 conjugate, 4 transform, 2 find_root).
+- **47 grammar drills:** the approved drills generated from the patterns' ingredients, 3-5 per
+  teaching lesson. Most are existing types (fill the blank, word bank, choices) tagged with
+  their pattern.
 - **Player:** grammar cards before the first drill on a new pattern, a "?" chip, the new drill
   inputs.
 - **Tracking:** `PatternProgress` (first answers only), strength as a decaying average (21-day

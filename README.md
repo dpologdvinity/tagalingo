@@ -18,7 +18,7 @@ morphology engine, and every verb table is reviewed by hand before a drill may u
 - **Streaks and daily goals:** the streak counts calendar days in your own timezone. Pick a goal
   of 10, 20, 30 or 50 XP per day.
 - **XP and a weekly leaderboard:** everyone's XP since Monday 00:00 UTC, ranked.
-- **Skill path:** 3 units and 8 skills; stops unlock in order. Skills whose content is still in
+- **Skill path:** 4 units and 13 skills; stops unlock in order. Skills whose content is still in
   review show as locked until it's approved.
 - **Hearts:** 5 maximum. A wrong answer costs one, and one comes back every 30 minutes.
 - **Content Studio** (`/studio`, reviewers only): generate drafts, preview each exercise as a
@@ -47,9 +47,10 @@ Grammar is taught and drilled, not only noted. 15 patterns (po and opo, the pron
 linkers, nasa/nasaan/saan, ba-questions, how um- and mag- verbs change with aspect and more) each
 have a short card, and 18 verb tables list each verb's forms by aspect.
 
-- **Grammar cards in lessons:** the first time a lesson drills a pattern you haven't met, a card
-  appears with the rule, a table and examples. It isn't graded and costs no hearts. You see each
-  card once; a lesson you quit halfway leaves it unseen.
+- **Grammar cards in lessons:** the lesson that teaches a pattern opens its first drill with a
+  card: the rule, a table and examples. It isn't graded and costs no hearts. You see each card
+  once; a lesson you quit halfway leaves it unseen. Later lessons that only reuse the pattern show
+  just the **?** chip.
 - **"?" help chip:** every exercise on a pattern you've seen has a small **?** that reopens its
   card without affecting your answer.
 - **Four new drill types:** _conjugate_ (fill the verb in a sentence), _find the root_, _transform_
