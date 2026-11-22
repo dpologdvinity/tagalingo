@@ -71,8 +71,8 @@ export default async function SkillPage({ params }: PageProps<"/skills/[slug]">)
             p.card ? (
               <PatternEntry key={p.slug} slug={p.slug} title={p.title} card={p.card} label={p.label} headingLevel={3} />
             ) : (
-              <p key={p.slug} className="flex items-center gap-2 text-ink-soft">
-                <LockIcon size={18} />
+              <p key={p.slug} className="text-ink-soft">
+                <LockIcon size={18} className="mr-2 inline-block align-text-bottom" />
                 <strong>{p.title}</strong> — finish the lesson to unlock it
               </p>
             ),
