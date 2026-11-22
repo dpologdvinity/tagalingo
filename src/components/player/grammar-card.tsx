@@ -8,7 +8,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { LessonCard } from "@/server/grammar";
 import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui";
-import { ownsEnter } from "./keys";
+import { isControl } from "./keys";
 
 /**
  * The card: rule up front, then the table (root column picked out), examples and notes. With
@@ -131,6 +131,7 @@ export function PatternChip({ card }: { card: LessonCard }) {
     <>
       <button
         type="button"
+        data-chip
         aria-label={`Grammar help: ${card.title}`}
         title={card.title}
         onClick={() => {
@@ -147,7 +148,7 @@ export function PatternChip({ card }: { card: LessonCard }) {
         // The heading has focus, not the button, so Enter has to close the dialog itself. Stopping the
         // event keeps the player's window handler from also treating this Enter as "check".
         onKeyDown={(e: KeyboardEvent<HTMLDialogElement>) => {
-          if (e.key !== "Enter" || e.repeat || ownsEnter(e.target)) return;
+          if (e.key !== "Enter" || e.repeat || isControl(e.target)) return;
           e.preventDefault();
           e.stopPropagation();
           ref.current?.close();

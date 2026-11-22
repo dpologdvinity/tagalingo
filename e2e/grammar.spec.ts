@@ -98,6 +98,25 @@ test.describe("grammar player", () => {
     await expect(page.getByText("Correct answer:")).toHaveCount(0);
   });
 
+  test("Enter checks the answer right after clicking an option or a word-bank tile", async ({ page }) => {
+    await openGrammarLesson(page);
+    await answerCurrent(page); // conjugate (dismisses the card first)
+    await page.getByRole("button", { name: "Continue" }).click();
+    await answerCurrent(page); // paradigm
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    // find_root: a mouse click leaves focus on the option, and Enter must still check, not re-click it.
+    await page.getByRole("radio").first().click();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    // transform (build): the same with a tile.
+    await page.getByLabel("Word bank").getByRole("button", { name: "Kakain", exact: true }).click();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+  });
+
   test("conjugate feedback names the wrong form", async ({ page }) => {
     await openGrammarLesson(page);
     await gotIt(page).click();
