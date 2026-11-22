@@ -27,6 +27,7 @@ import {
   WordBank,
 } from "./exercises";
 import { GrammarCardView, PatternChip } from "./grammar-card";
+import { dialogOpen, ownsEnter } from "./keys";
 import { Conjugate, FindRoot, Paradigm, Transform } from "./grammar-exercises";
 import { buildSteps, chipCards, type ExercisePatterns, type Step } from "./steps";
 import { LessonResults, OutOfHearts } from "./lesson-screens";
@@ -153,10 +154,11 @@ export function LessonPlayer({
     }
   }, [feedback, attemptId, queue, solved, router]);
 
-  // Enter checks or continues (or dismisses a card), except while a dialog (quit, grammar help) is open.
+  // Enter checks or continues (or dismisses a card), except while a dialog (quit, grammar help) is open
+  // or when a focused button or link (the "?" chip, say) should get the key itself.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Enter" || e.repeat || document.querySelector("dialog[open]")) return;
+      if (e.key !== "Enter" || e.repeat || dialogOpen() || ownsEnter(e.target)) return;
       if (phase === "answering" && step?.kind === "card") {
         e.preventDefault();
         dismissCard();

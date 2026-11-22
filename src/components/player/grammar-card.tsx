@@ -4,10 +4,11 @@
  * drill of a new pattern) and `PatternChip` is the small "?" that reopens a card in a dialog without
  * touching grading. Cards are server-validated (`patternCardSchema`), so this only lays them out.
  */
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { LessonCard } from "@/server/grammar";
 import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui";
+import { ownsEnter } from "./keys";
 
 /**
  * The card: rule up front, then the table (root column picked out), examples and notes. With
@@ -28,9 +29,22 @@ export function GrammarCardView({
   const Heading = `h${headingLevel}` as const;
   // Unique per card: the grammar page shows many of them at once.
   const titleId = useId();
+  // The interactive card (the player's step, the help dialog) puts focus on its heading, not on the
+  // button at the bottom: focusing a button below the fold scrolls a long card past its rule on a
+  // phone. `preventScroll` leaves the card at the top; screen readers still start at the title.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const interactive = onDone !== undefined;
+  useEffect(() => {
+    if (interactive) headingRef.current?.focus({ preventScroll: true });
+  }, [interactive]);
   return (
     <article aria-labelledby={titleId} className="space-y-6">
-      <Heading id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
+      <Heading
+        id={titleId}
+        ref={headingRef}
+        tabIndex={interactive ? -1 : undefined}
+        className="font-display text-3xl text-ink outline-none sm:text-4xl"
+      >
         {title}
       </Heading>
       <p className="rounded-3xl border-2 border-lagoon-bright/40 bg-lagoon-soft px-5 py-4 text-lg font-bold text-lagoon sm:text-xl">
@@ -100,7 +114,7 @@ export function GrammarCardView({
       )}
 
       {onDone && (
-        <Button onClick={onDone} className="w-full sm:w-auto sm:min-w-48" autoFocus>
+        <Button onClick={onDone} className="w-full sm:w-auto sm:min-w-48">
           {doneLabel}
         </Button>
       )}
@@ -130,6 +144,14 @@ export function PatternChip({ card }: { card: LessonCard }) {
       <dialog
         ref={ref}
         onClose={() => setOpen(false)}
+        // The heading has focus, not the button, so Enter has to close the dialog itself. Stopping the
+        // event keeps the player's window handler from also treating this Enter as "check".
+        onKeyDown={(e: KeyboardEvent<HTMLDialogElement>) => {
+          if (e.key !== "Enter" || e.repeat || ownsEnter(e.target)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          ref.current?.close();
+        }}
         className="m-auto max-h-[90dvh] w-[min(98vw,40rem)] max-w-none overflow-y-auto rounded-3xl border-2 border-line p-2.5 backdrop:bg-ink/40 sm:p-6"
       >
         {open && <GrammarCardView card={card} onDone={() => ref.current?.close()} doneLabel="Back to the exercise" />}

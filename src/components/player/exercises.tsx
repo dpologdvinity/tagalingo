@@ -7,6 +7,7 @@ import type { ClientExercise } from "@/lib/content/client-view";
 import { hash, rng, shuffle } from "@/lib/random";
 import { useRecognitionSupported, useSpeechRecognition } from "@/lib/speech/client";
 import { SpeakButton } from "@/components/speak-button";
+import { dialogOpen } from "./keys";
 
 export type Of<T extends ClientExercise["type"]> = Extract<ClientExercise, { type: T }>;
 export type Props<T extends ClientExercise["type"]> = {
@@ -52,7 +53,8 @@ export function Options({
   useEffect(() => {
     if (disabled) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      // Not while typing, and not behind an open dialog (the grammar help sheet).
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || dialogOpen()) return;
       const n = Number(e.key);
       if (n >= 1 && n <= options.length) onSelect(n - 1);
     };
