@@ -102,6 +102,14 @@ describe("grammar overview", () => {
   });
 });
 
+describe("schema", () => {
+  it("indexes lesson attempts by pattern, for the pattern cascade and pattern practice lookups", async () => {
+    const rows = await db.$queryRaw<{ indexname: string }[]>`
+      select indexname from pg_indexes where tablename = 'LessonAttempt' and indexdef like '%("patternId")%'`;
+    expect(rows).not.toHaveLength(0);
+  });
+});
+
 describe("pattern practice", () => {
   it("pattern practice serves only tagged exercises from finished lessons", async () => {
     const [first, second] = await firstLessons();

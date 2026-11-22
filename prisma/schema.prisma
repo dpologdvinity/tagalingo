@@ -250,6 +250,7 @@ model LessonAttempt {
   @@index([userId, startedAt])
   @@index([skillId])
   @@index([unitId])
+  @@index([patternId])
 }
 
 model AttemptAnswer {
