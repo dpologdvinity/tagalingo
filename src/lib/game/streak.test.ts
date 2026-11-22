@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, applyLessonToStreak, dayKey, dayKeyDaysAgo, visibleStreak } from "./streak";
+import { addDays, applyLessonToStreak, dayKey, dayKeyDaysAgo, instantOnDayAgo, visibleStreak } from "./streak";
 
 describe("dayKey", () => {
   it("uses the user's timezone to decide the calendar day", () => {
@@ -43,6 +43,37 @@ describe("dayKeyDaysAgo", () => {
     const keys = Array.from({ length: 21 }, (_, daysAgo) => dayKeyDaysAgo(now, daysAgo, "America/New_York"));
     expect(new Set(keys).size).toBe(keys.length);
     keys.forEach((key, daysAgo) => expect(key).toBe(addDays("2026-03-20", -daysAgo)));
+  });
+});
+
+describe("instantOnDayAgo", () => {
+  const DAY = 86_400_000;
+
+  it("goes back by the requested minutes when that stays on the day", () => {
+    const now = new Date("2026-11-20T06:00:00Z"); // 14:00 in Manila
+    const at = instantOnDayAgo(now, 3, "Asia/Manila", 90);
+    expect(at.getTime()).toBe(now.getTime() - 3 * DAY - 90 * 60_000);
+    expect(dayKey(at, "Asia/Manila")).toBe("2026-11-17");
+  });
+
+  it("falls back to the day's own instant when the minutes cross midnight", () => {
+    // 08:00 in Manila: ten hours earlier on that day is 22:00 the evening before, and an hour either way
+    // is still the wrong day. A minute before the same time of day is the right one.
+    const now = new Date("2026-11-20T00:00:00Z");
+    const at = instantOnDayAgo(now, 3, "Asia/Manila", 600);
+    expect(dayKey(at, "Asia/Manila")).toBe(dayKeyDaysAgo(now, 3, "Asia/Manila"));
+    expect(at.getTime()).toBe(now.getTime() - 3 * DAY - 60_000);
+  });
+
+  it("lands on every calendar day across a DST change, never in the future", () => {
+    const now = new Date("2026-11-15T04:30:00Z"); // 23:30 EST; the clocks went back on Nov 1
+    for (let daysAgo = 0; daysAgo <= 21; daysAgo++) {
+      for (const minutes of [1, 300, 600]) {
+        const at = instantOnDayAgo(now, daysAgo, "America/New_York", minutes);
+        expect(dayKey(at, "America/New_York")).toBe(dayKeyDaysAgo(now, daysAgo, "America/New_York"));
+        expect(at <= now).toBe(true);
+      }
+    }
   });
 });
 

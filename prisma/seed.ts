@@ -25,7 +25,7 @@ import { generateDraftsForLesson, importApprovedExercises, syncCourseStructure }
 import { COURSE_FILE, CONTENT_DIR } from "../src/lib/content/paths";
 import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
 import { weekStartUtc } from "../src/lib/game/league";
-import { addDays, dayKey, dayKeyDaysAgo } from "../src/lib/game/streak";
+import { addDays, dayKey, dayKeyDaysAgo, instantOnDayAgo } from "../src/lib/game/streak";
 import { hash, rng } from "../src/lib/random";
 import { DEMO_ACCOUNT } from "../src/lib/demo";
 
@@ -36,7 +36,6 @@ const prisma = new PrismaClient({
 });
 const rand = rng(hash("tagalingo-seed"));
 const between = (lo: number, hi: number) => lo + Math.floor(rand() * (hi - lo + 1));
-const HOUR = 3_600_000;
 const DAY = 86_400_000;
 
 const RIVALS = [
@@ -126,12 +125,7 @@ async function seedDemoLearner(now: Date, timezone: string) {
   for (const daysAgo of activeDays) {
     const xp = daysAgo === 0 ? 15 : between(1, 4) * 10 + (rand() < 0.4 ? 5 : 0);
     const day = dayKeyDaysAgo(now, daysAgo, timezone);
-    const when = instantDaysAgo(now, daysAgo, daysAgo === 0 ? 1 : between(1, 600));
-    // Keep "when" on the intended local day: a DST change since then can shift it by an hour either way.
-    const createdAt =
-      [when, new Date(when.getTime() + HOUR), new Date(when.getTime() - HOUR)].find(
-        (candidate) => candidate <= now && dayKey(candidate, timezone) === day,
-      ) ?? when;
+    const createdAt = instantOnDayAgo(now, daysAgo, timezone, daysAgo === 0 ? 1 : between(1, 600));
     await prisma.xpEvent.create({ data: { userId: demo.id, amount: xp, reason: "lesson", createdAt } });
     await prisma.dailyActivity.create({
       data: { userId: demo.id, day, xp, lessons: Math.max(1, Math.round(xp / 15)) },

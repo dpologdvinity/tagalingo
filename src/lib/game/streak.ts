@@ -32,6 +32,25 @@ export function dayKeyDaysAgo(now: Date, daysAgo: number, timeZone: string): str
   return addDays(dayKey(now, timeZone), -daysAgo);
 }
 
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * An instant on the calendar day `daysAgo` days before today's in `timeZone`, preferably
+ * `minutesEarlier` before the same time of day (for seed data that wants a spread of times). Going
+ * back whole 24-hour spans can miss the day: a DST change shifts the clock by an hour, and a large
+ * `minutesEarlier` crosses midnight. So it tries that instant and an hour either side, then one minute
+ * before the same time of day (and an hour either side) so the instant is always on the intended day
+ * for the seed's activity rows. Never later than `now`.
+ */
+export function instantOnDayAgo(now: Date, daysAgo: number, timeZone: string, minutesEarlier = 1): Date {
+  const day = dayKeyDaysAgo(now, daysAgo, timeZone);
+  const at = (minutes: number) => now.getTime() - daysAgo * DAY_MS - minutes * 60_000;
+  const wanted = new Date(at(minutesEarlier));
+  const candidates = [at(minutesEarlier), at(1)].flatMap((t) => [t, t + HOUR_MS, t - HOUR_MS]).map((t) => new Date(t));
+  return candidates.find((c) => c <= now && dayKey(c, timeZone) === day) ?? wanted;
+}
+
 /** New streak state after completing a lesson on `today`. */
 export function applyLessonToStreak(state: StreakState, today: string): StreakState & { extended: boolean } {
   if (state.lastStreakDay === today) return { ...state, extended: false };
