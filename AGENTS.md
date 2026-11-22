@@ -31,11 +31,20 @@ Verify before claiming a task is done:
 
 ```bash
 npm run format:check && npm run lint && npm run typecheck && npm test
+npm run content:check                  # shipped-content report (npm test covers it too)
 npm run test:integration               # needs the Docker DB; uses a separate tagalingo_test DB
 npm run build && npm run test:e2e      # for UI changes; needs `npm run setup` first
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same steps on every push and pull request to `master`.
+The e2e suite is more than the core loop: axe-core WCAG 2.2 AA scans of every screen
+(`accessibility.spec.ts`), answer secrecy checked on the network (`answer-secrecy.spec.ts`) and
+JavaScript budgets per screen (`performance.spec.ts`). `screenshots.spec.ts` only runs when
+`SCREENSHOTS_DIR` is set.
+
+If the owner's dev server already holds port 3000, run e2e on another port and database so you
+don't clobber their data: `PORT=3100 E2E_BASE_URL=http://localhost:3100` plus a `DATABASE_URL`
+pointing at your own database (e.g. `…/tagalingo_<task>`; `prisma migrate deploy` and
+`npm run db:seed` with the same URL). Drop the database when you're done.
 
 ## Framework notes
 
@@ -56,6 +65,18 @@ CI (`.github/workflows/ci.yml`) runs the same steps on every push and pull reque
   commit the migration.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) and stay small and
   atomic. Stage files explicitly rather than with `git add -A`.
+- **Accessibility is gated.** Text on a coloured fill needs 4.5:1 contrast (3:1 only for truly
+  large text). Use the design tokens in `globals.css`, `avatarColor` for generated colours, and
+  unit colours that pass the `course.yaml` contrast rule. Fix violations at the source; never
+  exclude elements or disable axe rules.
+- **When you add a screen,** add it to `accessibility.spec.ts`, to `performance.spec.ts` with a
+  budget about 15% above its measured size, and to `screenshots.spec.ts` if reviewers should see it.
+- **When you add an exercise type,** also add its public fields (`publicValues`) and secret fields
+  (`withheld`) to `answer-secrecy.spec.ts`. Keep `publicValues` written out by hand: deriving it
+  from `toClientExercise` would let a leak whitelist itself.
+- **Thresholds move on purpose, in the PR that needs it, with the reason:** page-weight budgets
+  (`e2e/performance.spec.ts`) and the coverage floor (`vitest.config.ts`). Raise the coverage
+  floor when coverage improves; never lower it to get green.
 
 ## Environment variables
 
@@ -63,6 +84,28 @@ None are required in development. Production needs `DATABASE_URL` and `AUTH_SECR
 keys (`ANTHROPIC_API_KEY`, `GOOGLE_TTS_API_KEY`, …) switch on Claude content generation, the
 Claude chat tutor and server-side audio. The full table is under "Configuration" in
 [README.md](README.md). Never commit `.env*` files.
+
+## CI and pull requests
+
+`master` is protected: "Lint, typecheck, unit tests", "Integration + end-to-end" and "title" must
+pass before a PR merges (admins can still push directly). What runs, and why, is in the
+"Continuous integration" table in [README.md](README.md). Things that matter when you open a PR:
+
+- **PR titles** are Conventional Commits (`pr-title.yml`). Merge with **rebase** to keep atomic
+  commits; squash only single-purpose PRs (it uses the title as the commit message).
+- **Bots on every PR:** area labels, a screenshots comment (desktop and mobile), a Claude code
+  review on open, a Claude Tagalog review when `content/` changes, CodeRabbit, and CodeQL. Read
+  their comments, fix what's right, and reply with reasons where you disagree.
+- **Workflow changes:** run `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12`
+  before pushing. Untrusted values (titles, bodies, branch names) go through `env:`, never inline
+  in `run:`. `pull_request_target` jobs must never check out or run PR code. A Claude workflow
+  only runs once its file on the PR is identical to `master`'s, so a new or edited one can't be
+  tested from its own PR.
+- **Dependabot:** grouped npm minor and patch updates auto-merge when green; majors and the
+  Actions group need a look (check release notes, merge if CI is green). TypeScript majors are
+  held until typescript-eslint supports them. A security override in `package.json` stays until
+  `src/test/dependency-overrides.test.ts` says it can go.
+- **`@claude`** on an issue or PR (owner only) starts Claude Code in Actions.
 
 ## Agent workflow
 
@@ -74,3 +117,9 @@ Claude chat tutor and server-side audio. The full table is under "Configuration"
   the course's glosses and example sentences.
 - **Scratch work** (one-off Playwright scripts, screenshots) goes in `e2e/.scratch/` and
   `screenshots/`. Both are git-ignored, and Playwright skips `.scratch`.
+- **Git worktrees:** Turbopack can't build with a symlinked `node_modules` ("Could not find the
+  Next.js package"). Run `npm ci` in the worktree, or hard-link a copy from a checkout on the same
+  lockfile (`cp -al ../tagalingo/node_modules node_modules`), then `npx prisma generate`.
+- **Waiting in Playwright:** prefer `waitForLoadState("load")` plus `document.fonts.ready` over
+  `"networkidle"` after client-side navigation; route prefetches the browser abandons can keep
+  the network busy indefinitely.
