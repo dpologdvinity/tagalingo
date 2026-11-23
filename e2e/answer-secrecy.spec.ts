@@ -232,7 +232,7 @@ test.describe("answer secrecy on the wire", () => {
     const stop = recordResponses(page);
     await page.getByRole("link", { name: "Start lesson" }).click();
     await page.waitForURL("**/lesson/**");
-    await dismissGrammarCard(page); // a grammar card may come first; the exercise behind it is what's under test
+    await expect(page.locator("[data-exercise-id]")).toBeVisible();
     const captured = await stop();
 
     const sessionPath = pageKey(page.url());
@@ -249,7 +249,7 @@ test.describe("answer secrecy on the wire", () => {
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const stop = recordResponses(page);
     await page.goto(`/practice?skill=${skill.id}`);
-    await dismissGrammarCard(page); // a grammar card may come first; the exercise behind it is what's under test
+    await expect(page.locator("[data-exercise-id]")).toBeVisible();
     const captured = await stop();
 
     const exercises = await query<{ id: string; type: string; payload: unknown }>(
