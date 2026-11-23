@@ -162,7 +162,7 @@ export async function createGrammarFixture(): Promise<void> {
     `select c.id, coalesce(min(u."order"), 1) - 1 as next from "Course" c left join "Unit" u on u."courseId" = c.id group by c.id limit 1`,
   );
   await query(
-    `insert into "Unit" (id, "courseId", "order", slug, title, subtitle, color) values ($1, $2, $3, $4, 'E2E grammar', 'Fixture', '#13a3a9')`,
+    `insert into "Unit" (id, "courseId", "order", slug, title, subtitle, color) values ($1, $2, $3, $4, 'E2E grammar', 'Fixture', '#0F8287')`,
     [`${P}unit`, course.id, course.next, `${P}unit`],
   );
   await query(
