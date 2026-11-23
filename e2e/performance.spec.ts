@@ -65,7 +65,7 @@ test.describe("page weight", () => {
   test.skip(({ isMobile }) => isMobile, "desktop only");
 
   test("key screens stay within their JavaScript budgets", async ({ browser }, testInfo) => {
-    test.slow(); // seven cold browser contexts, five of them signed in
+    test.slow(); // ten cold browser contexts, eight of them signed in
     const [lesson] = await query<{ id: string }>(
       `select l.id from "Lesson" l join "Skill" s on s.id = l."skillId" where s.slug = 'pagbati' and l."order" = 1`,
     );
@@ -77,6 +77,9 @@ test.describe("page weight", () => {
       { label: "Skill page", path: "/skills/pagbati", budgetKb: 165, prepare: logInAsDemo },
       { label: "Leaderboard", path: "/leaderboard", budgetKb: 160, prepare: logInAsDemo },
       { label: "Studio", path: "/studio", budgetKb: 160, prepare: logInAsDemo },
+      { label: "Grammar", path: "/grammar", budgetKb: 165, prepare: logInAsDemo },
+      { label: "Studio grammar", path: "/studio/grammar", budgetKb: 165, prepare: logInAsDemo },
+      { label: "Studio verbs", path: "/studio/verbs", budgetKb: 165, prepare: logInAsDemo },
     ];
 
     const results: Measurement[] = [];
