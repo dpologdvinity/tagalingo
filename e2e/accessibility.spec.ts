@@ -40,7 +40,7 @@ test.describe("accessibility", () => {
   });
 
   test("signed-in pages", async ({ page }, testInfo) => {
-    test.slow(); // eleven pages, each loaded and scanned
+    test.slow(); // twelve pages, each loaded and scanned
     await logInAsDemo(page);
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const paths = [
@@ -55,6 +55,8 @@ test.describe("accessibility", () => {
       "/studio/grammar",
       "/studio/verbs",
       `/studio/skills/${skill.id}`,
+      // The demo learner has finished lessons to practise, so no grammar card comes first.
+      `/practice?skill=${skill.id}`,
     ];
     for (const path of paths) {
       await page.goto(path);
