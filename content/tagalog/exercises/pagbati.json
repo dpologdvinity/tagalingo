@@ -304,7 +304,7 @@
           "payload": {
             "why": [
               null,
-              "Oo is the casual yes, for friends and family your own age.",
+              "Oo is the casual yes. Nothing else in this sentence has po, so the respect has to come from opo.",
               "Po on its own doesn't mean yes, and it never starts a sentence."
             ],
             "options": [
@@ -312,7 +312,7 @@
               "Oo",
               "Po"
             ],
-            "sentence": "___, mabuti po ako.",
+            "sentence": "___, mabuti ako.",
             "answerIndex": 0,
             "translation": "Yes, I'm fine. (to an older neighbour)"
           },
@@ -330,6 +330,30 @@
             "answers": [
               [
                 "opo",
+                "mabuti",
+                "po",
+                "ako"
+              ],
+              [
+                "opo",
+                "mabuti",
+                "ako"
+              ],
+              [
+                "oo",
+                "po",
+                "mabuti",
+                "ako"
+              ],
+              [
+                "oo",
+                "po",
+                "mabuti",
+                "po",
+                "ako"
+              ],
+              [
+                "oo",
                 "mabuti",
                 "po",
                 "ako"

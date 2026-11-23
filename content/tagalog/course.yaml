@@ -962,7 +962,7 @@ units:
               - Kilala ko si Ben.
         # nakatira (lives) uses the stative naka- prefix, which the engine has no affix for: it stays a plain word.
         verbs:
-          - { root: kilala, en: get to know, affixes: [ma_obj] }
+          - { root: kilala, en: meet (for the first time), affixes: [ma_obj] }
 
       - slug: biyahe
         title: Biyahe
@@ -1516,6 +1516,7 @@ grammar:
       - [Mabuti naman po., "I'm fine. (to an elder)"]
     notes:
       - "With elders, “you” is kayo rather than ka: Kumusta po kayo?"
+      - "You'll also hear oo po. It is polite too, because po carries the respect."
     mistakes:
       - [Po salamat., "Po never starts a sentence. It follows the first word: Salamat po."]
       - [Po magandang umaga., "Po comes after the greeting: Magandang umaga po."]
@@ -1530,13 +1531,13 @@ grammar:
               "Opo is a polite “yes” on its own. After salamat, add po.",
               "Oo means “yes”; it doesn't add respect.",
             ]
-        - - ___, mabuti po ako.
+        - - ___, mabuti ako.
           - Yes, I'm fine. (to an older neighbour)
           - [Opo, Oo, Po]
           - 0
           - [
               null,
-              "Oo is the casual yes, for friends and family your own age.",
+              "Oo is the casual yes. Nothing else in this sentence has po, so the respect has to come from opo.",
               "Po on its own doesn't mean yes, and it never starts a sentence.",
             ]
         - - Magandang gabi ___, Lola.
@@ -1549,7 +1550,16 @@ grammar:
               "Opo answers a question (“yes”). Inside a greeting, use po.",
             ]
       transforms:
-        - ["Oo, mabuti ako.", "Yes, I'm fine.", Say it politely to an elder, ["Opo, mabuti po ako."]]
+        - - "Oo, mabuti ako."
+          - "Yes, I'm fine."
+          - Say it politely to an elder
+          - [
+              "Opo, mabuti po ako.",
+              "Opo, mabuti ako.",
+              "Oo po, mabuti ako.",
+              "Oo po, mabuti po ako.",
+              "Oo, mabuti po ako.",
+            ]
         - [Magandang umaga., Good morning., Say it politely to an elder, [Magandang umaga po.]]
 
   - id: ako-ka-siya
@@ -1682,7 +1692,7 @@ grammar:
     notes:
       - Ng is written with two letters but said “nang”.
       - "You'll hear it with gusto (want) too: Gusto ko ng tubig (I want water)."
-      - Ng usually means “some” or “a”, not “the”.
+      - "With -um- verbs like kumain, the ng-marked thing is usually general or unspecified: Kumain ako ng kanin (I ate rice / some rice)."
     mistakes:
       - [
           Kumain ako ang kanin.,
