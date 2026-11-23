@@ -17,7 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, type VerbTable } from "@/generated/prisma/client";
+import { PrismaClient, type Prisma, type VerbTable } from "@/generated/prisma/client";
 import { conjugate, type FormTable, type VerbEntry } from "@/lib/grammar/morphology";
 import { loadCourseFile, type CourseDefinition } from "./course";
 import {
@@ -245,7 +245,48 @@ describe("exercise export/import", () => {
     await expect(importApprovedExercises(prisma, tmp)).rejects.toThrow(/pattern "nope"/);
     expect(await prisma.exercise.count()).toBe(before);
   });
+
+  it("leaves no exercises behind when a lesson's tag insert fails", async () => {
+    await syncCourseStructure(prisma, shipped);
+    const skillSlug = shipped.units[0].skills[0].slug;
+    const original = await prisma.exercise.findFirstOrThrow({
+      where: { status: "APPROVED", lesson: { skill: { slug: skillSlug }, order: 1 } },
+    });
+    const before = await prisma.exercise.count();
+    const entry = {
+      type: original.type,
+      payload: original.payload,
+      source: "HUMAN",
+      patterns: [shipped.grammar[0].id],
+    };
+    fs.mkdirSync(path.join(tmp, "exercises"));
+    fs.writeFileSync(
+      path.join(tmp, "exercises", `${skillSlug}.json`),
+      JSON.stringify({ skill: skillSlug, lessons: [{ order: 1, title: "x", exercises: [entry] }] }),
+    );
+    await expect(importApprovedExercises(failingTagInserts(prisma), tmp)).rejects.toThrow(/tag insert failed/);
+    expect(await prisma.exercise.count()).toBe(before);
+  });
 });
+
+/**
+ * `client` with `exercisePattern.createMany` always failing, inside interactive transactions too: a tag
+ * insert that fails after the lesson's exercises have been written. Everything else passes through.
+ */
+function failingTagInserts(client: PrismaClient | Prisma.TransactionClient): PrismaClient {
+  return new Proxy(client, {
+    get(target, prop) {
+      if (prop === "exercisePattern") return { createMany: () => Promise.reject(new Error("tag insert failed")) };
+      if (prop === "$transaction")
+        return (arg: unknown, options?: object) =>
+          typeof arg === "function"
+            ? (target as PrismaClient).$transaction((tx) => arg(failingTagInserts(tx)), options)
+            : (target as PrismaClient).$transaction(arg as never, options);
+      const value: unknown = Reflect.get(target, prop);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  }) as PrismaClient;
+}
 
 describe("verb tables", () => {
   // Made-up roots: no course verb shares them. The shipped tables are parked for the test (see the header).

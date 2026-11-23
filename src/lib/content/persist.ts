@@ -275,28 +275,32 @@ export async function importApprovedExercises(prisma: PrismaClient, contentDir: 
       // Check every tag first so a bad slug can't leave a half-imported lesson behind.
       for (const slug of l.exercises.flatMap((e) => e.patterns))
         if (!patternIds.has(slug)) throw new Error(`${name}: pattern "${slug}" is not in course.yaml`);
-      const created = await prisma.exercise.createManyAndReturn({
-        data: l.exercises.map((e, i) => {
-          const parsed = parseExercise(e.type, e.payload); // reject corrupt files loudly
-          return {
-            lessonId: lesson.id,
-            order: i + 1,
-            type: parsed.type,
-            payload: parsed.payload,
-            status: "APPROVED" as const,
-            source: e.source,
-            reviewNote: e.reviewNote ?? null,
-            reviewedById: reviewedById ?? null,
-            reviewedAt: new Date(),
-          };
-        }),
-        select: { id: true, order: true },
+      // The exercises and their tags go in together, so a failed tag insert can't leave the lesson
+      // half-imported, with exercises but no tags.
+      await prisma.$transaction(async (tx) => {
+        const created = await tx.exercise.createManyAndReturn({
+          data: l.exercises.map((e, i) => {
+            const parsed = parseExercise(e.type, e.payload); // reject corrupt files loudly
+            return {
+              lessonId: lesson.id,
+              order: i + 1,
+              type: parsed.type,
+              payload: parsed.payload,
+              status: "APPROVED" as const,
+              source: e.source,
+              reviewNote: e.reviewNote ?? null,
+              reviewedById: reviewedById ?? null,
+              reviewedAt: new Date(),
+            };
+          }),
+          select: { id: true, order: true },
+        });
+        // Re-create the pattern tags; `order` is the exercise's position in the file (1-based).
+        const tags = created.flatMap(({ id, order }) =>
+          l.exercises[order - 1].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
+        );
+        await tx.exercisePattern.createMany({ data: tags });
       });
-      // Re-create the pattern tags; `order` is the exercise's position in the file (1-based).
-      const tags = created.flatMap(({ id, order }) =>
-        l.exercises[order - 1].patterns.map((slug) => ({ exerciseId: id, patternId: patternIds.get(slug)! })),
-      );
-      await prisma.exercisePattern.createMany({ data: tags });
     }
     imported.add(file.skill);
   }
