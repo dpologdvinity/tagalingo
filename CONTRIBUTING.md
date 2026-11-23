@@ -80,7 +80,9 @@ only if it is in an approved table in `grammar/verbs.json`.
    the seed refuses the same.
 
 `content:export` refuses to empty a non-empty `verbs.json` when the database has no approved tables
-(almost always the wrong `DATABASE_URL`); pass `-- --force` only if you mean it.
+(almost always the wrong `DATABASE_URL`); pass `-- --force` only if you mean it. It also refuses,
+naming each row, an approved table the seed would reject: one whose verb or affix course.yaml no
+longer lists, or whose form differs from the rules without being marked irregular.
 
 **Grammar drills**
 

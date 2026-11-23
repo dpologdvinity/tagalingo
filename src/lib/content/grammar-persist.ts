@@ -126,17 +126,23 @@ export async function loadApprovedVerbTables(
 }
 
 /**
- * Write the APPROVED tables to `<contentDir>/grammar/verbs.json`, sorted by root then affix, and
- * return the path. Writes nothing (returns null) when nothing is approved and no file exists yet,
+ * Write the course's APPROVED tables to `<contentDir>/grammar/verbs.json`, sorted by root then affix,
+ * and return the path. Writes nothing (returns null) when nothing is approved and no file exists yet,
  * so an empty course doesn't gain a placeholder file. When nothing is approved but the file already
  * lists tables it throws instead of emptying it (a sign of the wrong database), unless `force` is set.
+ *
+ * Every table must also pass the checks `importVerbTables` runs against `def` (its verb and affix are
+ * in course.yaml, and only `irregular` forms differ from the rules). Otherwise it throws, naming each
+ * stale row, and writes nothing: the seed would reject the file only after wiping the database.
  */
 export async function exportVerbTables(
   prisma: PrismaClient,
+  def: CourseDefinition,
   contentDir: string,
   { force = false }: { force?: boolean } = {},
 ): Promise<string | null> {
-  const rows = await prisma.verbTable.findMany({ where: { status: "APPROVED" } });
+  const course = await prisma.course.findUniqueOrThrow({ where: { slug: def.course.slug } });
+  const rows = await prisma.verbTable.findMany({ where: { courseId: course.id, status: "APPROVED" } });
   const file = verbsFilePath(contentDir);
   if (!rows.length && !fs.existsSync(file)) return null;
   if (!rows.length && !force) {
@@ -164,8 +170,20 @@ export async function exportVerbTables(
       reviewNote: r.reviewNote ?? "",
     }))
     .sort((a, b) => (a.root < b.root ? -1 : a.root > b.root ? 1 : AFFIXES.indexOf(a.affix) - AFFIXES.indexOf(b.affix)));
-  // Parsing on the way out means the database can never write a file the loader would reject.
+  // Parsing and checking on the way out means the database can never write a file the import would reject.
   const data = verbFileSchema.parse({ verbs });
+  const stale = data.verbs.flatMap((row) => {
+    try {
+      return unmarkedIrregulars(def, [row], "database");
+    } catch (err) {
+      return [err instanceof Error ? err.message : String(err)];
+    }
+  });
+  if (stale.length)
+    throw new Error(
+      `Not exporting ${file}: ${stale.length} approved verb table(s) would fail the seed import. ` +
+        `Fix or unapprove them, or restore the verb in course.yaml:\n  ${stale.join("\n  ")}`,
+    );
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
   return file;
@@ -191,15 +209,22 @@ export function entryFor(
 /**
  * One message per row of verbs.json whose cells differ from the engine's rule output in a form the
  * row does not list as `irregular` (an unreviewed typo). Throws, like `entryFor`, for a row whose
- * verb or affix is not in course.yaml. Pure, so CI can check the shipped file without a database.
+ * verb or affix is not in course.yaml. Messages start with `source`, where the rows came from. Pure,
+ * so CI can check the shipped file without a database.
  */
-export function unmarkedIrregulars(def: CourseDefinition, rows: readonly VerbFileEntry[]): string[] {
+export function unmarkedIrregulars(
+  def: CourseDefinition,
+  rows: readonly VerbFileEntry[],
+  source = "verbs.json",
+): string[] {
   const verbs = courseVerbs(def);
   return rows.flatMap((row) => {
-    const unmarked = diffFromRule(entryFor(verbs, row), row.affix, row.forms).filter((f) => !row.irregular.includes(f));
+    const unmarked = diffFromRule(entryFor(verbs, row, source), row.affix, row.forms).filter(
+      (f) => !row.irregular.includes(f),
+    );
     return unmarked.length
       ? [
-          `verbs.json: ${row.root} (${row.affix}) differs from the rules in ${unmarked.join(", ")} but is not marked irregular`,
+          `${source}: ${row.root} (${row.affix}) differs from the rules in ${unmarked.join(", ")} but is not marked irregular`,
         ]
       : [];
   });

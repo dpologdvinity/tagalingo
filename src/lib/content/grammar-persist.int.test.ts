@@ -357,7 +357,7 @@ describe("verb tables", () => {
       ],
     });
 
-    const file = await exportVerbTables(prisma, tmp);
+    const file = await exportVerbTables(prisma, def, tmp);
     expect(file).toBe(path.join(tmp, "grammar", "verbs.json"));
     const written = JSON.parse(fs.readFileSync(file!, "utf8"));
     expect(written.verbs.map((v: { root: string; affix: string }) => `${v.root}/${v.affix}`)).toEqual([
@@ -387,9 +387,71 @@ describe("verb tables", () => {
   });
 
   it("writes no file when nothing is approved", async () => {
-    await syncCourseStructure(prisma, courseWithVerbs(verb("tgrkain", ["um"])));
-    expect(await exportVerbTables(prisma, tmp)).toBeNull();
+    const def = courseWithVerbs(verb("tgrkain", ["um"]));
+    await syncCourseStructure(prisma, def);
+    expect(await exportVerbTables(prisma, def, tmp)).toBeNull();
     expect(fs.existsSync(path.join(tmp, "grammar"))).toBe(false);
+  });
+
+  describe("export against course.yaml", () => {
+    const def = courseWithVerbs(verb("tgrkain", ["um"]));
+    const approved = (courseId: string, root: string, affix: "um" | "in", forms: FormTable) => ({
+      courseId,
+      root,
+      affix,
+      en: root,
+      forms,
+      status: "APPROVED" as const,
+    });
+
+    it("refuses tables course.yaml no longer lists, naming each stale row, and writes nothing", async () => {
+      await syncCourseStructure(prisma, def);
+      const id = await courseId(def);
+      await prisma.verbTable.createMany({
+        data: [
+          approved(id, "tgrkain", "um", rule(KAIN, "um")),
+          approved(id, "tgrkain", "in", rule(KAIN, "in")),
+          approved(id, "tgrgone", "um", rule(verb("tgrgone", ["um"]), "um")),
+        ],
+      });
+      const error = await exportVerbTables(prisma, def, tmp).catch((e: Error) => e);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toMatch(/course\.yaml does not list the affix "in" for "tgrkain"/);
+      expect((error as Error).message).toMatch(/"tgrgone" \(um\) is not a verb in course\.yaml/);
+      expect((error as Error).message).not.toMatch(/"um" for "tgrkain"|"tgrkain" \(um\)/);
+      expect(fs.existsSync(path.join(tmp, "grammar"))).toBe(false);
+    });
+
+    it("refuses a table whose form differs from the rules without being marked irregular", async () => {
+      await syncCourseStructure(prisma, def);
+      await prisma.verbTable.create({ data: approved(await courseId(def), "tgrkain", "um", table(["tgrkinain"])) });
+      await expect(exportVerbTables(prisma, def, tmp)).rejects.toThrow(
+        /tgrkain \(um\) differs from the rules in completed but is not marked irregular/,
+      );
+      expect(fs.existsSync(path.join(tmp, "grammar"))).toBe(false);
+    });
+
+    it("exports only the given course's tables", async () => {
+      await syncCourseStructure(prisma, def);
+      const other = await prisma.course.create({
+        data: { slug: "tgr-other-course", title: "Other", fromLang: "en", toLang: "tl" },
+      });
+      try {
+        await prisma.verbTable.createMany({
+          data: [
+            approved(await courseId(def), "tgrkain", "um", rule(KAIN, "um")),
+            approved(other.id, "tgrbasa", "um", rule(verb("tgrbasa", ["um"]), "um")),
+          ],
+        });
+        const file = await exportVerbTables(prisma, def, tmp);
+        const written = JSON.parse(fs.readFileSync(file!, "utf8"));
+        expect(written.verbs.map((v: { root: string; affix: string }) => `${v.root}/${v.affix}`)).toEqual([
+          "tgrkain/um",
+        ]);
+      } finally {
+        await prisma.course.delete({ where: { id: other.id } });
+      }
+    });
   });
 
   describe("export over an existing verbs.json", () => {
@@ -413,19 +475,19 @@ describe("verb tables", () => {
 
     it("refuses to replace reviewed tables with an empty list unless forced", async () => {
       writeExisting();
-      await expect(exportVerbTables(prisma, tmp)).rejects.toThrow(/no approved verb tables[\s\S]*--force/);
+      await expect(exportVerbTables(prisma, shipped, tmp)).rejects.toThrow(/no approved verb tables[\s\S]*--force/);
       expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual(existing);
 
-      expect(await exportVerbTables(prisma, tmp, { force: true })).toBe(file());
+      expect(await exportVerbTables(prisma, shipped, tmp, { force: true })).toBe(file());
       expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual({ verbs: [] });
     });
 
     it("overwrites a file that is already empty or unreadable without being forced", async () => {
       fs.mkdirSync(path.dirname(file()));
       fs.writeFileSync(file(), JSON.stringify({ verbs: [] }));
-      expect(await exportVerbTables(prisma, tmp)).toBe(file());
+      expect(await exportVerbTables(prisma, shipped, tmp)).toBe(file());
       fs.writeFileSync(file(), "{ not json");
-      expect(await exportVerbTables(prisma, tmp)).toBe(file());
+      expect(await exportVerbTables(prisma, shipped, tmp)).toBe(file());
       expect(JSON.parse(fs.readFileSync(file(), "utf8"))).toEqual({ verbs: [] });
     });
   });
