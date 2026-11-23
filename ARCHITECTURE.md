@@ -144,7 +144,9 @@ VerbTable (APPROVED) ──► stub generator (--grammar-only or Generate drafts
   `TagalogText` tokenises a line, makes one batch `lookupWordsAction` call and turns known verb
   forms into buttons that open a `VerbSheet`; unknown words and failed lookups stay plain text.
   It is used for Tala's chat lines only; the grammar page (`/grammar`) and skill pages show verb
-  tables directly (`VerbTableView`).
+  tables directly (`VerbTableView`). Returning full approved tables is a deliberate exception to
+  answer secrecy: a learner may consult the verb reference as they would a textbook table, while
+  drill payloads still never carry answers.
 
 ## Time-based rules
 

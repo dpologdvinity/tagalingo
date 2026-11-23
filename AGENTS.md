@@ -66,7 +66,10 @@ npx prisma migrate deploy && npm run db:seed && npm run build && npm run test:e2
 ## Conventions
 
 - **Exercise answers must never reach the client.** Grading happens in `src/server/lessons.ts`;
-  send exercises to the browser only through `toClientExercise`.
+  send exercises to the browser only through `toClientExercise`. One deliberate exception: verb
+  lookup (`lookupWordsAction` / `lookupWordAction`) returns full approved verb tables, because it is
+  reference use, like a textbook table, and chat is meant to work as a dictionary. Drill payloads
+  still never carry answers.
 - Game rules live in `src/lib/game` as pure, unit-tested functions. Write the failing test first.
 - Every exercise payload goes through `parseExercise`; add new exercise types there first.
 - Schema changes: edit `prisma/schema.prisma`, run `npm run db:migrate -- --name <change>`, and
