@@ -7,7 +7,7 @@
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { answerCurrent, logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner, waitForNextStep } from "./helpers";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -40,7 +40,7 @@ test.describe("accessibility", () => {
   });
 
   test("signed-in pages", async ({ page }, testInfo) => {
-    test.slow(); // eight pages, each loaded and scanned
+    test.slow(); // eleven pages, each loaded and scanned
     await logInAsDemo(page);
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const paths = [
@@ -50,7 +50,10 @@ test.describe("accessibility", () => {
       "/profile",
       "/chat",
       "/guide",
+      "/grammar",
       "/studio",
+      "/studio/grammar",
+      "/studio/verbs",
       `/studio/skills/${skill.id}`,
     ];
     for (const path of paths) {
@@ -65,7 +68,12 @@ test.describe("accessibility", () => {
     await page.getByRole("button", { name: /Pagbati/ }).click();
     await page.getByRole("link", { name: "Start lesson" }).click();
     await page.waitForURL("**/lesson/**");
-    await expect(page.locator("[data-exercise-id]")).toBeVisible();
+    // A grammar card can come before the first drill: scan it, then dismiss it to reach the exercise.
+    await waitForNextStep(page);
+    if (await page.getByRole("button", { name: "Got it — let's try" }).isVisible()) {
+      await expectAccessible(page, testInfo, "lesson-grammar-card");
+    }
+    await dismissGrammarCard(page);
     await expectAccessible(page, testInfo, "lesson-exercise");
 
     await answerCurrent(page, { wrong: true });

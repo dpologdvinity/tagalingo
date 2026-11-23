@@ -8,7 +8,7 @@
  */
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { answerCurrent, logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner } from "./helpers";
 
 const DIR = process.env.SCREENSHOTS_DIR;
 
@@ -52,7 +52,7 @@ test.describe("screenshots", () => {
     await page.getByRole("button", { name: /Pagbati/ }).click();
     await page.getByRole("link", { name: "Start lesson" }).click();
     await page.waitForURL("**/lesson/**");
-    await expect(page.locator("[data-exercise-id]")).toBeVisible();
+    await dismissGrammarCard(page); // the first drill may be behind a grammar card
     await shoot(page, project, "07-lesson");
     await answerCurrent(page, { wrong: true });
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();

@@ -18,7 +18,7 @@
  */
 import { expect, test, type Page, type Response } from "@playwright/test";
 import { parseExercise, type ExerciseType, type ParsedExercise } from "../src/lib/content/schema";
-import { logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { dismissGrammarCard, logInAsDemo, query, signUpFreshLearner } from "./helpers";
 
 const SECRET_KEY = /\\?"(answerIndex|answers|answer|alternates|distractors|replyEn)\\?"\s*:/;
 const MIN_SECRET_LENGTH = 4;
@@ -212,7 +212,7 @@ test.describe("answer secrecy on the wire", () => {
     const stop = recordResponses(page);
     await page.getByRole("link", { name: "Start lesson" }).click();
     await page.waitForURL("**/lesson/**");
-    await expect(page.locator("[data-exercise-id]")).toBeVisible();
+    await dismissGrammarCard(page); // a grammar card may come first; the exercise behind it is what's under test
     const captured = await stop();
 
     const sessionPath = pageKey(page.url());
@@ -229,7 +229,7 @@ test.describe("answer secrecy on the wire", () => {
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const stop = recordResponses(page);
     await page.goto(`/practice?skill=${skill.id}`);
-    await expect(page.locator("[data-exercise-id]")).toBeVisible();
+    await dismissGrammarCard(page); // a grammar card may come first; the exercise behind it is what's under test
     const captured = await stop();
 
     const exercises = await query<{ id: string; type: string; payload: unknown }>(
