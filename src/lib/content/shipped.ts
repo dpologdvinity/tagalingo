@@ -4,13 +4,14 @@
  * `content/<lang>/exercises/*.json` is normally only validated when the seed imports it, so a
  * broken export would surface as a failed deploy. `checkShippedContent` runs the same rules as
  * `importApprovedExercises` (export format, skill and lesson exist in course.yaml, every payload
- * passes `parseExercise`) as a pure function, collects `lintExercise` warnings, and counts what
- * ships. The unit suite runs it on the real content and CI prints `formatContentReport` to the
+ * passes `parseExercise`, every pattern tag names a pattern in course.yaml) as a pure function, collects `lintExercise` warnings, and counts what
+ * ships; `loadShippedContent` also checks that `grammar/verbs.json` parses. The unit suite runs it on the real content and CI prints `formatContentReport` to the
  * job summary.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { readVerbFile } from "../grammar/verbs-file";
 import { loadCourseFile, type CourseDefinition } from "./course";
 import { EXERCISE_TYPES, ExerciseValidationError, lintExercise, parseExercise, type ExerciseType } from "./schema";
 
@@ -81,6 +82,7 @@ export function checkShippedContent(course: CourseDefinition, files: RawContentF
     ]),
   );
   const shippedIn = new Map<string, string>();
+  const patternIds = new Set(course.grammar.map((p) => p.id));
 
   for (const { name, raw } of files) {
     const parsed = exportFileSchema.safeParse(raw);
@@ -121,6 +123,9 @@ export function checkShippedContent(course: CourseDefinition, files: RawContentF
         const where = `${name} › lesson ${lesson.order} › exercise ${i + 1}`;
         try {
           const ex = parseExercise(exercise.type, exercise.payload);
+          // The seed resolves tags by slug and would fail on one that course.yaml does not define.
+          for (const slug of exercise.patterns)
+            if (!patternIds.has(slug)) errors.push(`${where}: tagged with unknown grammar pattern "${slug}"`);
           for (const warning of lintExercise(ex)) warnings.push(`${where}: ${warning}`);
           skill.exercises += 1;
           increment(skill.byType, ex.type);
@@ -172,6 +177,11 @@ export function loadShippedContent(contentDir: string): ShippedContentReport {
   }
   const report = checkShippedContent(course, files);
   report.errors.unshift(...unreadable);
+  try {
+    readVerbFile(contentDir); // throws, naming the file, when verbs.json is not valid
+  } catch (err) {
+    report.errors.push(err instanceof Error ? err.message : String(err));
+  }
   return report;
 }
 
