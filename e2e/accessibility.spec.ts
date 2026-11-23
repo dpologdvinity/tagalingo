@@ -2,12 +2,12 @@
  * Accessibility: every screen passes axe-core's WCAG 2.2 A/AA rules on desktop and mobile.
  *
  * Pages are scanned after they settle, signed out, as the demo reviewer, and mid-lesson
- * (an exercise, then its feedback panel) as a fresh learner. A failure lists each violated rule
+ * (the grammar card, an exercise, then its feedback panel) as a fresh learner. A failure lists each violated rule
  * with the offending elements; the full axe results are attached to the test report.
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner, waitForNextStep } from "./helpers";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner } from "./helpers";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -65,16 +65,14 @@ test.describe("accessibility", () => {
     }
   });
 
-  test("a lesson: exercise and feedback", async ({ page }, testInfo) => {
+  test("a lesson: grammar card, exercise and feedback", async ({ page }, testInfo) => {
     await signUpFreshLearner(page);
     await page.getByRole("button", { name: /Pagbati/ }).click();
     await page.getByRole("link", { name: "Start lesson" }).click();
     await page.waitForURL("**/lesson/**");
-    // A grammar card can come before the first drill: scan it, then dismiss it to reach the exercise.
-    await waitForNextStep(page);
-    if (await page.getByRole("button", { name: "Got it — let's try" }).isVisible()) {
-      await expectAccessible(page, testInfo, "lesson-grammar-card");
-    }
+    // A fresh learner's first lesson opens on a grammar card: assert it, scan it, then dismiss it to reach the exercise.
+    await expect(page.getByRole("button", { name: "Got it — let's try" })).toBeVisible();
+    await expectAccessible(page, testInfo, "lesson-grammar-card");
     await dismissGrammarCard(page);
     await expectAccessible(page, testInfo, "lesson-exercise");
 
