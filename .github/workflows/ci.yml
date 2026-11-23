@@ -1,10 +1,15 @@
 # Continuous integration for Tagalingo.
 #
-#  verify  → format, lint, typecheck, unit tests with coverage (no services needed)
-#  e2e     → Postgres service, migrations, integration tests, production build, seed,
-#            Playwright on desktop + mobile against `next start`
+#  verify       → format, lint, typecheck, production dependency audit, shipped-content check,
+#                 unit tests with a coverage floor (no services needed)
+#  e2e          → Postgres service, migrations + schema drift check, integration tests, production
+#                 build, seed, then Playwright on desktop + mobile against `next start`: the core
+#                 loop, WCAG 2.2 AA scans of every screen, answer secrecy on the wire, page-weight
+#                 budgets, and screenshots of the key screens
+#  screenshots  → posts those screenshots on the pull request (same-repo PRs only)
 #
-# No repository secrets are required: the database is a throwaway service container and
+# Each job writes what it measured (course content, coverage, page weight) to the run's summary
+# page. No repository secrets are required: the database is a throwaway service container and
 # AUTH_SECRET is generated per run. Deploy settings are covered under "Deploying" in README.md.
 name: CI
 
@@ -40,7 +45,25 @@ jobs:
       - run: npm run lint
       - run: npx next typegen
       - run: npm run typecheck
+      # Only what ships to production; dev tooling advisories are Dependabot's job.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Check shipped course content
+        # `shell: bash` adds pipefail, so the step fails with the report instead of through tee.
+        shell: bash
+        run: npm run -s content:check | tee -a "$GITHUB_STEP_SUMMARY"
       - run: npm run test:coverage
+      - name: Coverage summary
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        run: |
+          {
+            echo "## Unit test coverage (src/lib)"
+            echo
+            echo "| Metric | Covered | Total | % |"
+            echo "| --- | --- | --- | --- |"
+            jq -r '.total | to_entries[] | select(.key != "branchesTrue")
+              | "| \(.key) | \(.value.covered) | \(.value.total) | \(.value.pct)% |"' coverage/coverage-summary.json
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -51,7 +74,7 @@ jobs:
   e2e:
     name: Integration + end-to-end
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     needs: verify
     services:
       postgres:
@@ -72,6 +95,8 @@ jobs:
       CONTENT_GENERATOR: stub
       # The e2e suite drives the Studio as the demo account; opt in for this throwaway deployment only.
       DEMO_CAN_REVIEW: "true"
+      # e2e/screenshots.spec.ts only runs when this is set.
+      SCREENSHOTS_DIR: ${{ github.workspace }}/pr-screenshots
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -82,6 +107,9 @@ jobs:
       - name: Generate a throwaway AUTH_SECRET
         run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - run: npx prisma migrate deploy
+      # Fails when schema.prisma changed without a migration (exit code 2 means "drift").
+      - name: Check the migrations match schema.prisma
+        run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - run: npm run test:integration
       - run: npm run build
       - run: npm run db:seed
@@ -93,10 +121,119 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: ${{ !cancelled() }}
         with:
           name: playwright-report
           path: |
             playwright-report/
             test-results/
           retention-days: 7
+      - uses: actions/upload-artifact@v7
+        if: success()
+        with:
+          name: screenshots
+          path: pr-screenshots/
+          retention-days: 7
+
+  # Publishes the e2e screenshots to the `screenshots` branch (one folder per open PR, kept as a
+  # single orphan commit so the branch never grows) and keeps one comment on the PR up to date.
+  # Runs no PR code: it only handles the PNG artifact, so it can hold a write token. Fork PRs get
+  # a read-only token, and Dependabot PRs change no screens, so both are skipped.
+  screenshots:
+    name: PR screenshots
+    needs: e2e
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    # One writer at a time; a queued run waits rather than racing the force-push. GitHub keeps only
+    # the newest pending run per group, so when several PRs push at once an older pending run can
+    # end "cancelled"; that PR's comment catches up on its next push.
+    concurrency:
+      group: screenshots-branch
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: screenshots
+          path: shots
+      - name: Publish to the screenshots branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          url="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          # Exit code 2 means "no such branch" (first run); anything else is a real failure and must
+          # not fall through to a fresh branch that would overwrite every other PR's screenshots.
+          status=0
+          git ls-remote --exit-code --heads "$url" screenshots > /dev/null || status=$?
+          if [ "$status" -eq 0 ]; then
+            git clone --quiet --depth 1 --branch screenshots "$url" site
+          elif [ "$status" -eq 2 ]; then
+            git init --quiet -b screenshots site
+            git -C site remote add origin "$url"
+          else
+            echo "::error::git ls-remote failed with exit code $status"
+            exit "$status"
+          fi
+          cd site
+          # Drop folders of PRs that are closed or merged. An API error keeps the folder: a rate
+          # limit must not delete an open PR's screenshots.
+          for dir in pr-*/; do
+            [ -d "$dir" ] || continue
+            number="${dir#pr-}"
+            number="${number%/}"
+            state="$(gh pr view "$number" --repo "$REPO" --json state --jq .state 2> /dev/null || echo UNKNOWN)"
+            case "$state" in CLOSED | MERGED) rm -rf "$dir" ;; esac
+          done
+          rm -rf "pr-${PR}"
+          mkdir -p "pr-${PR}"
+          cp -r ../shots/. "pr-${PR}/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --quiet --orphan next
+          git add -A
+          git commit --quiet -m "Screenshots for open pull requests (latest: #${PR} at ${SHA::7})"
+          git push --quiet --force origin next:screenshots
+      - name: Comment on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          marker="<!-- tagalingo-screenshots -->"
+          base="https://raw.githubusercontent.com/${REPO}/screenshots/pr-${PR}"
+          {
+            echo "$marker"
+            echo "### 📸 Screenshots"
+            echo
+            echo "Key screens from [this run](${RUN_URL}) at ${SHA::7}, desktop and mobile."
+            echo
+            echo "| Screen | Desktop | Mobile |"
+            echo "| --- | --- | --- |"
+            for shot in shots/desktop/*.png; do
+              name="$(basename "$shot" .png)"
+              label="${name#*-}"
+              # ?v= busts GitHub's image cache when a new push replaces the file.
+              echo "| ${label} | <img src=\"${base}/desktop/${name}.png?v=${RUN_ID}\" width=\"480\"> | <img src=\"${base}/mobile/${name}.png?v=${RUN_ID}\" width=\"160\"> |"
+            done
+          } > comment.md
+          id="$(gh api "repos/${REPO}/issues/${PR}/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"${marker}\")) | .id" | head -n 1)"
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${REPO}/issues/comments/${id}" -F body=@comment.md > /dev/null
+          else
+            gh pr comment "$PR" --repo "$REPO" --body-file comment.md
+          fi

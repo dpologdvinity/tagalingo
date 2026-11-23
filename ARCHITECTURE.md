@@ -13,17 +13,18 @@ Browser ──► proxy.ts (session cookie check) ──► Server Components (p
 
 ## Module boundaries
 
-| Path                      | Responsibility                                                                                                                      | May import                              |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `src/lib/game/*`          | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | `lib/grammar` (pure, for grading)       |
-| `src/lib/content/*`       | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, `lib/grammar`, Prisma types |
-| `src/lib/grammar/*`       | Pure grammar engine: verb morphology, word analysis, vocabulary and drill checks, the `verbs.json` file format, chat tokeniser      | `lib/content` (course types, helpers)   |
-| `src/lib/db.ts`, `env.ts` | Lazy Prisma client, validated env with dev defaults                                                                                 | —                                       |
-| `src/server/*`            | Use-cases that combine rules with the database (`server-only`): lessons, path, grammar progress, learner stats, leaderboard, studio | `lib/*`                                 |
-| `src/app/actions/*`       | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                                      | `server/*`, `lib/*`                     |
-| `src/app/**/page.tsx`     | Server-rendered screens                                                                                                             | `server/*`, components                  |
-| `src/components/*`        | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                                  | `lib/*` types                           |
-| `prisma/`, `scripts/`     | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                                              | `lib/*`                                 |
+| Path                            | Responsibility                                                                                                                      | May import                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `src/lib/game/*`                | Pure game rules: grading, hearts, streaks, league week, unlock path, XP, goals. No I/O.                                             | `lib/grammar` (pure, for grading)                                  |
+| `src/lib/content/*`             | Exercise schemas + lint, course loader, generators (Claude/stub), client-safe view, file⇄DB persistence                             | `lib/game`, `lib/grammar`, `lib/color`, `lib/random`, Prisma types |
+| `src/lib/grammar/*`             | Pure grammar engine: verb morphology, word analysis, vocabulary and drill checks, the `verbs.json` file format, chat tokeniser      | `lib/content` (course types, helpers)                              |
+| `src/lib/color.ts`, `random.ts` | Pure helpers: WCAG contrast and accessible avatar colours; seeded shuffles. No I/O.                                                 | nothing app-specific                                               |
+| `src/lib/db.ts`, `env.ts`       | Lazy Prisma client, validated env with dev defaults                                                                                 | —                                                                  |
+| `src/server/*`                  | Use-cases that combine rules with the database (`server-only`): lessons, path, grammar progress, learner stats, leaderboard, studio | `lib/*`                                                            |
+| `src/app/actions/*`             | Server actions: validate input, re-check the session/role, call `src/server`, revalidate paths                                      | `server/*`, `lib/*`                                                |
+| `src/app/**/page.tsx`           | Server-rendered screens                                                                                                             | `server/*`, components                                             |
+| `src/components/*`              | Shared UI (Tala mascot, icons, buttons, stats widgets, navigation)                                                                  | `lib/*` types, `lib/color`                                         |
+| `prisma/`, `scripts/`           | Schema, migrations, seed, content CLIs (plain Node; construct their own Prisma client)                                              | `lib/*`                                                            |
 
 The rules in `src/lib/game` are deliberately pure functions with unit tests; everything that
 touches the database is covered by integration tests (`*.int.test.ts`) and Playwright.
@@ -172,6 +173,16 @@ content/tagalog/course.yaml ─► ExerciseGenerator ─► DRAFT rows ─► /s
   as `rejected`, never saved.
 - `selectGenerator()` picks Claude when `ANTHROPIC_API_KEY` is set, otherwise the stub.
 - Only `APPROVED` exercises are ever served. A lesson with none blocks the path ("in review").
+
+## Verification
+
+Answer secrecy is checked at three levels, from the narrowest to the whole app: unit tests on
+`toClientExercise`, integration tests on what `startAttempt` / `startPractice` return, and an
+end-to-end test that records the real network responses while a lesson and a practice session
+load (`e2e/answer-secrecy.spec.ts`). Shipped content is validated without a database by
+`checkShippedContent` (`src/lib/content/shipped.ts`), using the same rules the seed import
+applies. Accessibility (axe-core, WCAG 2.2 AA), page-weight budgets and schema drift are gated in
+CI; see "Continuous integration" in README.md.
 
 ## Auth
 

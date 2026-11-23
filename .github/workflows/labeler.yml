@@ -1,0 +1,24 @@
+# Labels pull requests by area from the files they change (rules in .github/labeler.yml), so the
+# PR list shows at a glance what each one touches.
+#
+# pull_request_target gives fork PRs a token that can add labels. The job never checks out or
+# runs the PR's code: the labeler only reads the list of changed files from the API.
+name: Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v7
+        with:
+          sync-labels: true

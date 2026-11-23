@@ -40,7 +40,6 @@ export function Flashcards({ words }: { words: Word[] }) {
       <button
         type="button"
         onClick={() => setFlipped((f) => !f)}
-        aria-label={flipped ? `Meaning: ${word.en}. Tap to show the Tagalog.` : `${word.tl}. Tap to show the meaning.`}
         className="flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-line bg-surface p-6 text-center shadow-press"
       >
         {!flipped ? (
@@ -68,6 +67,7 @@ export function Flashcards({ words }: { words: Word[] }) {
               </span>
             )}
             {word.notes && <span className="mt-1 block max-w-md text-sm text-ink-soft">{word.notes}</span>}
+            <span className="text-sm text-ink-soft">Tap to see the Tagalog</span>
           </>
         )}
       </button>

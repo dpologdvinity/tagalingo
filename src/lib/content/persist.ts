@@ -12,13 +12,13 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { lessonRequest, type CourseDefinition } from "./course";
 import { loadApprovedVerbTables, syncGrammar } from "./grammar-persist";
 import { GRAMMAR_AFTER } from "./generators/grammar-drills";
 import type { ExerciseGenerator } from "./generators/types";
-import { EXERCISE_TYPES, parseExercise } from "./schema";
+import { parseExercise } from "./schema";
+import { exportFileSchema, type ExportFile } from "./shipped";
 
 /** Insert or update course → units → skills → lessons → words and grammar patterns to match course.yaml. */
 export async function syncCourseStructure(prisma: PrismaClient, def: CourseDefinition) {
@@ -208,27 +208,6 @@ export async function generateDraftsForLesson(
     rejectedReasons: rejected.map((r) => r.reason),
   };
 }
-
-const exportFileSchema = z.object({
-  skill: z.string(),
-  lessons: z.array(
-    z.object({
-      order: z.number().int().positive(),
-      title: z.string(),
-      exercises: z.array(
-        z.object({
-          type: z.enum(EXERCISE_TYPES),
-          payload: z.unknown(),
-          source: z.enum(["HUMAN", "CLAUDE", "STUB"]),
-          reviewNote: z.string().nullish(),
-          /** Slugs of the grammar patterns the exercise drills; absent in files exported before patterns existed. */
-          patterns: z.array(z.string()).default([]),
-        }),
-      ),
-    }),
-  ),
-});
-export type ExportFile = z.infer<typeof exportFileSchema>;
 
 const exercisesDir = (contentDir: string) => path.join(contentDir, "exercises");
 

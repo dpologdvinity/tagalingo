@@ -15,7 +15,7 @@ const minimal = {
       slug: "u1",
       title: "U1",
       subtitle: "s",
-      color: "#13A3A9",
+      color: "#0F8287",
       skills: [
         {
           slug: "s1",
@@ -46,6 +46,12 @@ describe("parseCourse", () => {
     const bad = structuredClone(minimal);
     bad.units[0].skills[0].lessons[0].words = ["bundok"];
     expect(() => parseCourse(bad)).toThrow(/bundok/);
+  });
+
+  it("rejects a unit colour that white text cannot be read on", () => {
+    const bad = structuredClone(minimal);
+    bad.units[0].color = "#42B5BA";
+    expect(() => parseCourse(bad)).toThrow(/units\.0\.color.*contrast/);
   });
 
   it("rejects an example sentence that does not contain its word", () => {

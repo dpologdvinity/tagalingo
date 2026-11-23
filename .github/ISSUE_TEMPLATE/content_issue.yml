@@ -1,0 +1,25 @@
+# Content form: a wrong translation, gloss, accent or example sentence in the course.
+name: Tagalog content issue
+description: A translation, gloss, spelling or example sentence that's wrong or unnatural
+labels: [content]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Skill and exercise
+      placeholder: 'e.g. Family, "Translate: My older sister is a nurse"'
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What the course says
+    validations:
+      required: true
+  - type: textarea
+    id: right
+    attributes:
+      label: What it should say, and why
+      description: A source or a note on regional usage helps the review.
+    validations:
+      required: true

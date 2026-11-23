@@ -1,5 +1,11 @@
 # Tagalingo
 
+[![CI](https://github.com/dpologdvinity/tagalingo/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dpologdvinity/tagalingo/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/dpologdvinity/tagalingo/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/dpologdvinity/tagalingo/actions/workflows/codeql.yml)
+[![WCAG 2.2 AA](https://img.shields.io/badge/WCAG_2.2-AA_checked_in_CI-0f8287)](e2e/accessibility.spec.ts)
+[![Node 24](https://img.shields.io/badge/node-24-339933?logo=node.js&logoColor=white)](package.json)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Learn Tagalog (Filipino) five minutes at a time. Tagalingo is a gamified language-learning
 web app for English speakers: short lessons of mixed exercises, a daily streak and XP goal, a
 weekly leaderboard (the _Barkada League_), a skill path that unlocks in order, and hearts that
@@ -168,6 +174,7 @@ drills only. [CONTRIBUTING.md](CONTRIBUTING.md) has the full workflow.
 | `npm run test:e2e`           | Playwright, desktop + mobile, against `next start`          |
 | `npm run content:generate`   | Draft exercises from the word list (`-- --grammar-only`)    |
 | `npm run content:export`     | Save approved exercises and verb tables to the repo         |
+| `npm run content:check`      | Validate the shipped content and print a report             |
 | `npm run grammar:draft`      | Draft verb tables from the course's `verbs:` for review     |
 | `npm run user:make-reviewer` | Give an account Studio access (`-- --email …`)              |
 
@@ -185,8 +192,27 @@ Any Node host plus managed Postgres works. A straightforward setup:
    `DATABASE_URL=... npm run user:make-reviewer -- --email you@example.org`. The seed refuses
    to run once real accounts exist, so it can't wipe production by accident.
 
-CI (GitHub Actions) runs lint, typecheck, unit, integration and end-to-end tests on every push
-and pull request to `master`. Pushing a `v*` tag drafts a GitHub release.
+## Continuous integration
+
+Every push and pull request to `master` runs the full pipeline in GitHub Actions. Most checks
+test something specific to Tagalingo:
+
+| Check                       | What it guards                                                                                                   |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Lint, typecheck, unit tests | Prettier, ESLint, TypeScript, Vitest with a coverage floor on `src/lib`                                          |
+| Course content              | Every shipped exercise parses and belongs to a real skill and lesson; the run summary shows exercises per skill  |
+| Dependencies                | `npm audit` on production deps, Dependabot (grouped, minor/patch auto-merged), dependency review on PRs          |
+| Schema drift                | The committed migrations produce exactly `schema.prisma`                                                         |
+| Integration + end-to-end    | Server tests on Postgres; Playwright on desktop and mobile against a production build                            |
+| Answer secrecy              | Records what the browser receives when a lesson or practice session starts and fails if any answer is in it      |
+| Accessibility               | axe-core scans every screen, a lesson and its feedback panel against WCAG 2.2 AA                                 |
+| Page weight                 | A JavaScript budget per key screen, with a table in the run summary                                              |
+| Screenshots                 | Key screens on desktop and mobile, posted as one comment on each pull request                                    |
+| CodeQL, actionlint          | Code scanning (weekly too) and linting of the workflows themselves                                               |
+| PR hygiene                  | Conventional Commit titles, area labels from the files changed                                                   |
+| Claude reviews              | A code review on new PRs, a Tagalog language review on content PRs, and `@claude` on issues and PRs (owner only) |
+
+Pushing a `v*` tag drafts a GitHub release.
 
 ## Content status
 

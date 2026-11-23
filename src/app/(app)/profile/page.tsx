@@ -88,12 +88,17 @@ export default async function ProfilePage() {
 
       <dl className="grid grid-cols-2 gap-3">
         {tiles.map(({ icon: Icon, color, value, label }) => (
-          <div key={label} className="flex items-center gap-3 rounded-2xl border-2 border-line bg-surface p-4">
-            <Icon size={30} className={color} />
-            <div>
-              <dd className="font-display text-2xl leading-none">{value}</dd>
-              <dt className="text-sm text-ink-soft">{label}</dt>
-            </div>
+          // A <dl> group may only hold <dt>/<dd>: the icon sits inside the <dt>, positioned against
+          // the tile, and flex-col-reverse shows the value above its label.
+          <div
+            key={label}
+            className="relative flex flex-col-reverse justify-center rounded-2xl border-2 border-line bg-surface py-4 pl-[calc(1.75rem+30px)] pr-4"
+          >
+            <dt className="text-sm text-ink-soft">
+              <Icon size={30} className={`absolute left-4 top-1/2 -translate-y-1/2 ${color}`} />
+              {label}
+            </dt>
+            <dd className="font-display text-2xl leading-none">{value}</dd>
           </div>
         ))}
       </dl>

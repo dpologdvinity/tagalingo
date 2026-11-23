@@ -37,7 +37,7 @@ units:
   - slug: unang-hakbang
     title: Unang Hakbang
     subtitle: Say hello, introduce people and order food.
-    color: "#13A3A9"
+    color: "#0F8287"
     skills:
       - slug: pagbati
         title: Pagbati
@@ -513,7 +513,7 @@ units:
   - slug: sa-bayan
     title: Sa Bayan
     subtitle: Count, find your way around town and talk about time.
-    color: "#E07A1F"
+    color: "#B16018"
     skills:
       - slug: mga-numero
         title: Mga Numero

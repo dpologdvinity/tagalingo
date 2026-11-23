@@ -20,13 +20,14 @@ const NODE = 76;
 
 function RoutePlacard({ unit }: { unit: Unit }) {
   const started = unit.skills.some((s) => s.completedLessons > 0);
-  const link = "rounded-xl bg-white/20 px-3 py-1.5 text-sm font-bold hover:bg-white/30";
+  // A darker wash (not a lighter one) keeps the white link text readable on every unit colour.
+  const link = "rounded-xl bg-black/20 px-3 py-1.5 text-sm font-bold hover:bg-black/30";
   return (
     <header className="overflow-hidden rounded-3xl text-white shadow-press" style={{ background: unit.color }}>
       <div className="px-5 pb-4 pt-4">
-        <p className="font-bold opacity-85">Unit {unit.order}</p>
+        <p className="font-bold">Unit {unit.order}</p>
         <h2 className="font-display text-3xl leading-tight">{unit.title}</h2>
-        <p className="mt-1 max-w-sm opacity-90">{unit.subtitle}</p>
+        <p className="mt-1 max-w-sm">{unit.subtitle}</p>
         {(unit.order === 1 || started) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {unit.order === 1 && (

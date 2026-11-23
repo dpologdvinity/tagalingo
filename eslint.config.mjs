@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated reports (npm run test:coverage, Playwright) and the Prisma client.
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "src/generated/**",
   ]),
 ]);
 

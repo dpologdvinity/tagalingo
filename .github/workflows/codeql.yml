@@ -1,0 +1,52 @@
+# GitHub's CodeQL security scanning for the TypeScript (app, scripts, seed) and for the workflow
+# files themselves, on every push and pull request to master and once a week so new queries catch
+# old code. Findings land in the repo's Security tab rather than failing the check.
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+    paths-ignore: ["**.md", "docs/**", "content/**", "public/**", "LICENSE"]
+  pull_request:
+    branches: [master]
+    paths-ignore: ["**.md", "docs/**", "content/**", "public/**", "LICENSE"]
+  schedule:
+    # Mondays 06:17 UTC: off the hour, when scheduled runs pile up.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@v7
+      # No build step: CodeQL reads JavaScript and TypeScript from source.
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-and-quality
+          config: |
+            paths-ignore:
+              - src/generated
+              - docs
+              - content
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

@@ -1,0 +1,36 @@
+# Bug report form: asks for the screen, the steps and the device, since most Tagalingo bugs
+# depend on which lesson or exercise you were on.
+name: Bug report
+description: Something in Tagalingo is broken or wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the "Greetings" skill
+        2. Start a lesson and answer ...
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Page, skill or exercise
+      placeholder: e.g. the leaderboard, Basics 2 lesson 3, the Studio
+  - type: input
+    id: browser
+    attributes:
+      label: Browser, OS and device
+      placeholder: e.g. Safari 19 on iPhone 16, Chrome 142 on Windows 11
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console errors

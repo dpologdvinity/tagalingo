@@ -4,6 +4,7 @@
  */
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { avatarColor } from "@/lib/color";
 
 type Variant = "primary" | "secondary" | "danger" | "mango" | "ghost";
 
@@ -42,7 +43,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
   return <section className={`rounded-3xl border-2 border-line bg-surface p-5 ${className}`}>{children}</section>;
 }
 
-/** Round avatar showing the learner's initials on their colour. */
+/** Round avatar showing the learner's initials on their colour (darkened as needed for contrast). */
 export function Avatar({ name, hue, size = 40 }: { name: string; hue: number; size?: number }) {
   const initials = name
     .split(/\s+/)
@@ -54,7 +55,7 @@ export function Avatar({ name, hue, size = 40 }: { name: string; hue: number; si
     <span
       aria-hidden
       className="inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white"
-      style={{ width: size, height: size, background: `hsl(${hue} 55% 42%)`, fontSize: size * 0.38 }}
+      style={{ width: size, height: size, background: avatarColor(hue), fontSize: size * 0.38 }}
     >
       {initials || "?"}
     </span>

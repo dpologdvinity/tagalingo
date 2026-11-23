@@ -2,6 +2,10 @@
  * Tagalingo design tokens.
  * Palette is drawn from Manila Bay: sea-glass page, lagoon primary, mango for XP and streaks,
  * gumamela (hibiscus) for hearts and mistakes, deep-navy ink.
+ *
+ * Every colour that carries text meets WCAG AA (4.5:1): white on lagoon-bright and gumamela,
+ * gumamela on gumamela-soft and seaglass, mango-deep on white and mango-soft. The axe check in
+ * e2e/accessibility.spec.ts fails if a change drops below that.
  */
 @import "tailwindcss";
 
@@ -10,12 +14,12 @@
   --color-surface: #ffffff;
   --color-line: #d6e4e2;
   --color-lagoon: #0b6e75;
-  --color-lagoon-bright: #13a3a9;
+  --color-lagoon-bright: #0f8287;
   --color-lagoon-soft: #d7f0ee;
   --color-mango: #ffb627;
-  --color-mango-deep: #c98400;
+  --color-mango-deep: #915f00;
   --color-mango-soft: #fff1d1;
-  --color-gumamela: #e5484d;
+  --color-gumamela: #ce1d23;
   --color-gumamela-soft: #fde4e4;
   --color-ink: #17233b;
   --color-ink-soft: #52607a;

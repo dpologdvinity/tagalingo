@@ -14,6 +14,9 @@ configuration table in README.md if you want to override defaults.
 ## Branches and commits
 
 - Branch from `master` (`feat/…`, `fix/…`, `chore/…`) and open a pull request; CI must pass.
+- Give the pull request a Conventional Commit title (a squash merge uses it as the commit message).
+  CI labels it by area, posts screenshots of the key screens, and Claude leaves a review (plus a
+  Tagalog review when `content/` changes). Comment `@claude …` to ask for changes or a re-review.
 - Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): …`,
   `fix: …`, `test: …`, `docs: …`, `refactor: …`, `chore: …`. Keep commits small and atomic.
 
@@ -25,8 +28,16 @@ npm run lint             # ESLint
 npm run typecheck        # tsc (run `npx next typegen` first after adding routes)
 npm test                 # unit tests
 npm run test:integration # needs the Docker database; uses a separate tagalingo_test DB
+npm run content:check    # shipped content report (also covered by npm test)
 npm run build && npm run test:e2e   # Playwright against a production server
 ```
+
+The Playwright suite includes the core loop, axe-core accessibility scans (WCAG 2.2 AA) of every
+screen, an answer-secrecy check on the network traffic, and JavaScript budgets per screen
+(`e2e/performance.spec.ts`). If a change genuinely needs more JavaScript, raise that screen's
+budget in the same PR and say why. CI also checks that `prisma/migrations` matches
+`schema.prisma`, audits production dependencies, and enforces the coverage floor in
+`vitest.config.ts`.
 
 ## Conventions
 

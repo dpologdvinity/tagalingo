@@ -1,0 +1,22 @@
+# Blocks a pull request that adds or bumps a dependency with a known high or critical
+# vulnerability (GitHub's advisory database) before it reaches master. Complements the
+# `npm audit` step in ci.yml, which audits what master already has.
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [master]
+    paths: [package.json, package-lock.json]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v5.0.1
+        with:
+          fail-on-severity: high
