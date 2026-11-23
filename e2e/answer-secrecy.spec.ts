@@ -91,6 +91,30 @@ function publicValues(ex: ParsedExercise): string[] {
         return [ex.payload.text, ex.payload.translation];
       case "dialogue":
         return [...ex.payload.lines.flatMap((l) => [l.tl, l.en]), ex.payload.options, ...ex.payload.options];
+      case "conjugate":
+        return [ex.payload.sentence, ex.payload.translation, ex.payload.root, ex.payload.affix, ex.payload.form];
+      case "find_root":
+        return [
+          ex.payload.word,
+          ...(ex.payload.translation ? [ex.payload.translation] : []),
+          ...(ex.payload.options ?? []),
+        ];
+      case "transform":
+        // Build mode shows the answer's tokens and the distractors as one shuffled tile bank.
+        return [
+          ex.payload.source,
+          ex.payload.sourceEn,
+          ex.payload.instruction,
+          ...(ex.payload.mode === "build" ? [...ex.payload.answers[0]!, ...ex.payload.distractors] : []),
+        ];
+      case "paradigm":
+        return [
+          ex.payload.root,
+          ex.payload.affix,
+          ex.payload.en,
+          ...ex.payload.cells.flatMap((c) => [c.form, c.value]),
+          ...ex.payload.distractors,
+        ];
     }
   })();
   return values.map((v) => JSON.stringify(v));
@@ -110,6 +134,22 @@ function withheld(ex: ParsedExercise): (string | string[])[] {
       ];
     case "dialogue":
       return [ex.payload.replyEn];
+    case "conjugate":
+      return [ex.payload.answers, ...ex.payload.answers];
+    case "find_root":
+      // In choice mode the root is one of the visible options, so only type mode keeps it secret.
+      return [ex.payload.root, ex.payload.hint];
+    case "transform":
+      // As with word_bank: only the order of a build answer is secret, and the shuffle may reproduce it.
+      return [
+        ...(ex.payload.mode === "type" || ex.payload.distractors.length ? ex.payload.answers : []),
+        ...(ex.payload.distractors.length ? [ex.payload.distractors] : []),
+      ];
+    case "paradigm": {
+      // The hidden values are tiles, so their order in the table (and the distractor list) is what's secret.
+      const hidden = ex.payload.cells.filter((c) => c.hidden).map((c) => c.value);
+      return ex.payload.distractors.length ? [hidden, ex.payload.distractors] : [];
+    }
     default:
       return [];
   }
