@@ -105,4 +105,125 @@ describe("toClientExercise: v1.1 types", () => {
       translation: "Thank you.",
     });
   });
+
+  describe("grammar exercise types", () => {
+    const mistakes = [{ answer: "WRONGKAIN", why: "MISTAKETEXT" }];
+    const cases = [
+      [
+        "conjugate",
+        {
+          sentence: "___ ako.",
+          translation: "I ate.",
+          root: "kain",
+          affix: "um",
+          form: "completed",
+          answers: ["KUMAIN"],
+          mistakes,
+        },
+        ["KUMAIN", "WRONGKAIN", "MISTAKETEXT"],
+      ],
+      ["find_root", { word: "kumain", mode: "type", root: "ROOTKAIN", hint: "HINTTEXT" }, ["ROOTKAIN", "HINTTEXT"]],
+      [
+        "transform",
+        {
+          source: "Kumain ako.",
+          sourceEn: "I ate.",
+          instruction: "Change.",
+          mode: "type",
+          answers: [["ANSWERTOKEN"]],
+          mistakes,
+        },
+        ["ANSWERTOKEN", "WRONGKAIN", "MISTAKETEXT"],
+      ],
+      [
+        "paradigm",
+        {
+          root: "kain",
+          affix: "um",
+          en: "eat",
+          cells: [
+            { form: "infinitive", value: "kumain", hidden: false },
+            { form: "completed", value: "HIDDENVALUE", hidden: true },
+          ],
+          distractors: ["x"],
+        },
+        ['"value":"HIDDENVALUE"'],
+      ],
+      [
+        "fill_blank",
+        {
+          sentence: "Kumain ___.",
+          translation: "t",
+          options: ["a", "b", "c"],
+          answerIndex: 0,
+          why: [null, "WHYTEXT", "WHYTEXT2"],
+        },
+        ["WHYTEXT", "WHYTEXT2", '"answerIndex"', '"why"'],
+      ],
+    ] as const;
+
+    it.each(cases)("%s never leaks answers, why or mistakes", (type, payload, secrets) => {
+      const json = JSON.stringify(toClientExercise("ex1", parseExercise(type, payload)));
+      for (const secret of secrets) expect(json).not.toContain(secret);
+    });
+
+    it("find_root hides the root, and the type mode has no options", () => {
+      const choice = toClientExercise(
+        "ex1",
+        parseExercise("find_root", {
+          word: "kumain",
+          mode: "choice",
+          options: ["kain", "kuman"],
+          root: "kain",
+          hint: "h",
+        }),
+      );
+      expect(choice).toEqual({
+        id: "ex1",
+        type: "find_root",
+        word: "kumain",
+        mode: "choice",
+        options: ["kain", "kuman"],
+      });
+      const typed = toClientExercise(
+        "ex1",
+        parseExercise("find_root", { word: "kumain", mode: "type", root: "kain", hint: "h" }),
+      );
+      expect(typed).toEqual({ id: "ex1", type: "find_root", word: "kumain", mode: "type" });
+    });
+
+    it("transform tiles exist only in build mode and are stable per id", () => {
+      const p = { source: "s", sourceEn: "e", instruction: "i", answers: [["a", "b"]], distractors: ["c"] };
+      const built = toClientExercise("ex1", parseExercise("transform", { ...p, mode: "build" }));
+      const again = toClientExercise("ex1", parseExercise("transform", { ...p, mode: "build" }));
+      expect(built).toEqual(again);
+      expect(built.type === "transform" && [...(built.tiles ?? [])].sort()).toEqual(["a", "b", "c"]);
+      const typed = toClientExercise("ex1", parseExercise("transform", { ...p, mode: "type" }));
+      expect(typed).not.toHaveProperty("tiles");
+    });
+
+    it("paradigm nulls hidden cells and offers hidden values plus distractors as tiles", () => {
+      const view = toClientExercise(
+        "ex1",
+        parseExercise("paradigm", {
+          root: "kain",
+          affix: "um",
+          en: "eat",
+          cells: [
+            { form: "infinitive", value: "kumain", hidden: false },
+            { form: "completed", value: "kumain", hidden: true },
+            { form: "contemplated", value: "kakain", hidden: true },
+          ],
+          distractors: ["kinain"],
+        }),
+      );
+      if (view.type !== "paradigm") throw new Error("wrong type");
+      expect(view.cells).toEqual([
+        { form: "infinitive", value: "kumain" },
+        { form: "completed", value: null },
+        { form: "contemplated", value: null },
+      ]);
+      expect([...view.tiles].sort()).toEqual(["kakain", "kinain", "kumain"]);
+    });
+  });
 });

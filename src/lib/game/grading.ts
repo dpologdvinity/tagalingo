@@ -5,6 +5,12 @@
  * is graded as wrong rather than throwing, so a tampered request can't crash a lesson.
  */
 import type { ParsedExercise } from "@/lib/content/schema";
+import { analyse, type VerbTableData } from "@/lib/grammar/analyse";
+import { FORM_LABEL, VERB_FORMS, type VerbForm } from "@/lib/grammar/types";
+import { normalizeAnswer } from "@/lib/normalize";
+
+// Re-exported so existing `@/lib/game/grading` imports keep working.
+export { normalizeAnswer };
 
 export type GradeResult = {
   correct: boolean;
@@ -14,23 +20,19 @@ export type GradeResult = {
   typo?: boolean;
   /** True when a speaking exercise was skipped ("can't speak now"): counts as done, no penalty. */
   skipped?: boolean;
+  /** Why a wrong answer is wrong (wrong verb form, known mistake, per-option note or hint). */
+  explanation?: string;
+  /** Paradigm only: the hidden cells the learner filled wrongly, in table order. */
+  wrongCells?: VerbForm[];
 };
 
-/**
- * Canonical form used for comparisons: lower-case, accents removed (Tagalog sometimes marks
- * stress, e.g. "pô"), hyphens dropped ("mag-aral" == "magaral"), punctuation stripped and
- * whitespace collapsed.
- */
-export function normalizeAnswer(input: string): string {
-  return input
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("en")
-    .replace(/[-‐‑–—]/g, "")
-    .replace(/[^\p{L}\p{N}\s']/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+/** Extra data the server loads to explain mistakes; all optional so grading stays pure and testable. */
+export type GradeContext = {
+  /** Reviewed verb tables, used to recognise a correctly spelled but wrong form of the same verb. */
+  verbTables?: readonly VerbTableData[];
+  /** Course-wide common mistakes as [answer, why] pairs, used when the exercise lists none. */
+  patternMistakes?: readonly [string, string][];
+};
 
 /** Classic edit distance (insert/delete/substitute), O(n·m) with a single row. */
 export function levenshtein(a: string, b: string): number {
@@ -56,6 +58,9 @@ export function similarity(a: string, b: string): number {
   return longest === 0 ? 1 : 1 - levenshtein(x, y) / longest;
 }
 
+/** How a wrong verb form is named: the aspects in table order, then the infinitive / command. */
+const WRONG_FORM_ORDER: readonly VerbForm[] = [...VERB_FORMS.filter((f) => f !== "infinitive"), "infinitive"];
+
 /** Speech recognition mishears small things; this much similarity counts as saying it right. */
 export const SPEECH_MATCH_THRESHOLD = 0.75;
 
@@ -68,7 +73,66 @@ function choiceOf(answer: unknown): number | null {
   return isRecord(answer) && Number.isInteger(answer.choice) ? (answer.choice as number) : null;
 }
 
-export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
+/** True when `answer` is `{ text }` and its normalised text equals one of `accepted`. */
+function textMatches(answer: unknown, accepted: string[]): boolean {
+  if (!isRecord(answer) || typeof answer.text !== "string") return false;
+  const given = normalizeAnswer(answer.text);
+  return given !== "" && accepted.some((a) => normalizeAnswer(a) === given);
+}
+
+/** The learner's free-form answer as one string: tapped tokens joined, or typed text; null if neither. */
+function givenText(answer: unknown): string | null {
+  if (!isRecord(answer)) return null;
+  if (Array.isArray(answer.tokens) && answer.tokens.every((t) => typeof t === "string")) {
+    return (answer.tokens as string[]).join(" ");
+  }
+  return typeof answer.text === "string" ? answer.text : null;
+}
+
+/**
+ * Explains a wrong answer. Precedence: wrong form of the same verb, then a known mistake (the
+ * exercise's own list before the course-wide one), then the per-option `why`, then the find_root hint.
+ */
+function explain(ex: ParsedExercise, answer: unknown, ctx: GradeContext): string | undefined {
+  const text = givenText(answer);
+  if (ex.type === "conjugate" && text !== null) {
+    const { root, affix, form: target, answers } = ex.payload;
+    const wrong = analyse(text, ctx.verbTables ?? []).filter(
+      (a) => a.root === root && a.affix === affix && a.form !== target,
+    );
+    // A spelling can fill several cells (-um- kumain is the past and the infinitive), so name them all,
+    // the aspects first: "That's the past and infinitive / command form (kumain)."
+    const forms = WRONG_FORM_ORDER.filter((f) => wrong.some((a) => a.form === f));
+    if (forms.length) {
+      const labels = forms.map((f) => FORM_LABEL[f].en).join(" and ");
+      const canonical = wrong.find((a) => a.form === forms[0])!.canonical;
+      return `That's the ${labels} form (${canonical}). The ${FORM_LABEL[target].en} is ${answers[0]}.`;
+    }
+  }
+  if (text !== null && normalizeAnswer(text) !== "") {
+    const given = normalizeAnswer(text);
+    const own = "mistakes" in ex.payload ? (ex.payload.mistakes ?? []).map((m) => [m.answer, m.why] as const) : [];
+    const known = own.find(([a]) => normalizeAnswer(a) === given);
+    const hit = known ?? (ctx.patternMistakes ?? []).find(([a]) => normalizeAnswer(a) === given);
+    if (hit) return hit[1];
+  }
+  if ("why" in ex.payload && ex.payload.why) {
+    const choice = choiceOf(answer);
+    const why = choice === null ? null : ex.payload.why[choice];
+    if (why) return why;
+  }
+  return ex.type === "find_root" ? ex.payload.hint : undefined;
+}
+
+/** Grades `answer` and, when wrong, attaches an explanation. Never throws on malformed answers. */
+export function gradeAnswer(ex: ParsedExercise, answer: unknown, ctx: GradeContext = {}): GradeResult {
+  const result = gradeCore(ex, answer);
+  if (result.correct) return result;
+  const explanation = explain(ex, answer, ctx);
+  return explanation === undefined ? result : { ...result, explanation };
+}
+
+function gradeCore(ex: ParsedExercise, answer: unknown): GradeResult {
   switch (ex.type) {
     case "select_translation": {
       const correctAnswer = ex.payload.options[ex.payload.answerIndex];
@@ -134,6 +198,42 @@ export function gradeAnswer(ex: ParsedExercise, answer: unknown): GradeResult {
         return { correct: true, typo: true, correctAnswer: ex.payload.answers[accepted.indexOf(nearMiss)] };
       }
       return { correct: false, correctAnswer };
+    }
+    // Morphology is strict: no typo tolerance, but normalisation still ignores case, accents and hyphens.
+    case "conjugate": {
+      const correctAnswer = ex.payload.answers[0]!;
+      return { correct: textMatches(answer, ex.payload.answers), correctAnswer };
+    }
+    case "find_root": {
+      const { mode, options, root } = ex.payload;
+      // Options may differ from the root by case/spacing (the schema allows it), so compare normalised.
+      const chosen = mode === "choice" ? options?.[choiceOf(answer) ?? -1] : undefined;
+      const correct =
+        mode === "choice"
+          ? chosen !== undefined && normalizeAnswer(chosen) === normalizeAnswer(root)
+          : textMatches(answer, [root]);
+      return { correct, correctAnswer: root };
+    }
+    case "transform": {
+      const correctAnswer = ex.payload.answers[0]!.join(" ");
+      const given = givenText(answer);
+      if (given === null) return { correct: false, correctAnswer };
+      return {
+        correct: ex.payload.answers.some((a) => normalizeAnswer(a.join(" ")) === normalizeAnswer(given)),
+        correctAnswer,
+      };
+    }
+    case "paradigm": {
+      const hidden = ex.payload.cells.filter((c) => c.hidden);
+      const given = isRecord(answer) && isRecord(answer.cells) ? answer.cells : {};
+      const wrongCells = hidden
+        .filter(
+          (c) =>
+            typeof given[c.form] !== "string" || normalizeAnswer(given[c.form] as string) !== normalizeAnswer(c.value),
+        )
+        .map((c) => c.form);
+      const correctAnswer = hidden.map((c) => c.value).join(", ");
+      return wrongCells.length === 0 ? { correct: true, correctAnswer } : { correct: false, correctAnswer, wrongCells };
     }
   }
 }

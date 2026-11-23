@@ -45,6 +45,10 @@ test.describe("screenshots", () => {
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     await page.goto(`/studio/skills/${skill.id}`);
     await shoot(page, project, "06-studio");
+    await page.goto("/studio/verbs");
+    await shoot(page, project, "09-studio-verbs");
+    await page.goto("/grammar");
+    await shoot(page, project, "10-grammar");
 
     // A lesson as a fresh learner: the first exercise, then the feedback for a wrong answer.
     await page.context().clearCookies();

@@ -2,12 +2,13 @@
  * Accessibility: every screen passes axe-core's WCAG 2.2 A/AA rules on desktop and mobile.
  *
  * Pages are scanned after they settle, signed out, as the demo reviewer, and mid-lesson
- * (an exercise, then its feedback panel) as a fresh learner. A failure lists each violated rule
+ * (an exercise, then its feedback panel) and on a grammar card, as a fresh learner. A failure lists each violated rule
  * with the offending elements; the full axe results are attached to the test report.
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { answerCurrent, logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { createGrammarFixture, FIXTURE, removeGrammarFixture } from "./grammar-fixture";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner } from "./helpers";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -40,7 +41,7 @@ test.describe("accessibility", () => {
   });
 
   test("signed-in pages", async ({ page }, testInfo) => {
-    test.slow(); // eight pages, each loaded and scanned
+    test.slow(); // twelve pages, each loaded and scanned
     await logInAsDemo(page);
     const [skill] = await query<{ id: string }>(`select id from "Skill" where slug = 'pagbati'`);
     const paths = [
@@ -50,8 +51,13 @@ test.describe("accessibility", () => {
       "/profile",
       "/chat",
       "/guide",
+      "/grammar",
       "/studio",
+      "/studio/grammar",
+      "/studio/verbs",
       `/studio/skills/${skill.id}`,
+      // The demo learner has finished lessons to practise, so no grammar card comes first.
+      `/practice?skill=${skill.id}`,
     ];
     for (const path of paths) {
       await page.goto(path);
@@ -71,5 +77,19 @@ test.describe("accessibility", () => {
     await answerCurrent(page, { wrong: true });
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
     await expectAccessible(page, testInfo, "lesson-feedback");
+  });
+
+  // Pagbati's first lesson teaches no pattern, so the card is scanned on the e2e grammar fixture's lesson.
+  test.describe("a grammar lesson", () => {
+    test.beforeAll(createGrammarFixture);
+    test.afterAll(removeGrammarFixture);
+
+    test("the grammar card", async ({ page }, testInfo) => {
+      await signUpFreshLearner(page);
+      await page.goto(`/lesson/${FIXTURE.lessonId}`);
+      await expect(page.getByRole("button", { name: "Got it — let's try" })).toBeVisible();
+      await expectAccessible(page, testInfo, "lesson-grammar-card");
+      await dismissGrammarCard(page);
+    });
   });
 });

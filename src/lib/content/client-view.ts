@@ -7,6 +7,7 @@
  * feedback; it awards no extra XP and costs no hearts, so there's nothing to gain by cheating.
  */
 import { hash, rng, shuffle } from "@/lib/random";
+import type { Affix, VerbForm } from "@/lib/grammar/types";
 import type { ParsedExercise } from "./schema";
 
 type Lang = "tl" | "en";
@@ -19,7 +20,27 @@ export type ClientExercise =
   | { id: string; type: "type_translation"; prompt: string; promptLang: Lang }
   | { id: string; type: "listen_select"; audio: string; options: string[] }
   | { id: string; type: "speak"; text: string; translation: string }
-  | { id: string; type: "dialogue"; lines: { speaker: "A" | "B"; tl: string; en: string }[]; options: string[] };
+  | { id: string; type: "dialogue"; lines: { speaker: "A" | "B"; tl: string; en: string }[]; options: string[] }
+  | { id: string; type: "conjugate"; sentence: string; translation: string; root: string; affix: Affix; form: VerbForm }
+  | { id: string; type: "find_root"; word: string; translation?: string; mode: "choice" | "type"; options?: string[] }
+  | {
+      id: string;
+      type: "transform";
+      source: string;
+      sourceEn: string;
+      instruction: string;
+      mode: "build" | "type";
+      tiles?: string[];
+    }
+  | {
+      id: string;
+      type: "paradigm";
+      root: string;
+      affix: Affix;
+      en: string;
+      cells: { form: VerbForm; value: string | null }[];
+      tiles: string[];
+    };
 
 export function toClientExercise(id: string, ex: ParsedExercise): ClientExercise {
   switch (ex.type) {
@@ -49,5 +70,39 @@ export function toClientExercise(id: string, ex: ParsedExercise): ClientExercise
       return { id, type: ex.type, text: ex.payload.text, translation: ex.payload.translation };
     case "dialogue":
       return { id, type: ex.type, lines: ex.payload.lines, options: ex.payload.options };
+    case "conjugate": {
+      const { sentence, translation, root, affix, form } = ex.payload;
+      return { id, type: ex.type, sentence, translation, root, affix, form };
+    }
+    case "find_root": {
+      const { word, translation, mode, options } = ex.payload;
+      return {
+        id,
+        type: ex.type,
+        word,
+        mode,
+        ...(translation !== undefined && { translation }),
+        ...(options !== undefined && { options }),
+      };
+    }
+    case "transform": {
+      const { source, sourceEn, instruction, mode, answers, distractors } = ex.payload;
+      const base = { id, type: ex.type, source, sourceEn, instruction, mode } as const;
+      if (mode === "type") return base;
+      return { ...base, tiles: shuffle([...answers[0]!, ...distractors], rng(hash(id))) };
+    }
+    case "paradigm": {
+      const { root, affix, en, cells, distractors } = ex.payload;
+      const hidden = cells.filter((c) => c.hidden).map((c) => c.value);
+      return {
+        id,
+        type: ex.type,
+        root,
+        affix,
+        en,
+        cells: cells.map((c) => ({ form: c.form, value: c.hidden ? null : c.value })),
+        tiles: shuffle([...hidden, ...distractors], rng(hash(id))),
+      };
+    }
   }
 }

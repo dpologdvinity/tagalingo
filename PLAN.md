@@ -130,6 +130,10 @@ content/tagalog/exercises/*.json  (approved, version-controlled, loaded by the s
 | `/profile`                 | Stats, 12-week streak calendar, daily goal and timezone settings, sign-out                                            |
 | `/studio`                  | Reviewer dashboard: per-skill counts of draft, approved and rejected exercises                                        |
 | `/studio/skills/[skillId]` | Word list, "Generate drafts", and a review queue with a live preview, an editor and approve/reject                    |
+| `/grammar`                 | Every grammar pattern with its card and strength; locked ones by title only (1.2)                                     |
+| `/practice?pattern=…`      | Practice one pattern's drills; `?weak=grammar` mixes the learner's weakest three (1.2)                                |
+| `/studio/verbs`            | Review drafted verb tables: edit cells, approve or reject (1.2)                                                       |
+| `/studio/grammar`          | Every grammar card as learners read it, with flags (1.2)                                                              |
 
 The layout has a left sidebar on desktop and a bottom tab bar on mobile.
 
@@ -193,3 +197,68 @@ speaking exercise offers only "Can't speak now".
 
 **Out of scope for 1.1:** finger tracing, which suits non-Latin scripts and isn't needed for
 Tagalog, and human-recorded audio.
+
+## Version 1.2: grammar engine (done)
+
+**Request:** teach and drill grammar, not just list it in tips. Learners meet a short card the
+first time a lesson drills a pattern, can reopen it from a "?" chip, practise patterns on their
+own, see how well they know each one, and look up any verb form. The full design is in
+[`docs/superpowers/specs/2026-11-11-grammar-engine-design.md`](docs/superpowers/specs/2026-11-11-grammar-engine-design.md).
+
+**What shipped:**
+
+- **Content in `course.yaml`:** 15 grammar patterns (card plus drill ingredients), per-skill
+  `verbs:` and per-lesson `teaches:` / `uses:`. Units 1-4 are retrofitted with them.
+- **Verb morphology engine:** drafts the aspect forms (and the recent form) of a root for 15
+  affixes. Drafts are reviewed in `/studio/verbs` and the approved tables live in
+  `content/tagalog/grammar/verbs.json` (18 tables). Nothing is served or drilled from an
+  unreviewed table.
+- **Four exercise types:** `conjugate`, `find_root`, `transform` and `paradigm`, graded strictly
+  (no typo tolerance) with explained feedback: the form a wrong word actually is, a known mistake,
+  or a per-option `why`. 13 drills of these types ship (7 conjugate, 4 transform, 2 find_root).
+- **47 grammar drills:** the approved drills generated from the patterns' ingredients, 3-5 per
+  teaching lesson. Most are existing types (fill the blank, word bank, choices) tagged with
+  their pattern.
+- **Player:** grammar cards before the first drill on a new pattern, a "?" chip, the new drill
+  inputs.
+- **Tracking:** `PatternProgress` (first answers only), strength as a decaying average (21-day
+  half-life) with new / learning / solid / mastered labels, and pattern and weak-grammar practice.
+- **Screens:** `/grammar`, a Grammar section on skill pages, patterns listed on the path, and
+  word lookup in Tala's chat (tap a verb form for its table).
+- **Studio:** verb-table review, grammar-card review with flags, editable pattern tags on every
+  exercise, and warnings when a verb drill no longer matches the approved tables.
+- **Scripts:** `npm run grammar:draft`, `content:generate -- --grammar-only`, and `content:export`
+  now also writes `verbs.json`.
+
+**Data model changes:** new `GrammarPattern`, `ExercisePattern`, `PatternProgress`, `VerbTable` and
+`CardFlag` tables and a `VerbAffix` enum; `ExerciseType` gains the four types; `LessonAttempt`
+gains an optional `patternId` (indexed) and a `weakGrammar` flag for the two new practice scopes.
+
+**Deviations from the spec:**
+
+- **Tappable words only in chat.** The spec has them on the grammar page, skill pages and chat.
+  Cards and grammar pages show verb tables directly (`VerbTableView`) instead; tappable words in
+  cards are deferred (the cost is a later `TagalogText` wrap).
+- **One form per row.** `VerbTableView` and the Studio verb grid lay each form out on its own
+  row, so a table fits a phone.
+- **`roots` and `find-the-root` are recognition patterns**, with choices and find_root drills and
+  no transforms: roots aren't known words until a lesson teaches them, so their ingredients are
+  thinner than the aspect patterns'.
+- **`tira` stays vocabulary.** _Nakatira_ is the stative naka- form and the engine has no naka-
+  affix, so it isn't a verb entry.
+- **`kilala` uses `ma_obj`** (makilala, nakilala, nakikilala, makikilala), since the doer is in the
+  ng-form: it is ma- object focus, like makita.
+
+**Backlog:**
+
+- Limit Studio pattern tags to patterns taught by that lesson (any pattern in the course is
+  accepted today).
+- Skip an invalid stored card instead of throwing when a lesson or the grammar page loads.
+- Make drills differ from the card's own examples.
+- Rotate `uses` drills per lesson: a lesson that only uses a pattern always gets its first choice.
+- Let paradigm drills and um/mag transforms reach lessons under the 5-drill cap; no `paradigm`
+  drill ships today.
+- Related-root `find_root` distractors.
+- Per-type -um- feedback.
+- Tappable words in cards.
+- Non-destructive content loading into a live database (the seed wipes it).

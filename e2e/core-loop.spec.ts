@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { answerCurrent, logInAsDemo, query, signUpFreshLearner } from "./helpers";
+import { answerCurrent, dismissGrammarCard, logInAsDemo, query, signUpFreshLearner, waitForNextStep } from "./helpers";
 
 test.describe("core loop", () => {
   test("a new learner signs up, finishes the first lesson and earns XP", async ({ page }) => {
@@ -11,6 +11,7 @@ test.describe("core loop", () => {
     const seen = new Set<string>();
     let firstWrongDone = false;
     while (!(await page.getByText("Lesson complete!").isVisible())) {
+      await dismissGrammarCard(page); // a grammar card can come before the next drill
       // Make one deliberate mistake on the first non-matching exercise to exercise the re-queue.
       const noPenalty =
         (await page.getByText("Match the pairs").isVisible()) ||
@@ -22,8 +23,8 @@ test.describe("core loop", () => {
         firstWrongDone = true;
       }
       await page.getByRole("button", { name: "Continue" }).click();
-      // Next exercise, or (after a short save) the results screen.
-      await expect(page.locator("[data-exercise-id]").or(page.getByText("Lesson complete!"))).toBeVisible();
+      // Next exercise or grammar card, or (after a short save) the results screen.
+      await waitForNextStep(page, "Lesson complete!");
     }
 
     expect(seen.size).toBeGreaterThanOrEqual(4); // mixed exercise types
@@ -112,9 +113,7 @@ test.describe("richer lessons", () => {
     while (!(await page.getByText(/Lesson complete!|Practice complete!/).isVisible())) {
       await answerCurrent(page);
       await page.getByRole("button", { name: "Continue" }).click();
-      await expect(
-        page.locator("[data-exercise-id]").or(page.getByText(/Lesson complete!|Practice complete!/)),
-      ).toBeVisible();
+      await waitForNextStep(page, /Lesson complete!|Practice complete!/);
     }
   }
 
@@ -139,8 +138,10 @@ test.describe("richer lessons", () => {
   test("skill pages show original tips, flashcards and conversations", async ({ page }) => {
     await logInAsDemo(page); // conversations appear once the lesson is finished
     await page.goto("/skills/pagbati");
-    await expect(page.getByRole("heading", { name: "Tips" })).toBeVisible();
-    await expect(page.getByText(/Add po to a sentence/)).toBeVisible();
+    const tipsHeading = page.getByRole("heading", { name: "Tips" });
+    await expect(tipsHeading).toBeVisible();
+    // Scoped to the Tips card: the skill's grammar cards may also talk about po.
+    await expect(tipsHeading.locator("..").getByText(/Add po to a sentence/)).toBeVisible();
     // The card's accessible name is its visible text, front and back.
     const card = page.getByRole("button", { name: /Tap to see the meaning/ });
     await card.click();

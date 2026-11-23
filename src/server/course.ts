@@ -4,7 +4,12 @@
 import "server-only";
 import type { Route } from "next";
 import { db } from "@/lib/db";
+import { loadApprovedVerbTables } from "@/lib/content/grammar-persist";
+import type { ClientCard } from "@/lib/content/grammar-schema";
 import { buildPath, type LessonState, type SkillState } from "@/lib/game/path";
+import type { StrengthLabel } from "@/lib/game/strength";
+import type { VerbTableData } from "@/lib/grammar/analyse";
+import { getGrammarOverview } from "./grammar";
 
 export type PathView = {
   courseTitle: string;
@@ -25,6 +30,8 @@ export type PathView = {
       totalLessons: number;
       nextLessonId: string | null;
       lessons: { id: string; title: string; state: LessonState }[];
+      /** Titles of the grammar patterns the skill's lessons teach, in course order. */
+      patterns: string[];
     }[];
   }[];
 };
@@ -32,7 +39,7 @@ export type PathView = {
 const APPROVED = { where: { status: "APPROVED" as const } };
 
 export async function getPathForUser(userId: string): Promise<PathView | null> {
-  const [course, progress] = await Promise.all([
+  const [course, progress, patterns] = await Promise.all([
     db.course.findFirst({
       include: {
         units: {
@@ -52,8 +59,16 @@ export async function getPathForUser(userId: string): Promise<PathView | null> {
       },
     }),
     db.lessonProgress.findMany({ where: { userId }, select: { lessonId: true } }),
+    db.grammarPattern.findMany({
+      orderBy: [{ order: "asc" }, { slug: "asc" }],
+      select: { title: true, lesson: { select: { skillId: true } } },
+    }),
   ]);
   if (!course) return null;
+
+  const patternTitles = new Map<string, string[]>();
+  for (const { title, lesson } of patterns)
+    patternTitles.set(lesson.skillId, [...(patternTitles.get(lesson.skillId) ?? []), title]);
 
   const skills = course.units.flatMap((u) => u.skills);
   const path = buildPath(
@@ -83,6 +98,7 @@ export async function getPathForUser(userId: string): Promise<PathView | null> {
           totalLessons: p.totalLessons,
           nextLessonId: p.nextLessonId,
           lessons: s.lessons.map((l, i) => ({ id: l.id, title: l.title, state: p.lessons[i].state })),
+          patterns: patternTitles.get(s.id) ?? [],
         };
       }),
     })),
@@ -141,20 +157,54 @@ export type SkillPageData = {
   nextLessonId: string | null;
   completedLessons: number;
   totalLessons: number;
+  /** Grammar patterns the skill's lessons teach; the card is withheld until the learner unlocks it. */
+  patterns: { slug: string; title: string; card: ClientCard | null; unlocked: boolean; label: StrengthLabel }[];
+  /** Approved tables for the verbs drilled in the skill's finished lessons (roots of their conjugate, paradigm and find_root exercises). */
+  verbTables: VerbTableData[];
 };
 
-/** Everything the skill page shows: tips, word list (flashcards), dialogues and progress. */
+/** Exercise types whose payload names the verb root they drill. */
+const VERB_EXERCISE_TYPES = ["conjugate", "paradigm", "find_root"] as const;
+
+/**
+ * Approved verb tables for the roots drilled by approved verb exercises in the given (finished)
+ * lessons. The schema has no skill-to-verb relation, so the exercises define which verbs a skill is
+ * about. A table is the answer to those drills, so only finished lessons contribute.
+ */
+async function verbTablesDrilledIn(courseId: string, lessonIds: string[]): Promise<VerbTableData[]> {
+  if (!lessonIds.length) return [];
+  const exercises = await db.exercise.findMany({
+    where: { lessonId: { in: lessonIds }, type: { in: [...VERB_EXERCISE_TYPES] }, status: "APPROVED" },
+    select: { payload: true },
+  });
+  const roots = new Set<string>();
+  for (const { payload } of exercises) {
+    const root = (payload as { root?: unknown } | null)?.root;
+    if (typeof root === "string") roots.add(root);
+  }
+  if (!roots.size) return [];
+  return (await loadApprovedVerbTables(db, courseId)).filter((t) => roots.has(t.root));
+}
+
+/** Everything the skill page shows: tips, word list (flashcards), dialogues, grammar and progress. */
 export async function getSkillPage(userId: string, slug: string): Promise<SkillPageData | null> {
   const [skill, path] = await Promise.all([
     db.skill.findUnique({
       where: { slug },
-      include: { unit: { select: { id: true, title: true } }, words: { orderBy: { id: "asc" } } },
+      include: { unit: { select: { id: true, title: true, courseId: true } }, words: { orderBy: { id: "asc" } } },
     }),
     getPathForUser(userId),
   ]);
   if (!skill || !path) return null;
   const view = path.units.flatMap((u) => u.skills).find((s) => s.id === skill.id);
   if (!view) return null;
+  const [overview, verbTables] = await Promise.all([
+    getGrammarOverview(userId, new Date()),
+    verbTablesDrilledIn(
+      skill.unit.courseId,
+      view.lessons.filter((l) => l.state === "complete").map((l) => l.id),
+    ),
+  ]);
   return {
     id: skill.id,
     slug: skill.slug,
@@ -182,5 +232,9 @@ export async function getSkillPage(userId: string, slug: string): Promise<SkillP
     nextLessonId: view.nextLessonId,
     completedLessons: view.completedLessons,
     totalLessons: view.totalLessons,
+    patterns: overview
+      .filter((p) => p.skillId === skill.id)
+      .map(({ slug, title, card, unlocked, label }) => ({ slug, title, card, unlocked, label })),
+    verbTables,
   };
 }

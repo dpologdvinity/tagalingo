@@ -19,7 +19,8 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -34,7 +35,8 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -59,7 +61,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -74,7 +77,10 @@
             "translation": "Where is the bathroom?"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
         },
         {
           "type": "word_bank",
@@ -96,7 +102,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -108,7 +115,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -129,7 +137,10 @@
             "answerIndex": 2
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
         },
         {
           "type": "word_bank",
@@ -159,7 +170,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "nasa-nasaan-saan"
+          ]
         },
         {
           "type": "speak",
@@ -168,7 +182,8 @@
             "translation": "My room is clean."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -180,7 +195,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     },
@@ -202,7 +218,8 @@
             "answerIndex": 3
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "listen_select",
@@ -217,7 +234,8 @@
             "answerIndex": 1
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "match_pairs",
@@ -242,7 +260,8 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "fill_blank",
@@ -257,7 +276,114 @@
             "translation": "Open the window."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
+        },
+        {
+          "type": "fill_blank",
+          "payload": {
+            "why": [
+              "Ako means “I”, but a command speaks to “you”.",
+              "Ka goes with -um-, mag- and ma- verbs like umupo. Isara, with ang bintana, takes mo.",
+              null
+            ],
+            "options": [
+              "ako",
+              "ka",
+              "mo"
+            ],
+            "sentence": "Isara ___ ang bintana.",
+            "answerIndex": 2,
+            "translation": "Close the window."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
+        },
+        {
+          "type": "transform",
+          "payload": {
+            "mode": "build",
+            "source": "Isinara ko ang pinto.",
+            "answers": [
+              [
+                "isara",
+                "mo",
+                "ang",
+                "pinto"
+              ]
+            ],
+            "sourceEn": "I closed the door.",
+            "distractors": [
+              "isinara",
+              "isinasara",
+              "isasara"
+            ],
+            "instruction": "Tell someone to close the door"
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "infinitive",
+            "root": "patay",
+            "affix": "in",
+            "answers": [
+              "patayin"
+            ],
+            "sentence": "___ mo ang ilaw.",
+            "translation": "Turn off the light."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "infinitive",
+            "root": "upo",
+            "affix": "um",
+            "answers": [
+              "umupo"
+            ],
+            "sentence": "___ ka sa upuan.",
+            "translation": "Sit on the chair."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
+        },
+        {
+          "type": "conjugate",
+          "payload": {
+            "form": "infinitive",
+            "root": "bukas",
+            "affix": "an",
+            "answers": [
+              "buksan"
+            ],
+            "sentence": "___ mo ang pinto.",
+            "translation": "Open the door."
+          },
+          "source": "STUB",
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
         },
         {
           "type": "word_bank",
@@ -277,7 +403,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
         },
         {
           "type": "type_translation",
@@ -291,7 +420,8 @@
             "promptLang": "tl"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "dialogue",
@@ -312,7 +442,8 @@
             "answerIndex": 0
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "word_bank",
@@ -347,7 +478,10 @@
             ]
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": [
+            "commands-mo-paki"
+          ]
         },
         {
           "type": "speak",
@@ -356,7 +490,8 @@
             "translation": "Mom is in the kitchen."
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         },
         {
           "type": "type_translation",
@@ -368,7 +503,8 @@
             "promptLang": "en"
           },
           "source": "STUB",
-          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review."
+          "reviewNote": "AI-reviewed during build (Claude); awaiting native-speaker review.",
+          "patterns": []
         }
       ]
     }

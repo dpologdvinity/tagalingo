@@ -1,10 +1,12 @@
 /**
  * Seeds a fresh, realistic Tagalingo database. Safe to re-run: it wipes and rebuilds.
  *
- *  1. Course structure + word lists from content/tagalog/course.yaml.
- *  2. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED).
+ *  1. Course structure, word lists and grammar patterns from content/tagalog/course.yaml.
+ *  2. Reviewed verb tables from content/tagalog/grammar/verbs.json (skipped when the file is absent).
+ *  3. Reviewed exercises from content/tagalog/exercises/*.json (status APPROVED). Imported tables and
+ *     exercises have no reviewer account; their review note says who reviewed them.
  *     Skills without a reviewed file get stub-generated DRAFTs, waiting in /studio.
- *  3. A demo account (also a reviewer) with a 7-day streak and partial progress, plus 24
+ *  4. A demo account (also a reviewer) with a 7-day streak and partial progress, plus 24
  *     other learners so the weekly leaderboard looks alive.
  *
  * Demo login: demo@tagalingo.app / tagalingo-demo
@@ -18,11 +20,12 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { loadCourseFile } from "../src/lib/content/course";
 import { StubGenerator } from "../src/lib/content/generators/stub";
+import { importVerbTables } from "../src/lib/content/grammar-persist";
 import { generateDraftsForLesson, importApprovedExercises, syncCourseStructure } from "../src/lib/content/persist";
 import { COURSE_FILE, CONTENT_DIR } from "../src/lib/content/paths";
 import { LOCAL_DATABASE_URL } from "../src/lib/env-defaults";
 import { weekStartUtc } from "../src/lib/game/league";
-import { addDays, dayKey } from "../src/lib/game/streak";
+import { addDays, dayKey, dayKeyDaysAgo, instantOnDayAgo } from "../src/lib/game/streak";
 import { hash, rng } from "../src/lib/random";
 import { DEMO_ACCOUNT } from "../src/lib/demo";
 
@@ -121,10 +124,8 @@ async function seedDemoLearner(now: Date, timezone: string) {
   let totalXp = 0;
   for (const daysAgo of activeDays) {
     const xp = daysAgo === 0 ? 15 : between(1, 4) * 10 + (rand() < 0.4 ? 5 : 0);
-    const day = dayKey(instantDaysAgo(now, daysAgo), timezone);
-    const when = instantDaysAgo(now, daysAgo, daysAgo === 0 ? 1 : between(1, 600));
-    // Keep "when" on the intended local day.
-    const createdAt = dayKey(when, timezone) === day ? when : instantDaysAgo(now, daysAgo);
+    const day = dayKeyDaysAgo(now, daysAgo, timezone);
+    const createdAt = instantOnDayAgo(now, daysAgo, timezone, daysAgo === 0 ? 1 : between(1, 600));
     await prisma.xpEvent.create({ data: { userId: demo.id, amount: xp, reason: "lesson", createdAt } });
     await prisma.dailyActivity.create({
       data: { userId: demo.id, day, xp, lessons: Math.max(1, Math.round(xp / 15)) },
@@ -237,8 +238,11 @@ async function main() {
   await wipe();
   await syncCourseStructure(prisma, course);
 
-  const demo = withDemo ? await seedDemoLearner(now, timezone) : null;
-  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR, demo?.id);
+  if (withDemo) await seedDemoLearner(now, timezone);
+  // Reviewed content is imported without a reviewer: the files keep no reviewer, each row's
+  // reviewNote says who reviewed it, and the demo learner must not show up as its reviewer.
+  const verbTables = await importVerbTables(prisma, course, CONTENT_DIR);
+  const reviewed = await importApprovedExercises(prisma, CONTENT_DIR);
 
   // Anything without reviewed content starts life as stub drafts in the Studio review queue.
   const stub = new StubGenerator();
@@ -254,7 +258,9 @@ async function main() {
   if (withDemo) await seedRivals(now);
 
   const approved = await prisma.exercise.count({ where: { status: "APPROVED" } });
+  const patterns = await prisma.grammarPattern.count();
   console.log(`Seeded: ${approved} approved exercises (${reviewed.size} skills), ${drafts} drafts awaiting review.`);
+  console.log(`Grammar: ${patterns} patterns, ${verbTables} approved verb tables.`);
   if (withDemo) console.log(`Demo login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
   else
     console.log(

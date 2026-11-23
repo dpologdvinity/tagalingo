@@ -1,13 +1,33 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
 import path from "node:path";
 import { loadCourseFile, lessonRequest } from "../course";
-import { lintExercise, parseExercise } from "../schema";
+import { lintExercise, parseExercise, type ExerciseType } from "../schema";
 import { StubGenerator } from "./stub";
 import { ClaudeGenerator, type MessagesClient } from "./claude";
 import { selectGenerator } from "./index";
+import { buildGrammarDrills, checkDrill, MAX_GRAMMAR_DRILLS } from "./grammar-drills";
+import type { TaggedExercise } from "./types";
+import type { VerbTableData } from "@/lib/grammar/analyse";
+import { conjugate, type VerbEntry } from "@/lib/grammar/morphology";
+import type { CoursePattern, Frame } from "../grammar-schema";
+import { loadApprovedVerbs } from "@/lib/grammar/verbs-file";
 
 const course = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
-const allRequests = course.units.flatMap((u) => u.skills.flatMap((s) => s.lessons.map((_, i) => lessonRequest(s, i))));
+/** Every lesson of the shipped course as the generators see it, grammar patterns included (if it has any). */
+const realRequests = course.units.flatMap((u) =>
+  u.skills.flatMap((s) => s.lessons.map((_, i) => lessonRequest(course, s, i))),
+);
+
+/** The request with the grammar the lesson teaches or uses taken away: the vocabulary lesson on its own. */
+const withoutGrammar = (req: (typeof realRequests)[number]) => ({
+  ...req,
+  grammar: { ...req.grammar, teaches: [], uses: [] },
+});
+
+// The vocabulary tests below hold whatever grammar the course ships, because they stop at the vocabulary
+// recipe; the grammar drills of the real lessons are checked on their own ("grammar drills in the real course").
+const allRequests = realRequests.map(withoutGrammar);
 
 describe("StubGenerator", () => {
   const stub = new StubGenerator();
@@ -173,6 +193,393 @@ describe("StubGenerator", () => {
         }
       }
     }
+  });
+});
+
+describe("grammar drills", () => {
+  const stub = new StubGenerator();
+
+  const kainEntry: VerbEntry = { root: "kain", en: "to eat", affixes: ["um"], glottal: false, stem: null, forms: {} };
+  const kain: VerbTableData = { root: "kain", affix: "um", en: "to eat", forms: conjugate(kainEntry, "um") };
+
+  const frame = (sentence: string, form: Frame[3]): Frame => [sentence, "English.", "um", form];
+  const umAspect: CoursePattern = {
+    id: "um-aspect",
+    title: "Aspect with -um-",
+    rule: "Rule.",
+    table: undefined,
+    examples: [
+      ["Kumain ako ng isda.", "I ate fish."],
+      ["Kakain siya ng isda.", "She will eat fish."],
+    ],
+    notes: [],
+    mistakes: [],
+    requires: [],
+    drills: {
+      frames: [frame("___ ako ng isda.", "completed"), frame("___ siya ng isda.", "incompleted")],
+      transforms: [["Kumain ako ng isda.", "I ate fish.", "Change to the future.", ["Kakain ako ng isda."]]],
+      choices: [
+        [
+          "___ siya ng isda kahapon.",
+          "She ate fish yesterday.",
+          ["kumain", "kakain", "kumakain"],
+          0,
+          [null, "Kakain is the future; kahapon means yesterday.", "Kumakain is ongoing."],
+        ],
+      ],
+    },
+  };
+
+  /** A lesson that teaches `teaches` (and revisits `uses`), built on the first lesson of the shipped course. */
+  const lessonWith = (teaches: CoursePattern[], uses: CoursePattern[] = []) => ({
+    ...allRequests[0],
+    grammar: {
+      teaches,
+      uses,
+      verbs: [kainEntry],
+      knownWords: ["isda", "kahapon"],
+    },
+  });
+  const rand = () => 0.5;
+
+  it("adds tagged grammar drills to lessons that teach a pattern", async () => {
+    const { exercises, rejected } = await stub.generate(lessonWith([umAspect]), [kain]);
+    expect(rejected).toEqual([]);
+    const conjugations = exercises.filter((e) => e.type === "conjugate");
+    expect(conjugations.length).toBeGreaterThanOrEqual(1);
+    for (const e of conjugations) {
+      if (e.type !== "conjugate") continue;
+      expect(e.patterns).toEqual(["um-aspect"]);
+      expect(e.payload.answers).toEqual(kain.forms[e.payload.form]);
+    }
+    const types = new Set(exercises.filter((e) => e.patterns.length).map((e) => e.type));
+    expect([...types].sort()).toEqual(["conjugate", "fill_blank", "paradigm", "transform"]);
+    // Vocabulary drills come first: recognition before the grammar block, production after.
+    expect(exercises.slice(0, 4).every((e) => e.patterns.length === 0)).toBe(true);
+  });
+
+  it("explains each wrong option of the grammar fill-in-the-blank", async () => {
+    const { exercises } = await stub.generate(lessonWith([umAspect]), [kain]);
+    const fill = exercises.find((e) => e.type === "fill_blank" && e.patterns.length);
+    if (fill?.type !== "fill_blank") throw new Error("no grammar fill_blank");
+    expect(fill.payload.why).toHaveLength(fill.payload.options.length);
+    expect(fill.payload.options[fill.payload.answerIndex]).toBe("kumain");
+    expect(fill.payload.why?.[fill.payload.answerIndex]).toBeNull();
+  });
+
+  it("builds transform tiles with other forms of the same verb as distractors", async () => {
+    const { exercises } = await stub.generate(lessonWith([umAspect]), [kain]);
+    const t = exercises.find((e) => e.type === "transform");
+    if (t?.type !== "transform") throw new Error("no transform");
+    expect(t.payload.mode).toBe("build");
+    expect(t.payload.answers).toEqual([["kakain", "ako", "ng", "isda"]]);
+    // Every other form of kain/um, each tile once; the accepted answer's own tile is excluded.
+    expect(t.payload.distractors).toEqual(["kumain", "kumakain", "kakakain"]);
+    expect(t.payload.distractors).not.toContain("kakain");
+  });
+
+  it("hides two distinct cells of the paradigm and keeps the tiles unambiguous", async () => {
+    const { exercises } = await stub.generate(lessonWith([umAspect]), [kain]);
+    const p = exercises.find((e) => e.type === "paradigm");
+    if (p?.type !== "paradigm") throw new Error("no paradigm");
+    const hidden = p.payload.cells.filter((c) => c.hidden);
+    expect(hidden).toHaveLength(2);
+    expect(new Set(hidden.map((c) => c.value)).size).toBe(2);
+    for (const c of p.payload.cells) expect(c.value).toBe(kain.forms[c.form]![0]);
+  });
+
+  it("asks find-the-root questions for a roots pattern", async () => {
+    const roots: CoursePattern = {
+      ...umAspect,
+      id: "find-the-root",
+      drills: { frames: [], transforms: [], choices: [] },
+    };
+    const luto: VerbTableData = {
+      root: "luto",
+      affix: "um",
+      en: "to cook",
+      forms: conjugate({ ...kainEntry, root: "luto", glottal: true }, "um"),
+    };
+    const req = lessonWith([roots]);
+    req.grammar.verbs.push({ ...kainEntry, root: "luto", glottal: true });
+    const { exercises } = await stub.generate(req, [kain, luto]);
+    const q = exercises.find((e) => e.type === "find_root");
+    if (q?.type !== "find_root") throw new Error("no find_root");
+    expect(q.patterns).toEqual(["find-the-root"]);
+    expect(q.payload.mode).toBe("choice");
+    expect(q.payload.options).toContain(q.payload.root);
+    expect(kain.forms.incompleted.concat(luto.forms.incompleted)).toContain(q.payload.word);
+    expect(q.payload.hint).not.toContain(q.payload.root);
+  });
+
+  it("asks for the root of a verb the lesson itself teaches, not just the first approved table", async () => {
+    const roots: CoursePattern = { ...umAspect, id: "roots", drills: { frames: [], transforms: [], choices: [] } };
+    const lutoEntry: VerbEntry = { ...kainEntry, root: "luto", glottal: true };
+    const luto: VerbTableData = { root: "luto", affix: "um", en: "to cook", forms: conjugate(lutoEntry, "um") };
+    const base = lessonWith([roots]);
+    const lutoWord = {
+      tl: "luluto",
+      en: "will cook",
+      accept: [],
+      pos: "verb" as const,
+      ex: ["Luluto ako.", "I will cook."] as [string, string],
+      exAccept: [],
+    };
+    const req = { ...base, words: [lutoWord], grammar: { ...base.grammar, verbs: [kainEntry, lutoEntry] } };
+    // kain's table comes first, but only luto is a word of this lesson.
+    const { exercises } = await stub.generate(req, [kain, luto]);
+    const q = exercises.find((e) => e.type === "find_root");
+    if (q?.type !== "find_root") throw new Error("no find_root");
+    expect(q.payload.root).toBe("luto");
+  });
+
+  it("skips drills that need forms no approved table covers yet, rejecting nothing", async () => {
+    // No table is approved: conjugate and paradigm are not built, and the choice and transform
+    // (whose words are the unapproved forms kumain, kakain...) wait for review instead of failing.
+    const { exercises, rejected } = await stub.generate(lessonWith([umAspect]), []);
+    expect(rejected).toEqual([]);
+    expect(exercises.filter((e) => e.patterns.length)).toEqual([]);
+  });
+
+  it("still rejects a drill with a word that is unknown for another reason when tables are missing", async () => {
+    const pattern: CoursePattern = {
+      ...umAspect,
+      drills: {
+        ...umAspect.drills,
+        choices: [["___ siya ng bulaklak.", "She ate a flower.", ["kumain", "kakain"], 0, [null, "Future."]]],
+      },
+    };
+    const { rejected } = await stub.generate(lessonWith([pattern]), []);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toMatch(/unknown word "bulaklak"/);
+  });
+
+  it("does not use tables of verbs the lesson has not been taught", async () => {
+    const req = lessonWith([umAspect]);
+    req.grammar.verbs = [];
+    const drills = buildGrammarDrills(req, [kain], rand);
+    expect(drills.drills.some((d) => d.type === "conjugate" || d.type === "paradigm")).toBe(false);
+  });
+
+  it("rejects a conjugate drill whose answer is not in an approved table", () => {
+    const req = lessonWith([umAspect]);
+    const { drills } = buildGrammarDrills(req, [kain], rand);
+    const good = drills.find((d) => d.type === "conjugate")!;
+    expect(checkDrill(good, req, [kain])).toBeNull();
+    // The same drill checked against a table that spells the form differently.
+    const corrupted: VerbTableData = {
+      ...kain,
+      forms: { ...kain.forms, completed: ["kinain"], incompleted: ["kinakain"] },
+    };
+    expect(checkDrill(good, req, [corrupted])).toMatch(/approved verb table/);
+    expect(checkDrill(good, req, [])).toMatch(/approved verb table/);
+  });
+
+  it("rejects a find_root drill whose word is not a form of the root", () => {
+    const req = lessonWith([umAspect]);
+    const bad: TaggedExercise = {
+      type: "find_root",
+      payload: { word: "kumain", mode: "choice", options: ["kain", "basa"], root: "basa", hint: "Remove the affix." },
+      patterns: ["um-aspect"],
+    };
+    expect(checkDrill(bad, req, [kain])).toMatch(/approved verb table/);
+  });
+
+  it("rejects a drill that is tagged with a pattern the lesson does not teach or use", () => {
+    const req = lessonWith([umAspect]);
+    const { drills } = buildGrammarDrills(req, [kain], rand);
+    expect(checkDrill({ ...drills[0], patterns: ["mag-aspect"] }, req, [kain])).toMatch(/mag-aspect/);
+    expect(checkDrill({ ...drills[0], patterns: [] }, req, [kain])).not.toBeNull();
+  });
+
+  it("rejects drills using unknown words, without blocking the others", async () => {
+    const pattern: CoursePattern = {
+      ...umAspect,
+      drills: { ...umAspect.drills, frames: [frame("___ ako ng bulaklak.", "completed"), ...umAspect.drills.frames] },
+    };
+    const { exercises, rejected } = await stub.generate(lessonWith([pattern]), [kain]);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toMatch(/unknown word "bulaklak"/);
+    expect(exercises.filter((e) => e.type === "conjugate")).toHaveLength(2);
+    expect(JSON.stringify(exercises)).not.toContain("bulaklak");
+    expect(exercises.filter((e) => e.patterns.length === 0).length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("rejects a find_root hint or transform instruction that gives the answer away", () => {
+    const req = lessonWith([umAspect]);
+    const hinted: TaggedExercise = {
+      type: "find_root",
+      payload: { word: "kumain", mode: "type", root: "kain", hint: "The root is kain." },
+      patterns: ["um-aspect"],
+    };
+    expect(checkDrill(hinted, req, [kain])).toMatch(/hint/);
+    const transform: TaggedExercise = {
+      type: "transform",
+      payload: {
+        source: "Kumain ako ng isda.",
+        sourceEn: "I ate fish.",
+        instruction: "Write Kakain ako ng isda.",
+        mode: "type",
+        answers: [["Kakain", "ako", "ng", "isda"]],
+        distractors: [],
+      },
+      patterns: ["um-aspect"],
+    };
+    expect(checkDrill(transform, req, [kain])).toMatch(/instruction/);
+    // An inflected answer word from the approved table is a give-away too, even inside other words.
+    const forms: TaggedExercise = {
+      ...transform,
+      payload: { ...transform.payload, instruction: "Change to the future: Kakain!" },
+    };
+    expect(checkDrill(forms, req, [kain])).toMatch(/instruction/);
+    const fine: TaggedExercise = {
+      ...transform,
+      payload: { ...transform.payload, instruction: "Change to the future." },
+    };
+    expect(checkDrill(fine, req, [kain])).toBeNull();
+  });
+
+  it(`never adds more than ${MAX_GRAMMAR_DRILLS} grammar drills, sharing them between patterns`, async () => {
+    const many: CoursePattern = {
+      ...umAspect,
+      drills: {
+        ...umAspect.drills,
+        frames: (["completed", "incompleted", "contemplated", "recent", "infinitive"] as const).map((f) =>
+          frame("___ ako ng isda.", f),
+        ),
+      },
+    };
+    const other: CoursePattern = { ...many, id: "um-again" };
+    const { exercises } = await stub.generate(lessonWith([many, other]), [kain]);
+    const tagged = exercises.filter((e) => e.patterns.length);
+    expect(tagged).toHaveLength(MAX_GRAMMAR_DRILLS);
+    expect(new Set(tagged.flatMap((e) => e.patterns))).toEqual(new Set(["um-aspect", "um-again"]));
+  });
+
+  describe("reaching three drills for a taught pattern", () => {
+    /** A pattern with no verb frames: its drills are only the authored choices and transforms. */
+    const choice = (n: number): CoursePattern["drills"]["choices"][number] => [
+      `Siya ang ___ ${n}.`,
+      "English.",
+      ["ako", "siya", "kami"],
+      1,
+      ["Ako is I.", null, "Kami is we."],
+    ];
+    const transform = (n: number): CoursePattern["drills"]["transforms"][number] => [
+      `Ako ang ${n}.`,
+      "English.",
+      "Change the subject.",
+      [`Siya ang ${n}.`],
+    ];
+    const plain = (choices: number, transforms: number, id = "ng-object"): CoursePattern => ({
+      ...umAspect,
+      id,
+      drills: {
+        frames: [],
+        choices: Array.from({ length: choices }, (_, i) => choice(i + 1)),
+        transforms: Array.from({ length: transforms }, (_, i) => transform(i + 1)),
+      },
+    });
+    const drillsOf = async (teaches: CoursePattern[]) => {
+      const { exercises, rejected } = await stub.generate(lessonWith(teaches), [kain]);
+      expect(rejected).toEqual([]);
+      return exercises.filter((e) => e.patterns.length);
+    };
+
+    it("takes a further choice when the first choice and transform make only two", async () => {
+      const tagged = await drillsOf([plain(3, 2)]);
+      expect(tagged.map((e) => e.type).sort()).toEqual(["fill_blank", "fill_blank", "transform"]);
+    });
+
+    it("takes a further transform when the pattern has only one choice", async () => {
+      const tagged = await drillsOf([plain(1, 3)]);
+      expect(tagged.map((e) => e.type).sort()).toEqual(["fill_blank", "transform", "transform"]);
+    });
+
+    it("stops at three and leaves a pattern that already has three alone", async () => {
+      expect(await drillsOf([plain(5, 5)])).toHaveLength(3);
+      const rich = await drillsOf([umAspect]); // conjugations, choice, transform and paradigm: 5 drills
+      expect(rich.filter((e) => e.type === "fill_blank")).toHaveLength(1);
+    });
+
+    it("gives what it has when a pattern cannot reach three", async () => {
+      expect(await drillsOf([plain(1, 1)])).toHaveLength(2);
+    });
+
+    it("still shares the cap between patterns", async () => {
+      const tagged = await drillsOf([plain(3, 3, "ng-object"), plain(3, 3, "si-names")]);
+      expect(tagged).toHaveLength(MAX_GRAMMAR_DRILLS);
+      expect(new Set(tagged.flatMap((e) => e.patterns))).toEqual(new Set(["ng-object", "si-names"]));
+    });
+  });
+
+  it("practises a pattern the lesson only uses with a single drill", async () => {
+    const { exercises } = await stub.generate(lessonWith([], [umAspect]), [kain]);
+    const tagged = exercises.filter((e) => e.patterns.length);
+    expect(tagged).toHaveLength(1);
+    expect(tagged[0].patterns).toEqual(["um-aspect"]);
+  });
+
+  it("tags no vocabulary drill, whatever tables are passed", async () => {
+    const grammarTypes: ExerciseType[] = ["fill_blank", "conjugate", "find_root", "transform", "paradigm"];
+    for (const req of realRequests) {
+      const { exercises } = await stub.generate(req, [kain]);
+      const own = new Set([...req.grammar.teaches, ...req.grammar.uses].map((p) => p.id));
+      for (const e of exercises.filter((x) => x.patterns.length)) {
+        expect(grammarTypes, `${req.lesson.title}: ${e.type}`).toContain(e.type);
+        expect(
+          e.patterns.every((id) => own.has(id)),
+          req.lesson.title,
+        ).toBe(true);
+      }
+      // A lesson with no grammar has nothing to tag.
+      if (own.size === 0)
+        expect(
+          exercises.every((e) => e.patterns.length === 0),
+          req.lesson.title,
+        ).toBe(true);
+    }
+  });
+
+  it("builds only checked, capped, correctly tagged grammar drills for the real lessons", async () => {
+    // Holds for whatever patterns and approved tables the course ships (none yet is a pass).
+    const tables = loadApprovedVerbs();
+    for (const req of realRequests) {
+      const { exercises } = await stub.generate(req, tables);
+      const tagged = exercises.filter((e) => e.patterns.length);
+      expect(tagged.length, req.lesson.title).toBeLessThanOrEqual(MAX_GRAMMAR_DRILLS);
+      for (const e of tagged) {
+        expect(() => parseExercise(e.type, e.payload), req.lesson.title).not.toThrow();
+        expect(checkDrill(e, req, tables), `${req.lesson.title}: ${e.type}`).toBeNull();
+      }
+    }
+  });
+
+  it("leaves vocabulary-only lessons exactly as they were before grammar existed", async () => {
+    // Fixture: the stub's output for two shipped lessons at e2c77a7 (before grammar drills), without `patterns`.
+    const fixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "vocabulary-lessons.fixture.json"), "utf8"),
+    ) as Record<string, unknown[]>;
+    const requests = new Map<string, (typeof allRequests)[number]>(
+      course.units.flatMap((u) =>
+        u.skills.flatMap((s) =>
+          s.lessons.map((_, i) => [`${s.slug}#${i}`, withoutGrammar(lessonRequest(course, s, i))] as const),
+        ),
+      ),
+    );
+    expect(Object.keys(fixture)).toHaveLength(2);
+    for (const [key, expected] of Object.entries(fixture)) {
+      const { exercises } = await stub.generate(requests.get(key)!, [kain]);
+      expect(
+        exercises.map(({ type, payload }) => ({ type, payload })),
+        key,
+      ).toEqual(expected);
+    }
+  });
+
+  it("is deterministic for grammar lessons too", async () => {
+    const req = lessonWith([umAspect]);
+    expect(await stub.generate(req, [kain])).toEqual(await stub.generate(req, [kain]));
   });
 });
 

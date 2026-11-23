@@ -22,7 +22,7 @@ export default defineConfig({
       reporter: ["text-summary", "lcov", "json-summary"],
       // A floor about two points under today's numbers: a refactor can wobble, a dropped test can't.
       // Raise these when coverage improves.
-      thresholds: { statements: 74, branches: 69, functions: 77, lines: 75 },
+      thresholds: { statements: 79, branches: 75, functions: 82, lines: 80 },
     },
   },
 });

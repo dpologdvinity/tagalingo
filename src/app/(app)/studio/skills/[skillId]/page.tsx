@@ -5,27 +5,20 @@ import { notFound } from "next/navigation";
 import { selectGenerator } from "@/lib/content/generators";
 import { getSkillForReview, type ReviewExercise } from "@/server/studio";
 import { requireReviewer } from "@/server/session";
+import { FILTERS, FILTER_LABEL, parseFilter, STATUS_STYLE, type Filter } from "../../status-style";
 import { ExercisePreview, typeLabel } from "./exercise-preview";
+import { PatternTags } from "./pattern-tags";
 import { GenerateButton, ReviewControls } from "./review-controls";
 
 export const metadata: Metadata = { title: "Review skill" };
 
-const FILTERS = ["DRAFT", "APPROVED", "REJECTED", "ALL"] as const;
-type Filter = (typeof FILTERS)[number];
-const FILTER_LABEL: Record<Filter, string> = {
-  DRAFT: "Drafts",
-  APPROVED: "Approved",
-  REJECTED: "Rejected",
-  ALL: "All",
-};
-
-const STATUS_STYLE = {
-  DRAFT: "bg-mango-soft text-mango-deep",
-  APPROVED: "bg-lagoon-soft text-lagoon",
-  REJECTED: "bg-gumamela-soft text-gumamela",
-} as const;
-
-function ExerciseCard({ ex }: { ex: ReviewExercise }) {
+function ExerciseCard({
+  ex,
+  patternOptions,
+}: {
+  ex: ReviewExercise;
+  patternOptions: { slug: string; title: string }[];
+}) {
   return (
     <li className="space-y-4 rounded-3xl border-2 border-line bg-surface p-5">
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -42,6 +35,7 @@ function ExerciseCard({ ex }: { ex: ReviewExercise }) {
       ) : (
         <pre className="overflow-auto text-sm">{JSON.stringify(ex.rawPayload, null, 2)}</pre>
       )}
+      <PatternTags exerciseId={ex.id} tagged={ex.patterns} options={patternOptions} />
       {ex.warnings.length > 0 && (
         <ul className="space-y-1 rounded-2xl bg-mango-soft px-4 py-3 text-sm text-ink">
           {ex.warnings.map((w) => (
@@ -67,9 +61,7 @@ export default async function SkillReviewPage({ params, searchParams }: PageProp
   if (!skill) notFound();
 
   const all = skill.lessons.flatMap((l) => l.exercises);
-  const requested = typeof sp.status === "string" ? (sp.status.toUpperCase() as Filter) : null;
-  const filter: Filter =
-    requested && FILTERS.includes(requested) ? requested : all.some((e) => e.status === "DRAFT") ? "DRAFT" : "ALL";
+  const filter: Filter = parseFilter(sp.status) ?? (all.some((e) => e.status === "DRAFT") ? "DRAFT" : "ALL");
   const count = (f: Filter) => (f === "ALL" ? all.length : all.filter((e) => e.status === f).length);
 
   let generatorName = "the offline stub";
@@ -152,7 +144,7 @@ export default async function SkillReviewPage({ params, searchParams }: PageProp
             ) : (
               <ol className="space-y-3">
                 {shown.map((ex) => (
-                  <ExerciseCard key={ex.id} ex={ex} />
+                  <ExerciseCard key={ex.id} ex={ex} patternOptions={skill.patternOptions} />
                 ))}
               </ol>
             )}

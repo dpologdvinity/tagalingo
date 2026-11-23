@@ -1,7 +1,9 @@
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { parseCourse } from "./course";
-import { checkShippedContent, formatContentReport, loadShippedContent } from "./shipped";
+import { afterEach, describe, expect, it } from "vitest";
+import { loadCourseFile, parseCourse } from "./course";
+import { checkShippedContent, exportFileSchema, formatContentReport, loadShippedContent } from "./shipped";
 
 const course = parseCourse({
   course: { slug: "tl-en", title: "T", fromLang: "en", toLang: "tl" },
@@ -112,6 +114,69 @@ describe("checkShippedContent", () => {
     const report = checkShippedContent(course, [file([{ order: 1, title: "L1", exercises: [twoOptions] }])]);
     expect(report.errors).toEqual([]);
     expect(report.warnings).toEqual([expect.stringMatching(/pagbati\.json › lesson 1 › exercise 1: Only two options/)]);
+  });
+});
+
+describe("grammar pattern tags and verb tables", () => {
+  const tagged = (patterns: string[]) => ({ ...select, patterns });
+  const realCourse = loadCourseFile(path.join(process.cwd(), "content/tagalog/course.yaml"));
+  const realSkill = realCourse.units[0].skills[0].slug;
+  const realFile = (exercises: unknown[]) => file([{ order: 1, title: "L1", exercises }], realSkill);
+
+  it("accepts a tag that names a pattern in course.yaml", () => {
+    const report = checkShippedContent(realCourse, [realFile([tagged(["po-opo"])])]);
+    expect(report.errors).toEqual([]);
+  });
+
+  it("names the exercise whose pattern tag is not in course.yaml", () => {
+    const report = checkShippedContent(realCourse, [realFile([select, tagged(["po-opo", "no-such-pattern"])])]);
+    expect(report.errors).toEqual([
+      expect.stringMatching(new RegExp(`${realSkill}\\.json › lesson 1 › exercise 2: .*"no-such-pattern"`)),
+    ]);
+  });
+
+  it("rejects a pattern tag listed twice on one exercise, as the seed would", () => {
+    const report = checkShippedContent(realCourse, [realFile([select, tagged(["po-opo", "po-opo"])])]);
+    expect(report.errors).toEqual([
+      expect.stringMatching(/not a valid export file — lessons\.0\.exercises\.1\.patterns: .*"po-opo".*more than once/),
+    ]);
+  });
+
+  it("still defaults the tags of files exported before patterns existed to none", () => {
+    const parsed = exportFileSchema.parse({
+      skill: "pagbati",
+      lessons: [{ order: 1, title: "L1", exercises: [select] }],
+    });
+    expect(parsed.lessons[0].exercises[0].patterns).toEqual([]);
+  });
+
+  describe("verbs.json", () => {
+    const dirs: string[] = [];
+    afterEach(() => dirs.splice(0).forEach((d) => fs.rmSync(d, { recursive: true, force: true })));
+
+    /** A content directory holding the real course.yaml and the given verbs.json text. */
+    function contentDir(verbsJson: string) {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "shipped-"));
+      dirs.push(dir);
+      fs.copyFileSync(path.join(process.cwd(), "content/tagalog/course.yaml"), path.join(dir, "course.yaml"));
+      fs.mkdirSync(path.join(dir, "grammar"));
+      fs.writeFileSync(path.join(dir, "grammar", "verbs.json"), verbsJson);
+      return dir;
+    }
+
+    it("reports a verbs.json that does not match the file format", () => {
+      const report = loadShippedContent(contentDir(JSON.stringify({ verbs: [{ root: "kain" }] })));
+      expect(report.errors).toEqual([expect.stringMatching(/verbs\.json/)]);
+    });
+
+    it("reports a verbs.json that is not JSON", () => {
+      const report = loadShippedContent(contentDir("{ not json"));
+      expect(report.errors).toEqual([expect.stringMatching(/verbs\.json/)]);
+    });
+
+    it("accepts an empty verb list", () => {
+      expect(loadShippedContent(contentDir(JSON.stringify({ verbs: [] }))).errors).toEqual([]);
+    });
   });
 });
 

@@ -36,10 +36,41 @@ export async function logInAsDemo(page: Page) {
 
 type ExerciseRow = { id: string; type: string; payload: Record<string, unknown> };
 
-/** Answer whatever exercise is on screen. `wrong` deliberately answers incorrectly (not for match pairs). */
+/** More cards than this before one exercise means the player is stuck, not that there is a lot to read. */
+const MAX_CARDS_IN_A_ROW = 5;
+
+/** The button that dismisses a grammar card shown before a pattern's first drill. */
+const gotItButton = (page: Page) => page.getByRole("button", { name: "Got it — let's try" });
+
+/**
+ * Wait for the next step of a lesson or practice session, which is an exercise, a grammar card or
+ * (when `finished` is given and the session is over) the results text. Grammar cards can appear before
+ * any drill that practises a pattern the learner has not seen, so waiting for `[data-exercise-id]`
+ * alone times out on them.
+ */
+export async function waitForNextStep(page: Page, finished?: string | RegExp) {
+  const next = page.locator("[data-exercise-id]").or(gotItButton(page));
+  await expect(finished ? next.or(page.getByText(finished)) : next).toBeVisible();
+}
+
+/**
+ * Dismiss any grammar cards showing, so the exercise behind them is the one on screen. An exercise
+ * tagged with two newly taught patterns is preceded by two cards in a row, so keep clicking (bounded).
+ */
+export async function dismissGrammarCard(page: Page) {
+  const gotIt = gotItButton(page);
+  await waitForNextStep(page);
+  for (let cards = 0; cards < MAX_CARDS_IN_A_ROW && (await gotIt.isVisible()); cards++) {
+    await gotIt.click();
+    await waitForNextStep(page);
+  }
+  await expect(page.locator("[data-exercise-id]")).toBeVisible();
+}
+
+/** Answer whatever exercise is on screen (dismissing a grammar card first). `wrong` deliberately answers incorrectly (not for match pairs). */
 export async function answerCurrent(page: Page, { wrong = false } = {}) {
+  await dismissGrammarCard(page);
   const host = page.locator("[data-exercise-id]");
-  await expect(host).toBeVisible();
   const id = await host.getAttribute("data-exercise-id");
   const [ex] = await query<ExerciseRow>(`select id, type, payload from "Exercise" where id = $1`, [id]);
   const p = ex.payload as Record<string, never>;
@@ -60,6 +91,39 @@ export async function answerCurrent(page: Page, { wrong = false } = {}) {
       const bank = page.getByLabel("Word bank");
       const tokens = wrong ? [(p.distractors as string[])[0] ?? "x"] : (p.answer as string[]);
       for (const t of tokens) await bank.getByRole("button", { name: t, exact: true }).first().click();
+      break;
+    }
+    case "conjugate":
+      await page.getByRole("textbox", { name: "Your answer" }).fill(wrong ? "mali" : (p.answers as string[])[0]);
+      break;
+    case "find_root":
+      if (p.mode === "choice") {
+        const options = p.options as string[];
+        const idx = options.indexOf(p.root as string);
+        await page
+          .getByRole("radio")
+          .nth(wrong ? (idx + 1) % options.length : idx)
+          .click();
+      } else await page.getByRole("textbox", { name: "The root" }).fill(wrong ? "mali" : (p.root as string));
+      break;
+    case "transform":
+      if (p.mode === "type") {
+        await page
+          .getByRole("textbox", { name: "Your answer" })
+          .fill(wrong ? "mali" : (p.answers as string[][])[0].join(" "));
+      } else {
+        const bank = page.getByLabel("Word bank");
+        const tokens = wrong ? [(p.distractors as string[])[0] ?? "x"] : (p.answers as string[][])[0];
+        for (const t of tokens) await bank.getByRole("button", { name: t, exact: true }).first().click();
+      }
+      break;
+    case "paradigm": {
+      // Tiles fill the hidden cells in table order; a wrong answer puts a distractor in the first one.
+      const cells = p.cells as { value: string; hidden: boolean }[];
+      const values = cells.filter((c) => c.hidden).map((c) => c.value);
+      if (wrong) values[0] = (p.distractors as string[])[0] ?? values[1] ?? values[0];
+      const bank = page.getByLabel("Word bank");
+      for (const v of values) await bank.getByRole("button", { name: v, exact: true }).first().click();
       break;
     }
     case "speak":

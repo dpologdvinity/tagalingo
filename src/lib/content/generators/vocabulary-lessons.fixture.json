@@ -1,0 +1,172 @@
+{
+  "pagbati#0": [
+    {
+      "type": "select_translation",
+      "payload": {
+        "prompt": "how are you",
+        "promptLang": "en",
+        "options": ["salamat", "paalam", "kumusta", "hindi"],
+        "answerIndex": 2
+      }
+    },
+    {
+      "type": "select_translation",
+      "payload": {
+        "prompt": "mabuti",
+        "promptLang": "tl",
+        "options": ["good", "how are you", "good morning", "yes"],
+        "answerIndex": 0
+      }
+    },
+    {
+      "type": "listen_select",
+      "payload": {
+        "audio": "salamat",
+        "options": ["how are you", "good evening", "thank you", "take care"],
+        "answerIndex": 2
+      }
+    },
+    {
+      "type": "match_pairs",
+      "payload": {
+        "pairs": [
+          { "tl": "kumusta", "en": "how are you" },
+          { "tl": "mabuti", "en": "good" },
+          { "tl": "salamat", "en": "thank you" },
+          { "tl": "oo", "en": "yes" }
+        ]
+      }
+    },
+    {
+      "type": "fill_blank",
+      "payload": {
+        "sentence": "___, Ana.",
+        "translation": "Thank you, Ana.",
+        "options": ["Salamat", "Oo", "Mabuti"],
+        "answerIndex": 0
+      }
+    },
+    {
+      "type": "word_bank",
+      "payload": {
+        "prompt": "Yes, I'm hungry.",
+        "promptLang": "en",
+        "answer": ["oo", "gutom", "ako"],
+        "distractors": ["mabuti", "naman", "magandang"]
+      }
+    },
+    { "type": "type_translation", "payload": { "prompt": "hindi", "promptLang": "tl", "answers": ["no", "not"] } },
+    {
+      "type": "dialogue",
+      "payload": {
+        "lines": [{ "speaker": "A", "tl": "Kumusta ka?", "en": "How are you?" }],
+        "options": ["Paalam, kaibigan.", "Hindi, salamat.", "Mabuti naman, salamat."],
+        "answerIndex": 2,
+        "replyEn": "I'm fine, thanks."
+      }
+    },
+    {
+      "type": "word_bank",
+      "payload": {
+        "prompt": "Mabuti naman ako.",
+        "promptLang": "tl",
+        "answer": ["I'm", "fine"],
+        "alternates": [
+          ["I", "am", "fine"],
+          ["I'm", "doing", "well"],
+          ["I", "am", "good"]
+        ],
+        "distractors": ["thank", "you", "not"]
+      }
+    },
+    { "type": "speak", "payload": { "text": "Hindi ako gutom.", "translation": "I'm not hungry." } },
+    { "type": "type_translation", "payload": { "prompt": "thank you", "promptLang": "en", "answers": ["salamat"] } }
+  ],
+  "oras-at-araw#1": [
+    {
+      "type": "select_translation",
+      "payload": {
+        "prompt": "afternoon",
+        "promptLang": "en",
+        "options": ["araw", "ngayon", "umaga", "hapon"],
+        "answerIndex": 3
+      }
+    },
+    {
+      "type": "select_translation",
+      "payload": {
+        "prompt": "araw",
+        "promptLang": "tl",
+        "options": ["Monday", "yesterday", "now", "day"],
+        "answerIndex": 3
+      }
+    },
+    {
+      "type": "listen_select",
+      "payload": { "audio": "oras", "options": ["day", "afternoon", "Friday", "time"], "answerIndex": 3 }
+    },
+    {
+      "type": "match_pairs",
+      "payload": {
+        "pairs": [
+          { "tl": "hapon", "en": "afternoon" },
+          { "tl": "araw", "en": "day" },
+          { "tl": "oras", "en": "time" },
+          { "tl": "Lunes", "en": "Monday" }
+        ]
+      }
+    },
+    {
+      "type": "fill_blank",
+      "payload": {
+        "sentence": "Anong ___ na?",
+        "translation": "What time is it?",
+        "options": ["oras", "ngayon", "bukas"],
+        "answerIndex": 0
+      }
+    },
+    {
+      "type": "word_bank",
+      "payload": {
+        "prompt": "I have class on Monday.",
+        "promptLang": "en",
+        "answer": ["may", "klase", "ako", "sa", "Lunes"],
+        "distractors": ["anong", "oras", "na"]
+      }
+    },
+    { "type": "type_translation", "payload": { "prompt": "Biyernes", "promptLang": "tl", "answers": ["Friday"] } },
+    {
+      "type": "dialogue",
+      "payload": {
+        "lines": [{ "speaker": "A", "tl": "Anong araw ngayon?", "en": "What day is it today?" }],
+        "options": ["Alas tres na.", "Lunes ngayon.", "Mainit sa hapon."],
+        "answerIndex": 1,
+        "replyEn": "It's Monday today."
+      }
+    },
+    {
+      "type": "word_bank",
+      "payload": {
+        "prompt": "Mainit ang araw.",
+        "promptLang": "tl",
+        "answer": ["the", "sun", "is", "hot"],
+        "alternates": [
+          ["the", "day", "is", "hot"],
+          ["it", "is", "a", "hot", "day"]
+        ],
+        "distractors": ["it's", "in", "afternoon"]
+      }
+    },
+    { "type": "speak", "payload": { "text": "Biyernes na bukas.", "translation": "Tomorrow is Friday." } },
+    {
+      "type": "select_translation",
+      "payload": {
+        "prompt": "Nagsisimba kami tuwing Linggo.",
+        "promptLang": "tl",
+        "options": ["We go to church every Sunday.", "See you tomorrow.", "The night is quiet."],
+        "answerIndex": 0
+      }
+    },
+    { "type": "type_translation", "payload": { "prompt": "time", "promptLang": "en", "answers": ["oras"] } }
+  ]
+}
