@@ -28,8 +28,17 @@ export const exportFileSchema = z.object({
           payload: z.unknown(),
           source: z.enum(["HUMAN", "CLAUDE", "STUB"]),
           reviewNote: z.string().nullish(),
-          /** Slugs of the grammar patterns the exercise drills; absent in files exported before patterns existed. */
-          patterns: z.array(z.string()).default([]),
+          /**
+           * Slugs of the grammar patterns the exercise drills; absent in files exported before patterns
+           * existed. A slug may appear once: the seed stores one tag per pattern, and a repeat would fail it.
+           */
+          patterns: z
+            .array(z.string())
+            .superRefine((slugs, ctx) => {
+              for (const slug of new Set(slugs.filter((s, i) => slugs.indexOf(s) !== i)))
+                ctx.addIssue({ code: "custom", message: `pattern "${slug}" is listed more than once` });
+            })
+            .default([]),
         }),
       ),
     }),

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { loadCourseFile, parseCourse } from "./course";
-import { checkShippedContent, formatContentReport, loadShippedContent } from "./shipped";
+import { checkShippedContent, exportFileSchema, formatContentReport, loadShippedContent } from "./shipped";
 
 const course = parseCourse({
   course: { slug: "tl-en", title: "T", fromLang: "en", toLang: "tl" },
@@ -133,6 +133,21 @@ describe("grammar pattern tags and verb tables", () => {
     expect(report.errors).toEqual([
       expect.stringMatching(new RegExp(`${realSkill}\\.json › lesson 1 › exercise 2: .*"no-such-pattern"`)),
     ]);
+  });
+
+  it("rejects a pattern tag listed twice on one exercise, as the seed would", () => {
+    const report = checkShippedContent(realCourse, [realFile([select, tagged(["po-opo", "po-opo"])])]);
+    expect(report.errors).toEqual([
+      expect.stringMatching(/not a valid export file — lessons\.0\.exercises\.1\.patterns: .*"po-opo".*more than once/),
+    ]);
+  });
+
+  it("still defaults the tags of files exported before patterns existed to none", () => {
+    const parsed = exportFileSchema.parse({
+      skill: "pagbati",
+      lessons: [{ order: 1, title: "L1", exercises: [select] }],
+    });
+    expect(parsed.lessons[0].exercises[0].patterns).toEqual([]);
   });
 
   describe("verbs.json", () => {
